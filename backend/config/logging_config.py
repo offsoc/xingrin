@@ -94,21 +94,21 @@ def get_logging_config(debug: bool = False):
             'level': 'ERROR',  # 只记录 ERROR 及以上级别
         }
         
-        # JSON 结构化日志（便于日志分析和监控）
-        log_handlers.append('json_file')
-        logging_handlers['json_file'] = {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'json',
-            'filename': str(log_path / 'xingrin_json.log'),
-            'maxBytes': 100 * 1024 * 1024,  # 100MB
-            'backupCount': 5,
-            'encoding': 'utf-8',
-        }
+        # JSON 结构化日志（暂时关闭，需要时再开启）
+        # log_handlers.append('json_file')
+        # logging_handlers['json_file'] = {
+        #     'class': 'logging.handlers.RotatingFileHandler',
+        #     'formatter': 'json',
+        #     'filename': str(log_path / 'xingrin_json.log'),
+        #     'maxBytes': 100 * 1024 * 1024,  # 100MB
+        #     'backupCount': 5,
+        #     'encoding': 'utf-8',
+        # }
         
-        # 性能指标日志（专门记录性能相关信息）
+        # 性能指标日志（可读格式，便于人工查看）
         logging_handlers['performance_file'] = {
             'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'json',
+            'formatter': 'standard',  # 使用可读格式，不用 JSON
             'filename': str(log_path / 'performance.log'),
             'maxBytes': 100 * 1024 * 1024,  # 100MB
             'backupCount': 5,

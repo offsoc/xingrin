@@ -9,6 +9,7 @@ from .command_builder import build_scan_command
 from .command_executor import execute_and_wait, execute_stream
 from .wordlist_helpers import ensure_wordlist_local
 from .nuclei_helpers import ensure_nuclei_templates_local
+from .performance import FlowPerformanceTracker, CommandPerformanceTracker
 from . import config_parser
 
 __all__ = [
@@ -23,6 +24,9 @@ __all__ = [
     'ensure_wordlist_local', # 确保本地字典文件（含 hash 校验）
     # Nuclei 模板
     'ensure_nuclei_templates_local',  # 确保本地模板（含 commit hash 校验）
+    # 性能监控
+    'FlowPerformanceTracker',      # Flow 性能追踪器（含系统资源采样）
+    'CommandPerformanceTracker',   # 命令性能追踪器
     # 配置解析
     'config_parser',
 ]
