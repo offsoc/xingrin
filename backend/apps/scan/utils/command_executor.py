@@ -4,6 +4,10 @@
 统一管理所有命令执行方式：
 - execute_and_wait(): 等待式执行，适合输出到文件的工具
 - execute_stream(): 流式执行，适合实时处理输出的工具
+
+性能监控：
+- 自动记录命令执行耗时、内存使用
+- 输出到 performance logger
 """
 
 import logging
@@ -25,6 +29,12 @@ except ImportError:  # 运行环境缺少 psutil 时降级为无动态负载控�
     psutil = None
 
 logger = logging.getLogger(__name__)
+
+# 延迟导入，避免循环依赖
+def _get_command_tracker(tool_name: str, command: str):
+    """获取命令性能追踪器（延迟导入）"""
+    from apps.scan.utils.performance import CommandPerformanceTracker
+    return CommandPerformanceTracker(tool_name, command)
 
 # 常量定义
 GRACEFUL_SHUTDOWN_TIMEOUT = 5  # 进程优雅退出的超时时间（秒）
@@ -193,6 +203,10 @@ class CommandExecutor:
         # 记录开始时间（用于计算执行时间）
         start_time = datetime.now()
         
+        # 初始化性能追踪器
+        perf_tracker = _get_command_tracker(tool_name, command)
+        perf_tracker.start()
+        
         process = None
         log_file_handle = None
         acquired_slot = False  # 标记是否已增加全局活动命令计数
@@ -278,6 +292,9 @@ class CommandExecutor:
             else:
                 logger.info("✓ 扫描工具 %s 执行完成 (执行时间: %.2f秒)", tool_name, duration)
             
+            # 记录性能日志
+            perf_tracker.finish(success=success, duration=duration, timeout=timeout)
+            
             return {
                 'success': success,
                 'returncode': returncode,
@@ -293,6 +310,9 @@ class CommandExecutor:
             # 追加超时结束信息
             if log_file_path and ENABLE_COMMAND_LOGGING:
                 self._write_command_end_footer(log_file_path, tool_name, duration, -1, False)
+            
+            # 记录性能日志（超时）
+            perf_tracker.finish(success=False, duration=duration, timeout=timeout, is_timeout=True)
             
             error_msg = f"扫描工具 {tool_name} 执行超时（{timeout}秒，实际执行: {duration:.2f}秒）"
             logger.error(error_msg)
@@ -376,6 +396,10 @@ class CommandExecutor:
         # 记录开始时间（用于命令日志）
         start_time = datetime.now()
         acquired_slot = False
+        
+        # 初始化性能追踪器
+        perf_tracker = _get_command_tracker(tool_name, cmd)
+        perf_tracker.start()
         
         # 准备日志文件路径
         log_file_path = Path(log_file) if log_file else None
@@ -554,12 +578,15 @@ class CommandExecutor:
                 log_file_handle.close()
             
             # 5. 追加命令结束信息（如果开启且有日志文件）
+            duration = (datetime.now() - start_time).total_seconds()
+            success = not timed_out_event.is_set() and (exit_code == 0 if exit_code is not None else True)
+            
             if log_file_path and ENABLE_COMMAND_LOGGING:
-                duration = (datetime.now() - start_time).total_seconds()
-                success = not timed_out_event.is_set() and (exit_code == 0 if exit_code is not None else True)
-                
                 # 追加结束信息到日志文件末尾
                 self._write_command_end_footer(log_file_path, tool_name, duration, exit_code or 0, success)
+            
+            # 6. 记录性能日志
+            perf_tracker.finish(success=success, duration=duration, timeout=timeout, is_timeout=timed_out_event.is_set())
             
             if acquired_slot:
                 if _ACTIVE_COMMANDS_LOCK:

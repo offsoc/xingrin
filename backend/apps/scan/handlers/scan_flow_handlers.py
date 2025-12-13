@@ -6,13 +6,19 @@
 职责：
 - 更新各阶段的进度状态（running/completed/failed）
 - 发送扫描阶段的通知
+- 记录 Flow 性能指标
 """
 
 import logging
 from prefect import Flow
 from prefect.client.schemas import FlowRun, State
 
+from apps.scan.utils.performance import FlowPerformanceTracker
+
 logger = logging.getLogger(__name__)
+
+# 存储每个 flow_run 的性能追踪器
+_flow_trackers: dict[str, FlowPerformanceTracker] = {}
 
 
 def _get_stage_from_flow_name(flow_name: str) -> str | None:
@@ -35,6 +41,7 @@ def on_scan_flow_running(flow: Flow, flow_run: FlowRun, state: State) -> None:
     职责：
     - 更新阶段进度为 running
     - 发送扫描开始通知
+    - 启动性能追踪
     
     Args:
         flow: Prefect Flow 对象
@@ -47,6 +54,13 @@ def on_scan_flow_running(flow: Flow, flow_run: FlowRun, state: State) -> None:
     flow_params = flow_run.parameters or {}
     scan_id = flow_params.get('scan_id')
     target_name = flow_params.get('target_name', 'unknown')
+    target_id = flow_params.get('target_id')
+    
+    # 启动性能追踪
+    if scan_id:
+        tracker = FlowPerformanceTracker(flow.name, scan_id)
+        tracker.start(target_id=target_id, target_name=target_name)
+        _flow_trackers[str(flow_run.id)] = tracker
     
     # 更新阶段进度
     stage = _get_stage_from_flow_name(flow.name)
@@ -67,6 +81,7 @@ def on_scan_flow_completed(flow: Flow, flow_run: FlowRun, state: State) -> None:
     职责：
     - 更新阶段进度为 completed
     - 发送扫描完成通知（可选）
+    - 记录性能指标
     
     Args:
         flow: Prefect Flow 对象
@@ -79,6 +94,18 @@ def on_scan_flow_completed(flow: Flow, flow_run: FlowRun, state: State) -> None:
     flow_params = flow_run.parameters or {}
     scan_id = flow_params.get('scan_id')
     
+    # 获取 flow result
+    result = None
+    try:
+        result = state.result() if state.result else None
+    except Exception:
+        pass
+    
+    # 记录性能指标
+    tracker = _flow_trackers.pop(str(flow_run.id), None)
+    if tracker:
+        tracker.finish(success=True)
+    
     # 更新阶段进度
     stage = _get_stage_from_flow_name(flow.name)
     if scan_id and stage:
@@ -86,7 +113,6 @@ def on_scan_flow_completed(flow: Flow, flow_run: FlowRun, state: State) -> None:
             from apps.scan.services import ScanService
             service = ScanService()
             # 从 flow result 中提取 detail（如果有）
-            result = state.result() if state.result else None
             detail = None
             if isinstance(result, dict):
                 detail = result.get('detail')
@@ -109,6 +135,7 @@ def on_scan_flow_failed(flow: Flow, flow_run: FlowRun, state: State) -> None:
     职责：
     - 更新阶段进度为 failed
     - 发送扫描失败通知
+    - 记录性能指标（含错误信息）
     
     Args:
         flow: Prefect Flow 对象
@@ -124,6 +151,11 @@ def on_scan_flow_failed(flow: Flow, flow_run: FlowRun, state: State) -> None:
     
     # 提取错误信息
     error_message = str(state.message) if state.message else "未知错误"
+    
+    # 记录性能指标（失败情况）
+    tracker = _flow_trackers.pop(str(flow_run.id), None)
+    if tracker:
+        tracker.finish(success=False, error_message=error_message)
     
     # 更新阶段进度
     stage = _get_stage_from_flow_name(flow.name)
