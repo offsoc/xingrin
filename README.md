@@ -97,7 +97,7 @@
 |------|------|
 | 子域名爆破 | puredns, massdns, dnsgen |
 | 被动发现 | subfinder, amass, assetfinder, Sublist3r |
-| 端口扫描 | naabu, nmap, masscan |
+| 端口扫描 | naabu |
 | 站点发现 | httpx |
 | 目录扫描 | ffuf |
 | 爬虫 | katana |
