@@ -132,6 +132,72 @@ class CommandExecutor:
         except Exception as e:
             logger.error(f"写入命令结束信息失败: {e}")
     
+    def _clean_output_line(self, line: str, suffix_char: Optional[str] = None) -> Optional[str]:
+        """
+        统一的输出行清理处理
+        
+        处理顺序：
+        1. 去除首尾空白
+        2. 跳过空行
+        3. 处理字面转义字符串（如 \\x0d\\x0a）
+        4. 移除 ANSI 转义序列
+        5. 清理控制字符
+        6. 移除指定后缀字符
+        
+        Args:
+            line: 原始输出行
+            suffix_char: 要移除的末尾字符
+            
+        Returns:
+            清理后的行内容，如果是空行则返回 None
+        """
+        # 1. 去除行首尾的空白字符
+        line = line.strip()
+        
+        # 2. 跳过空行
+        if not line:
+            return None
+        
+        # 3. 处理字面转义字符串（罕见但可能存在）
+        # 处理常见的字面转义序列
+        escape_mappings = {
+            '\\x0d\\x0a': '\n',    # Windows 换行符字面量
+            '\\x0a': '\n',         # Unix 换行符字面量
+            '\\x0d': '\r',         # 回车符字面量
+            '\\r\\n': '\n',        # 常见的转义表示
+            '\\n': '\n',           # 换行符转义
+            '\\r': '\r',           # 回车符转义
+            '\\t': '\t',           # 制表符转义
+        }
+        
+        for literal, actual in escape_mappings.items():
+            if literal in line:
+                line = line.replace(literal, actual)
+        
+        # 4. 移除 ANSI 转义序列（颜色、格式等控制字符）
+        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+        line = ansi_escape.sub('', line)
+        
+        # 5. 清理控制字符
+        line = line.replace('\x00', '')  # 移除 NUL 字符
+        line = line.replace('\r', '')    # 移除回车符
+        line = line.replace('\b', '')    # 移除退格符
+        line = line.replace('\f', '')    # 移除换页符
+        line = line.replace('\v', '')    # 移除垂直制表符
+        
+        # 6. 再次去除空白（清理后可能产生新的空白）
+        line = line.strip()
+        if not line:
+            return None
+        
+        # 7. 如果指定了后缀字符，移除末尾的后缀字符
+        if suffix_char and line.endswith(suffix_char):
+            line = line[:-1].strip()
+            if not line:
+                return None
+        
+        return line
+
     def _kill_process_tree(self, process: subprocess.Popen) -> None:
         """
         强制终止进程树
@@ -514,21 +580,11 @@ class CommandExecutor:
                 if not line:
                     break
                 
-                # 去除行首尾的空白字符
-                line = line.strip()
-                # 跳过空行
-                if not line:
-                    continue
-                
-                # 移除ANSI转义序列（颜色、格式等控制字符）
-                ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-                line = ansi_escape.sub('', line)
-                # 处理Windows风格的换行符
-                line = line.replace('\\x0d\\x0a', '\n')
-                
-                # 如果指定了后缀字符，移除末尾的后缀字符
-                if suffix_char and line.endswith(suffix_char):
-                    line = line[:-1]
+                # 统一字符处理
+                cleaned_line = self._clean_output_line(line, suffix_char)
+                if cleaned_line is None:
+                    continue  # 跳过空行
+                line = cleaned_line
                 
                 # 如果开启命令日志且有日志文件，同时写入日志文件
                 if log_file_handle and ENABLE_COMMAND_LOGGING:

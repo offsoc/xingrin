@@ -10,11 +10,17 @@
 4. 远程 Worker：通过 SSH 执行 docker run
 5. 任务执行完自动销毁容器
 
+镜像版本管理：
+- 版本锁定：使用 settings.IMAGE_TAG 确保 server 和 worker 版本一致
+- 预拉取策略：安装时预拉取镜像，执行时使用 --pull=missing
+- 本地开发：可通过 TASK_EXECUTOR_IMAGE 环境变量指向本地镜像
+
 特点：
 - 负载感知：任务优先分发到最空闲的机器
 - 统一调度：本地和远程 Worker 使用相同的选择逻辑
 - 资源隔离：每个任务独立容器
 - 按需创建：空闲时零占用
+- 版本一致：所有节点使用相同版本的 worker 镜像
 """
 
 import logging
@@ -216,9 +222,12 @@ class TaskDistributor:
         inner_cmd = f'tail -n 10000 {log_file} > {log_file}.tmp 2>/dev/null; mv {log_file}.tmp {log_file} 2>/dev/null; python -m {script_module} {args_str} >> {log_file} 2>&1'
         
         # 完整命令
-        # --pull=always: 确保本地镜像与 Docker Hub 一致（版本标签不变则跳过下载）
+        # 镜像拉取策略：--pull=missing
+        # - 本地 Worker：install.sh 已预拉取镜像，直接使用本地版本
+        # - 远程 Worker：deploy 时已预拉取镜像，直接使用本地版本
+        # - 避免每次任务都检查 Docker Hub，提升性能和稳定性
         # 使用双引号包裹 sh -c 命令，内部 shlex.quote 生成的单引号参数可正确解析
-        cmd = f'''docker run --rm -d --pull=always {network_arg} \
+        cmd = f'''docker run --rm -d --pull=missing {network_arg} \
             {' '.join(env_vars)} \
             {' '.join(volumes)} \
             {self.docker_image} \

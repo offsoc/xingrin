@@ -296,18 +296,25 @@ IMAGE_TAG = os.getenv('IMAGE_TAG', '')
 
 # 任务执行器镜像配置（task_distributor 用于创建 worker 容器执行扫描任务）
 # 
+# 版本一致性说明：
+# - 生产环境：IMAGE_TAG 锁定版本，确保 server 和 worker 版本一致
+# - 开发环境：可通过 TASK_EXECUTOR_IMAGE 环境变量指向本地构建镜像
+# 
 # 环境区分逻辑：
 # 1. 主服务器环境：
-#    - 有 IMAGE_TAG 环境变量（从 docker/.env 读取）
+#    - 有 IMAGE_TAG 环境变量（从 docker/.env 读取，install.sh 写入）
 #    - 需要 TASK_EXECUTOR_IMAGE 来创建 worker 容器执行任务
-#    - 默认使用 {DOCKER_USER}/xingrin-worker:{IMAGE_TAG}
-#    - 可通过 TASK_EXECUTOR_IMAGE 环境变量覆盖（开发测试时指向本地镜像）
+#    - 默认使用 {DOCKER_USER}/xingrin-worker:{IMAGE_TAG}（版本锁定）
+#    - 开发时可设置 TASK_EXECUTOR_IMAGE=本地镜像名 覆盖
 # 
 # 2. Worker 容器环境：
 #    - 无 IMAGE_TAG 环境变量（容器启动时未注入）
 #    - 无 .env 文件
 #    - 不需要 TASK_EXECUTOR_IMAGE（worker 只执行任务，不会再创建其他容器）
 #    - 设为空字符串避免 AttributeError，确保 settings 模块正常加载
+# 
+# 开发环境配置示例：
+# 在 docker/.env 中添加：TASK_EXECUTOR_IMAGE=docker-agent:test-v1.0.0
 if IMAGE_TAG:
     # 主服务器场景：构建完整镜像名
     TASK_EXECUTOR_IMAGE = os.getenv('TASK_EXECUTOR_IMAGE', f'{DOCKER_USER}/xingrin-worker:{IMAGE_TAG}')

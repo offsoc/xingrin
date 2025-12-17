@@ -1,5 +1,14 @@
 #!/bin/bash
-# 更新服务（停止 → 拉取 → 合并配置 → 启动）
+# ============================================
+# XingRin 系统更新脚本
+# 用途：更新代码 + 同步版本 + 重启服务
+# ============================================
+#
+# 版本同步流程：
+# 1. git pull 拉取最新代码（包含新的 VERSION 文件）
+# 2. 读取 VERSION 文件，更新 .env 的 IMAGE_TAG
+# 3. 重启服务，server 使用新代码 + 新镜像版本
+# 4. 分发任务时，远程 Worker 自动拉取新版本镜像
 #
 # 用法:
 #   ./update.sh                 生产模式更新（拉取 Docker Hub 镜像）
@@ -75,6 +84,22 @@ git pull --rebase 2>&1 | sed 's/^/    /'
 echo ""
 echo -e "${CYAN}[3/4]${NC} 检查配置更新..."
 merge_env_config
+
+# 版本同步：从 VERSION 文件更新 IMAGE_TAG
+# 确保 server 代码和 worker 镜像版本一致
+if [ -f "VERSION" ]; then
+    NEW_VERSION=$(cat VERSION | tr -d '[:space:]')
+    if [ -n "$NEW_VERSION" ]; then
+        # 更新 .env 中的 IMAGE_TAG（所有节点将使用此版本的镜像）
+        if grep -q "^IMAGE_TAG=" "docker/.env"; then
+            sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=$NEW_VERSION/" "docker/.env"
+            echo -e "    ${GREEN}+${NC} 版本同步: IMAGE_TAG=$NEW_VERSION"
+        else
+            echo "IMAGE_TAG=$NEW_VERSION" >> "docker/.env"
+            echo -e "    ${GREEN}+${NC} 新增版本: IMAGE_TAG=$NEW_VERSION"
+        fi
+    fi
+fi
 
 echo ""
 echo -e "${CYAN}[4/4]${NC} 启动服务..."

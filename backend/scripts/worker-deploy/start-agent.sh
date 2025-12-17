@@ -1,12 +1,17 @@
 #!/bin/bash
 # ============================================
 # XingRin Agent 启动脚本
-# 用途：启动 agent 容器（心跳上报）
+# 用途：启动 agent 容器（心跳上报 + 负载监控）
 # 
-# 新架构说明：
-# - 使用 docker run 直接启动
-# - 不需要 docker-compose
-# - 扫描任务由主服务器 SSH docker run 执行
+# 架构说明：
+# - 使用 docker run 直接启动 agent 容器
+# - agent 负责心跳上报和系统负载监控
+# - 扫描任务由主服务器通过 SSH 执行独立的 worker 容器
+# - 镜像版本由主服务器传入，确保版本一致性
+# 
+# 镜像拉取：
+# - 使用 --pull=missing，优先使用本地镜像
+# - 如果本地没有则从 Docker Hub 拉取
 # ============================================
 
 set -e
@@ -55,8 +60,8 @@ start_agent() {
     log_info "=========================================="
     
     log_info "启动 agent 容器..."
-    # --pull=always 确保使用最新镜像，已是最新则跳过下载
-    docker run -d --pull=always \
+    # --pull=missing 只在本地没有镜像时才拉取，避免意外更新
+    docker run -d --pull=missing \
         --name ${CONTAINER_NAME} \
         --restart always \
         -e SERVER_URL="${PRESET_SERVER_URL}" \

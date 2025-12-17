@@ -1,13 +1,18 @@
 #!/bin/bash
 # ============================================
 # XingRin 远程节点安装脚本
-# 用途：安装 Docker 环境
+# 用途：安装 Docker 环境 + 预拉取镜像
 # 支持：Ubuntu / Debian
 # 
-# 新架构说明：
-# - 只需安装 Docker
-# - agent 通过 docker run 启动
-# - 扫描任务由主服务器 SSH docker run 执行
+# 架构说明：
+# 1. 安装 Docker 环境
+# 2. 预拉取 worker 镜像（避免任务执行时网络延迟）
+# 3. agent 通过 start-agent.sh 启动（心跳上报）
+# 4. 扫描任务由主服务器通过 SSH 执行 docker run
+# 
+# 镜像版本管理：
+# - IMAGE_TAG 由主服务器传入，确保版本一致性
+# - 预拉取后，任务执行时使用 --pull=missing 直接用本地镜像
 # ============================================
 
 set -e
@@ -122,17 +127,23 @@ cleanup_old_containers() {
     log_success "旧容器已清理"
 }
 
-# 拉取镜像
+# 拉取 Worker 镜像（预先拉取，避免任务执行时网络延迟）
+# 
+# 镜像拉取策略：
+# 1. 安装时预先拉取 worker 镜像到本地
+# 2. 后续任务执行时使用 --pull=missing，直接用本地镜像
+# 3. 版本由主服务器的 IMAGE_TAG 决定，确保版本一致性
 pull_image() {
     log_info "拉取 Worker 镜像..."
-    # 镜像版本由部署时传入（必须设置）
+    # 镜像版本由部署时传入（deploy_service.py 注入 IMAGE_TAG 环境变量）
     if [ -z "$IMAGE_TAG" ]; then
         log_error "IMAGE_TAG 未设置，请确保部署时传入版本号"
         exit 1
     fi
     local docker_user="${DOCKER_USER:-yyhuni}"
+    # 拉取指定版本的 worker 镜像（用于执行扫描任务）
     sudo docker pull "${docker_user}/xingrin-worker:${IMAGE_TAG}"
-    log_success "镜像拉取完成"
+    log_success "镜像拉取完成: ${docker_user}/xingrin-worker:${IMAGE_TAG}"
 }
 
 # 主流程
