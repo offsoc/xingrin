@@ -78,21 +78,21 @@ export function createIPAddressColumns(params: {
       enableSorting: false,
       enableHiding: false,
     },
-    // IP 地址列
+    // IP 列
     {
       accessorKey: "ip",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="IP 地址" />
+        <DataTableColumnHeader column={column} title="IP Address" />
       ),
       cell: ({ row }) => (
         <TruncatedCell value={row.original.ip} maxLength="ip" mono />
       ),
     },
-    // 关联主机名列
+    // host 列
     {
       accessorKey: "hosts",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="关联主机" />
+        <DataTableColumnHeader column={column} title="Hosts" />
       ),
       cell: ({ getValue }) => {
         const hosts = getValue<string[]>()
@@ -107,7 +107,7 @@ export function createIPAddressColumns(params: {
         return (
           <div className="flex flex-col gap-1">
             {displayHosts.map((host, index) => (
-              <span key={index} className="text-sm font-mono">{host}</span>
+              <TruncatedCell key={index} value={host} maxLength="host" mono />
             ))}
             {hasMore && (
               <Badge variant="secondary" className="text-xs w-fit">
@@ -118,11 +118,11 @@ export function createIPAddressColumns(params: {
         )
       },
     },
-    // 发现时间列
+    // discoveredAt 列
     {
       accessorKey: "discoveredAt",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="发现时间" />
+        <DataTableColumnHeader column={column} title="Discovered At" />
       ),
       cell: ({ getValue }) => {
         const value = getValue<string | undefined>()
@@ -133,7 +133,7 @@ export function createIPAddressColumns(params: {
     {
       accessorKey: "ports",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="开放端口" />
+        <DataTableColumnHeader column={column} title="Open Ports" />
       ),
       cell: ({ getValue }) => {
         const ports = getValue<number[]>()
@@ -191,7 +191,7 @@ export function createIPAddressColumns(params: {
                 </PopoverTrigger>
                 <PopoverContent className="w-80 p-3">
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">所有开放端口 ({sortedPorts.length})</h4>
+                    <h4 className="font-medium text-sm">All Open Ports ({sortedPorts.length})</h4>
                     <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
                       {sortedPorts.map((port, index) => (
                         <Badge 

@@ -188,7 +188,7 @@ export const createEngineColumns = ({
   {
     accessorKey: "name",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="引擎名称" />
+      <DataTableColumnHeader column={column} title="Engine Name" />
     ),
     cell: ({ row }) => {
       const name = row.getValue("name") as string

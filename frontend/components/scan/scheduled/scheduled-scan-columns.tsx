@@ -180,7 +180,7 @@ export const createScheduledScanColumns = ({
   {
     accessorKey: "name",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="任务名称" />
+      <DataTableColumnHeader column={column} title="Task Name" />
     ),
     cell: ({ row }) => {
       const name = row.getValue("name") as string
@@ -216,7 +216,7 @@ export const createScheduledScanColumns = ({
   {
     accessorKey: "engineName",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="扫描引擎" />
+      <DataTableColumnHeader column={column} title="Scan Engine" />
     ),
     cell: ({ row }) => {
       const engineName = row.getValue("engineName") as string
@@ -283,7 +283,7 @@ export const createScheduledScanColumns = ({
   {
     accessorKey: "isEnabled",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="状态" />
+      <DataTableColumnHeader column={column} title="Status" />
     ),
     cell: ({ row }) => {
       const isEnabled = row.getValue("isEnabled") as boolean
@@ -308,7 +308,7 @@ export const createScheduledScanColumns = ({
   {
     accessorKey: "nextRunTime",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="下次执行" />
+      <DataTableColumnHeader column={column} title="Next Run" />
     ),
     cell: ({ row }) => {
       const nextRunTime = row.getValue("nextRunTime") as string | undefined
@@ -324,7 +324,7 @@ export const createScheduledScanColumns = ({
   {
     accessorKey: "runCount",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="执行次数" />
+      <DataTableColumnHeader column={column} title="Run Count" />
     ),
     cell: ({ row }) => {
       const count = row.getValue("runCount") as number
@@ -338,7 +338,7 @@ export const createScheduledScanColumns = ({
   {
     accessorKey: "lastRunTime",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="上次执行" />
+      <DataTableColumnHeader column={column} title="Last Run" />
     ),
     cell: ({ row }) => {
       const lastRunTime = row.getValue("lastRunTime") as string | undefined

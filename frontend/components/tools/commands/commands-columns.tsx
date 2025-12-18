@@ -95,7 +95,7 @@ export const commandColumns: ColumnDef<Command>[] = [
   {
     accessorKey: "displayName",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="名称" />
+      <DataTableColumnHeader column={column} title="Name" />
     ),
     cell: ({ row }) => {
       const displayName = row.getValue("displayName") as string
@@ -136,7 +136,7 @@ export const commandColumns: ColumnDef<Command>[] = [
   {
     accessorKey: "tool",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="所属工具" />
+      <DataTableColumnHeader column={column} title="Tool" />
     ),
     cell: ({ row }) => {
       const tool = row.original.tool
@@ -156,7 +156,7 @@ export const commandColumns: ColumnDef<Command>[] = [
   {
     accessorKey: "commandTemplate",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="命令模板" />
+      <DataTableColumnHeader column={column} title="Command Template" />
     ),
     cell: ({ row }) => {
       const template = row.getValue("commandTemplate") as string
@@ -192,7 +192,7 @@ export const commandColumns: ColumnDef<Command>[] = [
   {
     accessorKey: "description",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="描述" />
+      <DataTableColumnHeader column={column} title="Description" />
     ),
     cell: ({ row }) => {
       const description = row.getValue("description") as string
@@ -217,7 +217,7 @@ export const commandColumns: ColumnDef<Command>[] = [
   {
     accessorKey: "updatedAt",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="更新时间" />
+      <DataTableColumnHeader column={column} title="Updated At" />
     ),
     cell: ({ row }) => (
       <div className="text-sm text-muted-foreground">

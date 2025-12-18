@@ -79,10 +79,10 @@ ENV GOPATH=/root/go
 ENV PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
 ENV GOPROXY=https://goproxy.cn,direct
 
-# 5. 安装 uv（超快的 Python 包管理器）
+# 5. 安装 uv（ Python 包管理器）
 RUN pip install uv --break-system-packages
 
-# 安装 Python 依赖（使用 uv 并行下载，速度快 10-100 倍）
+# 安装 Python 依赖（使用 uv 并行下载）
 COPY backend/requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system -r requirements.txt --break-system-packages && \

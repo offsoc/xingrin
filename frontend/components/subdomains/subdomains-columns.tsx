@@ -100,7 +100,7 @@ export const createSubdomainColumns = ({
   {
     accessorKey: "discoveredAt",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="发现时间" />
+      <DataTableColumnHeader column={column} title="Discovered At" />
     ),
     cell: ({ getValue }) => {
       const value = getValue<string | undefined>()

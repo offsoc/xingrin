@@ -108,8 +108,6 @@ services:
       dockerfile: docker/worker/Dockerfile
     image: docker-worker:latest
     restart: "no"
-    env_file:
-      - .env
     volumes:
       - /opt/xingrin/results:/app/backend/results
       - /opt/xingrin/logs:/app/backend/logs

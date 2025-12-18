@@ -225,7 +225,7 @@ def _parse_and_validate_line(line: str) -> Optional[PortScanRecord]:
         ip = line_data.get('ip', '').strip()
         port = line_data.get('port')
         
-        logger.info("解析到的主机名: %s, IP: %s, 端口: %s", host, ip, port)
+        logger.debug("解析到的主机名: %s, IP: %s, 端口: %s", host, ip, port)
 
         if not host and ip:
             host = ip

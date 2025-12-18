@@ -8,12 +8,31 @@
 2. 选择负载最低的 Worker（可能是本地或远程）
 3. 本地 Worker：直接执行 docker run
 4. 远程 Worker：通过 SSH 执行 docker run
-5. 任务执行完自动销毁容器
+5. 任务执行完自动销毁容器（--rm）
 
 镜像版本管理：
 - 版本锁定：使用 settings.IMAGE_TAG 确保 server 和 worker 版本一致
 - 预拉取策略：安装时预拉取镜像，执行时使用 --pull=missing
 - 本地开发：可通过 TASK_EXECUTOR_IMAGE 环境变量指向本地镜像
+
+环境变量注入：
+- Worker 容器不使用 env_file，通过 docker run -e 动态注入
+- 只注入 SERVER_URL，容器启动后从配置中心获取完整配置
+- 本地 Worker：SERVER_URL = http://server:{port}（Docker 内部网络）
+- 远程 Worker：SERVER_URL = http://{public_host}:{port}（公网地址）
+
+任务启动流程：
+1. Server 调用 execute_scan_flow() 等方法提交任务
+2. select_best_worker() 从 Redis 读取心跳数据，选择负载最低的节点
+3. _build_docker_command() 构建完整的 docker run 命令：
+   - 设置网络（本地加入 Docker 网络，远程不指定）
+   - 注入环境变量（-e SERVER_URL=...）
+   - 挂载结果和日志目录（-v）
+   - 指定执行脚本（python -m apps.scan.scripts.xxx）
+4. _execute_docker_command() 执行命令：
+   - 本地：subprocess.run() 直接执行
+   - 远程：paramiko SSH 执行
+5. docker run -d 立即返回容器 ID，任务在后台执行
 
 特点：
 - 负载感知：任务优先分发到最空闲的机器

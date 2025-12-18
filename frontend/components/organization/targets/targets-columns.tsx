@@ -267,7 +267,7 @@ export const createTargetColumns = ({
   {
     accessorKey: "name",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="目标名称" />
+      <DataTableColumnHeader column={column} title="Target Name" />
     ),
     cell: ({ row }) => (
       <TargetNameCell
@@ -282,7 +282,7 @@ export const createTargetColumns = ({
   {
     accessorKey: "type",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="类型" />
+      <DataTableColumnHeader column={column} title="Type" />
     ),
     cell: ({ row }) => {
       const type = row.getValue("type") as string | null
