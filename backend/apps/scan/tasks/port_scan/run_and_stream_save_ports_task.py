@@ -225,6 +225,9 @@ def _parse_and_validate_line(line: str) -> Optional[PortScanRecord]:
         ip = line_data.get('ip', '').strip()
         port = line_data.get('port')
         
+        if not host and ip:
+            host = ip
+
         # 步骤 4: 验证字段不为空
         if not host or not ip or port is None:
             logger.warning(
