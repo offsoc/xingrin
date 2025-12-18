@@ -101,6 +101,20 @@ services:
       # SSL 证书挂载（方便更新）
       - ./nginx/ssl:/etc/nginx/ssl:ro
 
+  # Worker：扫描任务执行容器（开发模式下构建）
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/worker/Dockerfile
+    image: docker-worker:latest
+    restart: "no"
+    env_file:
+      - .env
+    volumes:
+      - /opt/xingrin/results:/app/backend/results
+      - /opt/xingrin/logs:/app/backend/logs
+    command: echo "Worker image built for development"
+
 volumes:
   postgres_data:
 

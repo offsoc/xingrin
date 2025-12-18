@@ -400,11 +400,29 @@ DOCKER_USER=$(grep "^DOCKER_USER=" "$DOCKER_DIR/.env" 2>/dev/null | cut -d= -f2)
 DOCKER_USER=${DOCKER_USER:-yyhuni}
 WORKER_IMAGE="${DOCKER_USER}/xingrin-worker:${APP_VERSION}"
 
-info "正在拉取: $WORKER_IMAGE"
-if docker pull "$WORKER_IMAGE"; then
-    success "Worker 镜像拉取完成"
+# 开发模式下构建本地 worker 镜像
+if [ "$DEV_MODE" = true ]; then
+    info "开发模式：构建本地 Worker 镜像..."
+    if docker compose -f "$DOCKER_DIR/docker-compose.dev.yml" build worker; then
+        # 设置 TASK_EXECUTOR_IMAGE 环境变量指向本地构建的镜像
+        update_env_var "$DOCKER_DIR/.env" "TASK_EXECUTOR_IMAGE" "docker-worker:latest"
+        success "本地 Worker 镜像构建完成，并设置为默认使用镜像"
+    else
+        warn "本地 Worker 镜像构建失败，将使用远程镜像"
+        info "正在拉取: $WORKER_IMAGE"
+        if docker pull "$WORKER_IMAGE"; then
+            success "Worker 镜像拉取完成"
+        else
+            warn "Worker 镜像拉取失败，扫描时会自动重试拉取"
+        fi
+    fi
 else
-    warn "Worker 镜像拉取失败，扫描时会自动重试拉取"
+    info "正在拉取: $WORKER_IMAGE"
+    if docker pull "$WORKER_IMAGE"; then
+        success "Worker 镜像拉取完成"
+    else
+        warn "Worker 镜像拉取失败，扫描时会自动重试拉取"
+    fi
 fi
 
 # ==============================================================================
