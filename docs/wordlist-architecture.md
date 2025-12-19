@@ -40,62 +40,66 @@ Wordlist
    - 统计文件大小和行数
    - 创建数据库记录
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                           Server 容器                                     │
-│                                                                          │
-│  ┌─────────────────────────────────────────────────────────────────┐    │
-│  │                        前端 UI                                   │    │
-│  │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │    │
-│  │  │ 上传字典     │    │ 编辑内容     │    │ 删除字典     │       │    │
-│  │  │ 选择文件     │    │ 在线修改     │    │              │       │    │
-│  │  └──────┬───────┘    └──────┬───────┘    └──────────────┘       │    │
-│  └─────────┼───────────────────┼───────────────────────────────────┘    │
-│            │                   │                                         │
-│            ▼                   ▼                                         │
-│  ┌─────────────────────────────────────────────────────────────────┐    │
-│  │                     WordlistViewSet                              │    │
-│  │         POST /api/wordlists/  |  PUT .../content/                │    │
-│  └─────────────────────────────┬───────────────────────────────────┘    │
-│                                │                                         │
-│                                ▼                                         │
-│  ┌─────────────────────────────────────────────────────────────────┐    │
-│  │                     WordlistService                              │    │
-│  │                                                                  │    │
-│  │  ┌────────────────────┐    ┌────────────────────────────────┐   │    │
-│  │  │ create_wordlist()  │    │ update_wordlist_content()      │   │    │
-│  │  │ 创建字典           │    │ 更新字典内容                   │   │    │
-│  │  └────────┬───────────┘    └───────────────┬────────────────┘   │    │
-│  └───────────┼────────────────────────────────┼────────────────────┘    │
-│              │                                │                          │
-│              ▼                                ▼                          │
-│  ┌─────────────────────────────────────────────────────────────────┐    │
-│  │                      处理流程                                    │    │
-│  │                                                                  │    │
-│  │  1. 保存文件到 /opt/xingrin/wordlists/<filename>                │    │
-│  │  2. 计算 SHA256 哈希值                                          │    │
-│  │  3. 统计文件大小和行数                                          │    │
-│  │  4. 创建/更新数据库记录                                         │    │
-│  └─────────────────────────────────────────────────────────────────┘    │
-│                                                                          │
-│  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │                      PostgreSQL 数据库                           │   │
-│  │                                                                  │   │
-│  │  INSERT INTO wordlist (name, file_path, file_size,              │   │
-│  │                        line_count, file_hash)                   │   │
-│  │  VALUES ('subdomains', '/opt/xingrin/wordlists/subdomains.txt', │   │
-│  │          1024000, 50000, 'sha256...')                           │   │
-│  └─────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-│  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │                      文件系统                                    │   │
-│  │  /opt/xingrin/wordlists/                                        │   │
-│  │  ├── common.txt                                                 │   │
-│  │  ├── subdomains.txt                                             │   │
-│  │  └── directories.txt                                            │   │
-│  └─────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-└──────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph SERVER["🖥️ Server 容器"]
+        direction TB
+        
+        subgraph UI["前端 UI"]
+            direction LR
+            UPLOAD["📤 上传字典<br/>选择文件"]
+            EDIT["✏️ 编辑内容<br/>在线修改"]
+            DELETE["🗑️ 删除字典"]
+        end
+        
+        UPLOAD --> API
+        EDIT --> API
+        
+        subgraph API["API 层"]
+            VIEWSET["WordlistViewSet<br/>POST /api/wordlists/<br/>PUT .../content/"]
+        end
+        
+        API --> SERVICE
+        
+        subgraph SERVICE["业务逻辑层"]
+            CREATE["create_wordlist()<br/>创建字典"]
+            UPDATE["update_wordlist_content()<br/>更新字典内容"]
+        end
+        
+        CREATE --> PROCESS
+        UPDATE --> PROCESS
+        
+        subgraph PROCESS["处理流程"]
+            direction TB
+            STEP1["1️⃣ 保存文件到<br/>/opt/xingrin/wordlists/"]
+            STEP2["2️⃣ 计算 SHA256 哈希值"]
+            STEP3["3️⃣ 统计文件大小和行数"]
+            STEP4["4️⃣ 创建/更新数据库记录"]
+            
+            STEP1 --> STEP2
+            STEP2 --> STEP3
+            STEP3 --> STEP4
+        end
+        
+        STEP4 --> DB
+        STEP1 --> FS
+        
+        subgraph DB["💾 PostgreSQL 数据库"]
+            DBRECORD["INSERT INTO wordlist<br/>name: 'subdomains'<br/>file_path: '/opt/xingrin/wordlists/subdomains.txt'<br/>file_size: 1024000<br/>line_count: 50000<br/>file_hash: 'sha256...'"]
+        end
+        
+        subgraph FS["📁 文件系统"]
+            FILES["/opt/xingrin/wordlists/<br/>├── common.txt<br/>├── subdomains.txt<br/>└── directories.txt"]
+        end
+    end
+    
+    style SERVER fill:#e6f3ff
+    style UI fill:#fff4e6
+    style API fill:#f0f0f0
+    style SERVICE fill:#d4edda
+    style PROCESS fill:#ffe6f0
+    style DB fill:#cce5ff
+    style FS fill:#e2e3e5
 ```
 
 ## 四、Worker 端获取流程
@@ -110,76 +114,65 @@ Worker 执行扫描任务时，通过 `ensure_wordlist_local()` 获取字典：
 3. 下载地址：`GET /api/wordlists/download/?wordlist=<name>`
 4. 返回本地字典文件路径
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                           Worker 容器                                     │
-│                                                                          │
-│  ┌─────────────┐                                                         │
-│  │  扫描任务   │                                                         │
-│  │  需要字典   │                                                         │
-│  └──────┬──────┘                                                         │
-│         │                                                                │
-│         ▼                                                                │
-│  ┌─────────────────────────┐      ┌─────────────────────────────────┐   │
-│  │ ensure_wordlist_local() │      │           PostgreSQL            │   │
-│  │ 参数: wordlist_name     │─────▶│  查询 Wordlist 表               │   │
-│  │                         │      │  获取 file_path, file_hash      │   │
-│  └───────────┬─────────────┘      └─────────────────────────────────┘   │
-│              │                                                           │
-│              ▼                                                           │
-│  ┌─────────────────────────┐                                            │
-│  │ 检查本地文件是否存在    │                                            │
-│  │ /opt/xingrin/wordlists/ │                                            │
-│  └───────────┬─────────────┘                                            │
-│              │                                                           │
-│      ┌───────┴───────┐                                                  │
-│      │               │                                                  │
-│      ▼               ▼                                                  │
-│  ┌────────┐    ┌────────────┐                                           │
-│  │ 不存在 │    │   存在     │                                           │
-│  └───┬────┘    └─────┬──────┘                                           │
-│      │               │                                                  │
-│      │               ▼                                                  │
-│      │       ┌─────────────────────┐                                    │
-│      │       │ 计算本地文件 SHA256 │                                    │
-│      │       │ 与数据库 hash 比较  │                                    │
-│      │       └──────────┬──────────┘                                    │
-│      │                  │                                               │
-│      │          ┌───────┴───────┐                                       │
-│      │          │               │                                       │
-│      │          ▼               ▼                                       │
-│      │    ┌──────────┐   ┌──────────────┐                               │
-│      │    │  一致    │   │   不一致     │                               │
-│      │    │ 直接使用 │   │   需重新下载 │                               │
-│      │    └────┬─────┘   └───────┬──────┘                               │
-│      │         │                 │                                      │
-│      │         │                 │                                      │
-│      ▼         │                 ▼                                      │
-│  ┌─────────────┴─────────────────────────────────────────────────────┐ │
-│  │                    从 Server API 下载                              │ │
-│  │         GET /api/wordlists/download/?wordlist=<name>              │ │
-│  │                                                                    │ │
-│  │  ┌──────────┐      HTTP Request       ┌──────────────────────┐   │ │
-│  │  │  Worker  │ ───────────────────────▶│   Server (Django)    │   │ │
-│  │  │          │◀─────────────────────── │   返回文件内容       │   │ │
-│  │  └──────────┘      File Content       └──────────────────────┘   │ │
-│  │                                                                    │ │
-│  │  保存到: /opt/xingrin/wordlists/<filename>                        │ │
-│  └───────────────────────────────────────────────────────────────────┘ │
-│                                    │                                    │
-│                                    ▼                                    │
-│  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │              返回本地字典文件路径                                │   │
-│  │         /opt/xingrin/wordlists/subdomains.txt                   │   │
-│  └─────────────────────────────────────────────────────────────────┘   │
-│                                    │                                    │
-│                                    ▼                                    │
-│  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │                    执行扫描工具                                  │   │
-│  │         puredns bruteforce -w /opt/xingrin/wordlists/xxx.txt    │   │
-│  └─────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-└──────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph WORKER["🔧 Worker 容器"]
+        direction TB
+        
+        START["🎯 扫描任务<br/>需要字典"]
+        
+        START --> ENSURE
+        
+        ENSURE["ensure_wordlist_local()<br/>参数: wordlist_name"]
+        
+        ENSURE --> QUERY
+        
+        QUERY["📊 查询 PostgreSQL<br/>获取 file_path, file_hash"]
+        
+        QUERY --> CHECK
+        
+        CHECK{"🔍 检查本地文件<br/>/opt/xingrin/wordlists/"}
+        
+        CHECK -->|不存在| DOWNLOAD
+        CHECK -->|存在| HASH
+        
+        HASH["🔐 计算本地文件 SHA256<br/>与数据库 hash 比较"]
+        
+        HASH -->|一致| USE
+        HASH -->|不一致| DOWNLOAD
+        
+        DOWNLOAD["📥 从 Server API 下载<br/>GET /api/wordlists/download/?wordlist=name"]
+        
+        DOWNLOAD --> SERVER
+        
+        SERVER["🌐 HTTP Request"]
+        
+        SERVER -.请求.-> API["Server (Django)<br/>返回文件内容"]
+        API -.响应.-> SERVER
+        
+        SERVER --> SAVE
+        
+        SAVE["💾 保存到本地<br/>/opt/xingrin/wordlists/filename"]
+        
+        SAVE --> RETURN
+        
+        USE["✅ 直接使用"] --> RETURN
+        
+        RETURN["📂 返回本地字典文件路径<br/>/opt/xingrin/wordlists/subdomains.txt"]
+        
+        RETURN --> EXEC
+        
+        EXEC["🚀 执行扫描工具<br/>puredns bruteforce -w /opt/xingrin/wordlists/xxx.txt"]
+    end
+    
+    style WORKER fill:#e6f3ff
+    style START fill:#fff4e6
+    style CHECK fill:#ffe6f0
+    style HASH fill:#ffe6f0
+    style USE fill:#d4edda
+    style DOWNLOAD fill:#f8d7da
+    style RETURN fill:#d4edda
+    style EXEC fill:#cce5ff
 ```
 
 ## 五、Hash 校验机制
@@ -199,25 +192,28 @@ Worker 执行扫描任务时，通过 `ensure_wordlist_local()` 获取字典：
 
 **注意**：Worker 容器只挂载了 `results` 和 `logs` 目录，没有挂载 `wordlists` 目录，所以字典文件需要通过 API 下载。
 
-```
-Worker（本地/远程）                    Server
-    │                                  │
-    │  1. 查询数据库获取 file_hash     │
-    │─────────────────────────────────▶│
-    │                                  │
-    │  2. 检查本地缓存                 │
-    │     - 存在且 hash 匹配 → 直接使用│
-    │     - 不存在或不匹配 → 继续下载  │
-    │                                  │
-    │  3. GET /api/wordlists/download/ │
-    │─────────────────────────────────▶│
-    │                                  │
-    │  4. 返回文件内容                 │
-    │◀─────────────────────────────────│
-    │                                  │
-    │  5. 保存到本地缓存               │
-    │     /opt/xingrin/wordlists/      │
-    │                                  │
+```mermaid
+sequenceDiagram
+    participant W as Worker (本地/远程)
+    participant DB as PostgreSQL
+    participant S as Server API
+    participant FS as 本地缓存
+    
+    W->>DB: 1️⃣ 查询数据库获取 file_hash
+    DB-->>W: 返回 file_hash
+    
+    W->>FS: 2️⃣ 检查本地缓存
+    
+    alt 存在且 hash 匹配
+        FS-->>W: ✅ 直接使用
+    else 不存在或不匹配
+        W->>S: 3️⃣ GET /api/wordlists/download/
+        S-->>W: 4️⃣ 返回文件内容
+        W->>FS: 5️⃣ 保存到本地缓存<br/>/opt/xingrin/wordlists/
+        FS-->>W: ✅ 使用缓存文件
+    end
+    
+    Note over W,FS: 本地 Worker 优势：<br/>• 网络延迟更低（容器内网络）<br/>• 缓存可复用（同一宿主机多次任务）
 ```
 
 ### 本地 Worker 的优势

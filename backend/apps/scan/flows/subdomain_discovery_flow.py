@@ -1,5 +1,5 @@
 """
-子域名发现扫描 Flow（增强版）
+子域名发现扫描 Flow
 
 负责编排子域名发现扫描的完整流程
 
@@ -343,7 +343,7 @@ def subdomain_discovery_flow(
     scan_workspace_dir: str,
     enabled_tools: dict
 ) -> dict:
-    """子域名发现扫描流程（增强版）
+    """子域名发现扫描流程
     
     工作流程（4 阶段）：
         Stage 1: 被动收集（并行） - 必选
@@ -410,7 +410,7 @@ def subdomain_discovery_flow(
         # 验证成功后打印日志
         logger.info(
             "="*60 + "\n" +
-            "开始子域名发现扫描（增强版）\n" +
+            "开始子域名发现扫描\n" +
             f"  Scan ID: {scan_id}\n" +
             f"  Domain: {domain_name}\n" +
             f"  Workspace: {scan_workspace_dir}\n" +

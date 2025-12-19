@@ -372,19 +372,17 @@ def port_scan_flow(
     端口扫描 Flow
     
     主要功能：
-        1. 扫描目标域名的开放端口（核心目标）
-        2. 发现域名对应的 IP 地址（附带产物）
-        3. 保存 IP 和端口的关联关系
+        1. 扫描目标域名/IP 的开放端口
+        2. 保存 host + ip + port 三元映射到 HostPortMapping 表
     
     输出资产：
-        - Port：开放的端口列表（主要资产）
-        - IPAddress：域名对应的 IP 地址（附带资产）
+        - HostPortMapping：主机端口映射（host + ip + port 三元组）
     
     工作流程：
         Step 0: 创建工作目录
         Step 1: 导出域名列表到文件（供扫描工具使用）
         Step 2: 解析配置，获取启用的工具
-        Step 3: 串行执行扫描工具，运行端口扫描工具并实时解析输出到数据库（Subdomain → IPAddress → Port）
+        Step 3: 串行执行扫描工具，运行端口扫描工具并实时解析输出到数据库（→ HostPortMapping）
 
     Args:
         scan_id: 扫描任务 ID
@@ -418,10 +416,8 @@ def port_scan_flow(
         RuntimeError: 执行失败
     
     Note:
-        端口扫描的输出必然包含 IP 信息，因为：
-        - 扫描工具需要解析域名 → IP
-        - 端口属于 IP，而不是直接属于域名
-        - 同一域名可能对应多个 IP（CDN、负载均衡）
+        端口扫描工具（如 naabu）会解析域名获取 IP，输出 host + ip + port 三元组。
+        同一 host 可能对应多个 IP（CDN、负载均衡），因此使用三元映射表存储。
     """
     try:
         # 参数验证

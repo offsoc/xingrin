@@ -31,6 +31,7 @@
 - [🔄 版本管理](./docs/version-management.md) - Git Tag 驱动的自动化版本管理系统
 - [📦 Nuclei 模板架构](./docs/nuclei-template-architecture.md) - 模板仓库的存储与同步
 - [📖 字典文件架构](./docs/wordlist-architecture.md) - 字典文件的存储与同步
+- [🔍 扫描流程架构](./docs/scan-flow-architecture.md) - 完整扫描流程与工具编排
 
 
 ---
@@ -48,6 +49,109 @@
 - **自定义流程** - YAML 配置扫描流程，灵活编排
 - **定时扫描** - Cron 表达式配置，自动化周期扫描
 
+#### 扫描流程架构
+
+完整的扫描流程包括：子域名发现、端口扫描、站点发现、URL 收集、目录扫描、漏洞扫描
+```mermaid
+flowchart TB
+    START[Start Scan]
+    TARGET[Input Target]
+    
+    START --> TARGET
+    
+    subgraph STAGE1["Stage 1: Discovery Sequential"]
+        direction TB
+        
+        subgraph SUB["Subdomain Discovery"]
+            direction TB
+            SUBFINDER[subfinder]
+            AMASS[amass]
+            SUBLIST3R[sublist3r]
+            ASSETFINDER[assetfinder]
+            MERGE[Merge & Deduplicate]
+            BRUTEFORCE[puredns bruteforce<br/>Dictionary Attack]
+            MUTATE[dnsgen + puredns<br/>Mutation Generation]
+            RESOLVE[puredns resolve<br/>Alive Verification]
+            
+            SUBFINDER --> MERGE
+            AMASS --> MERGE
+            SUBLIST3R --> MERGE
+            ASSETFINDER --> MERGE
+            MERGE --> BRUTEFORCE
+            BRUTEFORCE --> MUTATE
+            MUTATE --> RESOLVE
+        end
+        
+        subgraph PORT["Port Scan"]
+            NAABU[naabu<br/>Port Discovery]
+        end
+        
+        subgraph SITE["Site Scan"]
+            HTTPX1[httpx<br/>Web Service Detection]
+        end
+        
+        RESOLVE --> NAABU
+        NAABU --> HTTPX1
+    end
+    
+    TARGET --> SUBFINDER
+    TARGET --> AMASS
+    TARGET --> SUBLIST3R
+    TARGET --> ASSETFINDER
+    
+    subgraph STAGE2["Stage 2: Analysis Parallel"]
+        direction TB
+        
+        subgraph URL["URL Collection"]
+            direction TB
+            WAYMORE[waymore<br/>Historical URLs]
+            KATANA[katana<br/>Crawler]
+            URO[uro<br/>URL Deduplication]
+            HTTPX2[httpx<br/>Alive Verification]
+            
+            WAYMORE --> URO
+            KATANA --> URO
+            URO --> HTTPX2
+        end
+        
+        subgraph DIR["Directory Scan"]
+            FFUF[ffuf<br/>Directory Bruteforce]
+        end
+    end
+    
+    HTTPX1 --> WAYMORE
+    HTTPX1 --> KATANA
+    HTTPX1 --> FFUF
+    
+    subgraph STAGE3["Stage 3: Vulnerability Sequential"]
+        direction TB
+        
+        subgraph VULN["Vulnerability Scan"]
+            direction LR
+            DALFOX[dalfox<br/>XSS Scan]
+            NUCLEI[nuclei<br/>Vulnerability Scan]
+        end
+    end
+    
+    HTTPX2 --> DALFOX
+    HTTPX2 --> NUCLEI
+    
+    DALFOX --> FINISH
+    NUCLEI --> FINISH
+    FFUF --> FINISH
+    
+    FINISH[Scan Complete]
+    
+    style START fill:#ff9999
+    style FINISH fill:#99ff99
+    style TARGET fill:#ffcc99
+    style STAGE1 fill:#e6f3ff
+    style STAGE2 fill:#fff4e6
+    style STAGE3 fill:#ffe6f0
+```
+
+详细说明请查看 [扫描流程架构文档](./docs/scan-flow-architecture.md)
+
 ### 🖥️ 分布式架构
 - **多节点扫描** - 支持部署多个 Worker 节点，横向扩展扫描能力
 - **本地节点** - 零配置，安装即自动注册本地 Docker Worker
@@ -56,35 +160,83 @@
 - **节点监控** - 实时心跳检测，CPU/内存/磁盘状态监控
 - **断线重连** - 节点离线自动检测，恢复后自动重新接入
 
+```mermaid
+flowchart TB
+    subgraph MASTER["🖥️ 主服务器 (Master Server)"]
+        direction TB
+        
+        subgraph SERVICES["核心服务"]
+            direction LR
+            FRONTEND["Next.js<br/>前端界面"]
+            BACKEND["Django<br/>后端 API"]
+            DB["PostgreSQL<br/>数据库"]
+            REDIS["Redis<br/>负载缓存"]
+        end
+        
+        subgraph SCHEDULER["⚙️ 任务调度器 (Task Distributor)"]
+            direction TB
+            SUBMIT["1️⃣ 接收扫描任务"]
+            SELECT["2️⃣ 负载感知选择<br/>• 从 Redis 读取实时负载<br/>• CPU 权重 70%<br/>• 内存权重 30%<br/>• 排除高负载节点 (>85%)"]
+            DISPATCH["3️⃣ 智能分发<br/>• 本地: docker run<br/>• 远程: SSH + docker run"]
+            
+            SUBMIT --> SELECT
+            SELECT --> DISPATCH
+        end
+        
+        BACKEND --> SUBMIT
+        REDIS -.负载数据.-> SELECT
+    end
+    
+    subgraph WORKERS["🔧 Worker 节点集群"]
+        direction TB
+        
+        subgraph W1["Worker 1 (本地)"]
+            direction TB
+            W1_TOOLS["扫描工具<br/>• nuclei<br/>• httpx<br/>• naabu<br/>• subfinder<br/>• ..."]
+            W1_HEART["💓 心跳上报<br/>CPU: 45%<br/>MEM: 60%<br/>每 3 秒"]
+            W1_TOOLS -.-> W1_HEART
+        end
+        
+        subgraph W2["Worker 2 (远程)"]
+            direction TB
+            W2_TOOLS["扫描工具<br/>• nuclei<br/>• httpx<br/>• naabu<br/>• subfinder<br/>• ..."]
+            W2_HEART["💓 心跳上报<br/>CPU: 30%<br/>MEM: 40%<br/>每 3 秒"]
+            W2_TOOLS -.-> W2_HEART
+        end
+        
+        subgraph W3["Worker N (远程)"]
+            direction TB
+            W3_TOOLS["扫描工具<br/>• nuclei<br/>• httpx<br/>• naabu<br/>• subfinder<br/>• ..."]
+            W3_HEART["💓 心跳上报<br/>CPU: 90%<br/>MEM: 85%<br/>每 3 秒"]
+            W3_TOOLS -.-> W3_HEART
+        end
+    end
+    
+    DISPATCH -->|任务分发| W1
+    DISPATCH -->|任务分发| W2
+    DISPATCH -->|任务分发<br/>高负载跳过| W3
+    
+    W1_HEART -.心跳数据<br/>TTL 15s.-> REDIS
+    W2_HEART -.心跳数据<br/>TTL 15s.-> REDIS
+    W3_HEART -.心跳数据<br/>TTL 15s.-> REDIS
+    
+    style MASTER fill:#e6f3ff
+    style SCHEDULER fill:#fff4e6
+    style SELECT fill:#ffe6f0
+    style WORKERS fill:#f0f0f0
+    style W1 fill:#d4edda
+    style W2 fill:#d4edda
+    style W3 fill:#f8d7da
+    style W1_HEART fill:#c3e6cb
+    style W2_HEART fill:#c3e6cb
+    style W3_HEART fill:#f5c6cb
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         主服务器 (Master)                         │
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐            │
-│  │ Next.js │  │ Django  │  │ Postgres│  │  Redis  │            │
-│  │ 前端    │  │ 后端    │  │ 数据库  │  │  缓存   │            │
-│  └─────────┘  └────┬────┘  └─────────┘  └─────────┘            │
-│                    │                                            │
-│              ┌─────┴─────┐                                      │
-│              │ 任务调度器 │                                      │
-│              │ Scheduler │                                      │
-│              └─────┬─────┘                                      │
-└────────────────────┼────────────────────────────────────────────┘
-                     │
-        ┌────────────┼────────────┐
-        │            │            │
-        ▼            ▼            ▼
-┌───────────┐ ┌───────────┐ ┌───────────┐
-│  Worker 1 │ │  Worker 2 │ │  Worker N │
-│  (本地)   │ │  (远程)   │ │  (远程)   │
-├───────────┤ ├───────────┤ ├───────────┤
-│ • Nuclei  │ │ • Nuclei  │ │ • Nuclei  │
-│ • httpx   │ │ • httpx   │ │ • httpx   │
-│ • naabu   │ │ • naabu   │ │ • naabu   │
-│ • ...     │ │ • ...     │ │ • ...     │
-├───────────┤ ├───────────┤ ├───────────┤
-│  心跳上报  │ │  心跳上报  │ │  心跳上报  │
-└───────────┘ └───────────┘ └───────────┘
-```
+
+**负载感知调度算法：**
+1. **实时监控** - Worker 每 3 秒上报 CPU/内存/磁盘状态到 Redis (TTL 15秒)
+2. **智能选择** - 任务提交时从 Redis 读取所有在线节点负载，计算加权分数 (CPU×0.7 + MEM×0.3)
+3. **动态分发** - 自动选择负载最低的节点执行任务，高负载节点 (>85%) 自动跳过
+4. **降级策略** - 所有节点高负载时等待 60 秒后重试，避免系统过载
 
 ### 📊 可视化界面
 - **数据统计** - 资产/漏洞统计仪表盘
