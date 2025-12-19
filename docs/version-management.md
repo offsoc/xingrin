@@ -148,6 +148,71 @@ sequenceDiagram
 2. **远程 Worker**：按需拉取对应版本
 3. **自动同步**：update.sh 统一更新版本号
 
+## Agent 自动更新机制
+
+### 概述
+
+Agent 是运行在每个 Worker 节点上的轻量级心跳服务（~10MB），负责上报节点状态和负载信息。当主服务器更新后，Agent 需要同步更新以保持版本一致。
+
+### 版本检测流程
+
+```mermaid
+sequenceDiagram
+    participant A as Agent
+    participant S as Server
+    participant H as Docker Hub
+    
+    A->>S: POST /api/workers/{id}/heartbeat/
+    Note right of A: {"cpu": 50, "mem": 60, "version": "v1.0.8"}
+    
+    S->>S: 比较 agent_version vs IMAGE_TAG
+    
+    alt 版本匹配
+        S->>A: {"status": "ok", "need_update": false}
+    else 版本不匹配 (远程 Worker)
+        S->>S: 设置状态为 updating
+        S->>A: {"status": "ok", "need_update": true}
+        S-->>H: SSH: docker pull agent:v1.0.19
+        S-->>A: SSH: 重启 agent 容器
+    else 版本不匹配 (本地 Worker)
+        S->>S: 设置状态为 outdated
+        S->>A: {"status": "ok", "need_update": true}
+        Note over S: 需用户手动 ./update.sh
+    end
+```
+
+### Worker 状态流转
+
+| 场景 | 状态变化 | 说明 |
+|------|---------|------|
+| 首次心跳 | `pending/deploying` → `online` | Agent 启动成功 |
+| 远程 Worker 版本不匹配 | `online` → `updating` → `online` | 服务端自动 SSH 更新 |
+| 远程 Worker 更新失败 | `updating` → `outdated` | SSH 执行失败 |
+| 本地 Worker 版本不匹配 | `online` → `outdated` | 需手动 update.sh |
+| 版本匹配 | `updating/outdated` → `online` | 恢复正常 |
+
+### 更新触发条件
+
+1. **远程 Worker**：服务端检测到版本不匹配时，自动通过 SSH 执行更新
+2. **本地 Worker**：用户执行 `./update.sh` 时，docker-compose 会拉取新镜像并重启
+
+### 防重复机制
+
+使用 Redis 锁防止同一 Worker 在 60 秒内重复触发更新：
+```
+lock_key = f"agent_update_lock:{worker_id}"
+redis.set(lock_key, "1", nx=True, ex=60)
+```
+
+### 相关文件
+
+| 文件 | 作用 |
+|------|------|
+| `backend/apps/engine/views/worker_views.py` | 心跳 API，版本检测和更新触发 |
+| `backend/scripts/worker-deploy/agent.sh` | Agent 心跳脚本，上报版本号 |
+| `backend/scripts/worker-deploy/start-agent.sh` | Agent 启动脚本 |
+| `docker/agent/Dockerfile` | Agent 镜像构建，注入 IMAGE_TAG |
+
 ## 开发环境配置
 
 ### 本地开发测试
@@ -188,7 +253,13 @@ else:
     TASK_EXECUTOR_IMAGE = ''
 ```
 
-## 故障排查
+## Agent 自动更新机制
+
+### 概述
+
+Agent 是运行在每个 Worker 节点上的轻量级心跳服务，负责上报节点状态和负载信息。当主服务器更新后，Agent 需要同步更新以保持版本一致。
+
+### 版本检测流程
 
 ### 版本不一致问题
 **症状**：任务执行失败，兼容性错误
