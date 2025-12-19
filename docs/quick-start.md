@@ -14,10 +14,9 @@
 - **端口要求**: 需要开放以下端口
   - `80` - HTTP 访问（自动跳转到 HTTPS）
   - `443` - HTTPS 访问（主要访问端口）
-  - `3000` - 前端开发服务（开发模式）
-  - `8888` - 后端 API 服务
   - `5432` - PostgreSQL 数据库（如使用本地数据库）
   - `6379` - Redis 缓存服务
+  - 后端 API 仅容器内监听 8888，由 nginx 反代到 80/443，对公网无需放行 8888
 
 ## 一键安装
 
@@ -64,10 +63,10 @@ sudo ./install.sh --no-frontend
 80    - HTTP 访问
 443   - HTTPS 访问  
 3000  - 前端服务（开发模式）
-8888  - 后端 API
 5432  - PostgreSQL（如使用本地数据库）
 6379  - Redis 缓存
 ```
+> 后端 API 默认仅在容器内 8888 监听，由 nginx 反代到 80/443，对公网无需放行 8888。
 
 #### 推荐方案
 - **国外 VPS**：如 Vultr、DigitalOcean、Linode 等，默认开放所有端口，无需额外配置
@@ -157,8 +156,8 @@ DB_USER=postgres        # 数据库用户
 DB_PASSWORD=随机生成     # 数据库密码
 
 # 服务配置
-SERVER_PORT=8888        # 后端服务端口
-PUBLIC_HOST=server      # 对外访问地址
+SERVER_PORT=8888        # 后端容器内部端口（仅 Docker 内网监听）
+PUBLIC_HOST=server      # 对外访问地址（远程 Worker 用，配置外网 IP 或域名）
 DEBUG=False             # 调试模式
 
 # 版本配置

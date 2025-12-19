@@ -241,8 +241,9 @@ class WorkerDeployConsumer(AsyncWebsocketConsumer):
             }))
             return
 
-        django_host = f"{public_host}:{server_port}"   # Django / 心跳上报使用
-        heartbeat_api_url = f"http://{django_host}"  # 基础 URL，agent 会加 /api/...
+        # 远程 Worker 通过 nginx HTTPS 访问（nginx 反代到后端 8888）
+        # 使用 https://{PUBLIC_HOST} 而不是直连 8888 端口
+        heartbeat_api_url = f"https://{public_host}"  # 基础 URL，agent 会加 /api/...
 
         session_name = f'xingrin_deploy_{self.worker_id}'
         remote_script_path = '/tmp/xingrin_deploy.sh'

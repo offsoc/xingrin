@@ -41,8 +41,6 @@ services:
   server:
     image: ${DOCKER_USER:-yyhuni}/xingrin-server:${IMAGE_TAG:?IMAGE_TAG is required}
     restart: always
-    ports:
-      - "${SERVER_PORT}:8888"
     env_file:
       - .env
     depends_on:

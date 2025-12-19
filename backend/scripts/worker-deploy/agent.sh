@@ -52,7 +52,7 @@ if [ "$RUN_MODE" = "remote" ] && [ -f "$ENV_FILE" ]; then
 fi
 
 # 获取配置
-# SERVER_URL: 后端 API 地址（容器内用 http://server:8888，远程用公网地址）
+# SERVER_URL: 后端 API 地址（容器内用 http://server:8888，远程用 https://{PUBLIC_HOST}）
 API_URL="${HEARTBEAT_API_URL:-${SERVER_URL:-}}"
 WORKER_NAME="${WORKER_NAME:-}"
 IS_LOCAL="${IS_LOCAL:-false}"
@@ -113,7 +113,7 @@ if [ -z "$WORKER_ID" ]; then
     # 等待 Server 就绪
     log "等待 Server 就绪..."
     for i in $(seq 1 30); do
-        if curl -s "${API_URL}/api/" > /dev/null 2>&1; then
+        if curl -k -s "${API_URL}/api/" > /dev/null 2>&1; then
             log "${GREEN}Server 已就绪${NC}"
             break
         fi
@@ -181,7 +181,7 @@ EOF
 )
     
     # 发送心跳
-    RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+    RESPONSE=$(curl -k -s -o /dev/null -w "%{http_code}" -X POST \
         -H "Content-Type: application/json" \
         -d "$JSON_DATA" \
         "${API_URL}/api/workers/${WORKER_ID}/heartbeat/" 2>/dev/null || echo "000")

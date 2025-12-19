@@ -231,8 +231,8 @@ sequenceDiagram
 WORDLISTS_PATH=/opt/xingrin/wordlists
 
 # Server 地址（Worker 用于下载文件）
-PUBLIC_HOST=your-server-ip
-SERVER_PORT=8888
+PUBLIC_HOST=your-server-ip  # 远程 Worker 会通过 https://{PUBLIC_HOST}/api 访问
+SERVER_PORT=8888  # 后端容器内部端口，仅 Docker 内网监听
 ```
 
 ## 八、常见问题
@@ -244,8 +244,8 @@ A: 更新字典内容后会重新计算 hash，Worker 下次使用时会检测�
 ### Q: 远程 Worker 下载文件失败？
 
 A: 检查：
-1. `PUBLIC_HOST` 是否配置为 Server 的外网 IP
-2. Server 端口（默认 8888）是否开放
+1. `PUBLIC_HOST` 是否配置为 Server 的外网 IP 或域名
+2. Nginx 443 (HTTPS) 是否可达（远程 Worker 通过 nginx 访问后端）
 3. Worker 到 Server 的网络是否通畅
 
 ### Q: 如何批量导入字典？

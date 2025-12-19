@@ -173,7 +173,7 @@ if [ "$WITH_FRONTEND" = true ]; then
     echo -e "  XingRin:  ${CYAN}https://${ACCESS_HOST}/${NC}"
     echo -e "  ${YELLOW}(HTTP 会自动跳转到 HTTPS)${NC}"
 else
-    echo -e "  API:      ${CYAN}http://${ACCESS_HOST}:8888${NC}"
+    echo -e "  API:      ${CYAN}通过前端或 nginx 访问（后端未暴露 8888）${NC}"
     echo ""
     echo -e "${YELLOW}[TIP]${NC} 前端未启动，请手动运行:"
     echo "      cd frontend && pnpm dev"
