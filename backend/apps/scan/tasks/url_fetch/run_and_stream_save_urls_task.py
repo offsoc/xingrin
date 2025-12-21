@@ -51,6 +51,18 @@ class ServiceSet:
         )
 
 
+def _sanitize_string(value: str) -> str:
+    """
+    清理字符串中的 NUL 字符和其他不可打印字符
+    
+    PostgreSQL 不允许字符串字段包含 NUL (0x00) 字符
+    """
+    if not value:
+        return value
+    # 移除 NUL 字符
+    return value.replace('\x00', '')
+
+
 def _parse_and_validate_line(line: str) -> Optional[dict]:
     """
     解析并验证单行 httpx JSON 输出
@@ -64,6 +76,9 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
     只返回存活的 URL（2xx/3xx 状态码）
     """
     try:
+        # 清理 NUL 字符后再解析 JSON
+        line = _sanitize_string(line)
+        
         # 解析 JSON
         try:
             line_data = json.loads(line)
@@ -87,16 +102,16 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
         # 只保存存活的 URL（2xx 或 3xx）
         if status_code and (200 <= status_code < 400):
             return {
-                'url': url,
-                'host': line_data.get('host', ''),  # 从 httpx 输出中提取 host
+                'url': _sanitize_string(url),
+                'host': _sanitize_string(line_data.get('host', '')),
                 'status_code': status_code,
-                'title': line_data.get('title', ''),
+                'title': _sanitize_string(line_data.get('title', '')),
                 'content_length': line_data.get('content_length', 0),
-                'content_type': line_data.get('content_type', ''),
-                'webserver': line_data.get('webserver', ''),
-                'location': line_data.get('location', ''),
+                'content_type': _sanitize_string(line_data.get('content_type', '')),
+                'webserver': _sanitize_string(line_data.get('webserver', '')),
+                'location': _sanitize_string(line_data.get('location', '')),
                 'tech': line_data.get('tech', []),
-                'body_preview': line_data.get('body_preview', ''),
+                'body_preview': _sanitize_string(line_data.get('body_preview', '')),
                 'vhost': line_data.get('vhost', False),
             }
         else:
@@ -104,7 +119,7 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
             return None
     
     except Exception as e:
-        logger.error("解析行数据异常: %s - 数据: %s", e, line[:100])
+        logger.error("解析行数据异常: %s - 数据: %s", e, line[:100] if line else 'empty')
         return None
 
 
