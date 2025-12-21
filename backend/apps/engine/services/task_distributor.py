@@ -247,8 +247,10 @@ class TaskDistributor:
         env_vars = [
             f"-e SERVER_URL={shlex.quote(server_url)}",
             f"-e IS_LOCAL={is_local_str}",
+            "-e PREFECT_HOME=/tmp/.prefect",  # 设置 Prefect 数据目录到可写位置
             "-e PREFECT_SERVER_EPHEMERAL_ENABLED=true",  # 启用 ephemeral server（本地临时服务器）
-            "-e PREFECT_SERVER_EPHEMERAL_STARTUP_TIMEOUT_SECONDS=360",  # 增加启动超时时间
+            "-e PREFECT_SERVER_EPHEMERAL_STARTUP_TIMEOUT_SECONDS=120",  # 增加启动超时时间
+            "-e PREFECT_SERVER_DATABASE_CONNECTION_URL=sqlite+aiosqlite:////tmp/.prefect/prefect.db",  # 使用 /tmp 下的 SQLite
             "-e PREFECT_LOGGING_EXTRA_LOGGERS=",  # 禁用 Prefect 的额外内部日志器
         ]
         
