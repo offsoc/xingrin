@@ -110,9 +110,25 @@ export function createIPAddressColumns(params: {
               <TruncatedCell key={index} value={host} maxLength="host" mono />
             ))}
             {hasMore && (
-              <Badge variant="secondary" className="text-xs w-fit">
-                +{hosts.length - 3} more
-              </Badge>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Badge variant="secondary" className="text-xs w-fit cursor-pointer hover:bg-muted">
+                    +{hosts.length - 3} more
+                  </Badge>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-3">
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">All Hosts ({hosts.length})</h4>
+                    <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
+                      {hosts.map((host, index) => (
+                        <span key={index} className="text-sm font-mono break-all">
+                          {host}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             )}
           </div>
         )
@@ -186,7 +202,7 @@ export function createIPAddressColumns(params: {
               <Popover>
                 <PopoverTrigger asChild>
                   <Badge variant="outline" className="text-xs cursor-pointer hover:bg-muted">
-                    +{ports.length - 8}
+                    +{ports.length - 8} more
                   </Badge>
                 </PopoverTrigger>
                 <PopoverContent className="w-80 p-3">
