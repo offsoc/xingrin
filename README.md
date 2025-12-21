@@ -1,4 +1,4 @@
-<h1 align="center">Xingrin - 星环</h1>
+<h1 align="center">XingRin - 星环</h1>
 
 <p align="center">
   <b>🛡️ 开源攻击面管理平台 (ASM) | 自动化资产发现与漏洞扫描系统</b>
