@@ -88,9 +88,9 @@ export function createDirectoryColumns({
     // URL 列
     {
       accessorKey: "url",
-      size: 300,
+      size: 400,
       minSize: 200,
-      maxSize: 400,
+      maxSize: 500,
       header: ({ column }) => {
         return (
           <Button

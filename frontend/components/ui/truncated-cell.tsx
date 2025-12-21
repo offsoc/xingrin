@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils"
  * 预设的截断长度配置
  */
 export const TRUNCATE_LENGTHS = {
-  url: 35,
+  url: 50,
   title: 25,
   location: 20,
   webServer: 20,
@@ -142,7 +142,7 @@ export function TruncatedUrlCell({
     : value
 
   return (
-    <div className="flex items-center gap-1 w-[280px] min-w-[280px]">
+    <div className="flex items-center gap-1 w-[380px] min-w-[380px]">
       <span className={cn("text-sm font-mono truncate", className)}>
         {displayText}
       </span>
