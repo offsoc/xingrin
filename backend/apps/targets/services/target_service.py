@@ -203,15 +203,60 @@ class TargetService:
                 org_service = OrganizationService()
                 org_service.bulk_add_targets(organization_id, all_targets)
 
-            # 5. 处理 Subdomain 创建 (使用 SubdomainService)
+            # 5. 处理 Subdomain、Website、Endpoint 创建 (仅针对 DOMAIN 类型)
             domain_targets = [t for t in all_targets if t.type == Target.TargetType.DOMAIN]
             if domain_targets:
+                # 5.1 创建 Subdomain
                 subdomain_dtos = [
                     SubdomainDTO(name=t.name, target_id=t.id)
                     for t in domain_targets
                 ]
                 subdomain_service = SubdomainService()
                 subdomain_service.bulk_create_ignore_conflicts(subdomain_dtos)
+                
+                # 5.2 创建 Website (http 和 https)
+                from apps.asset.services.asset.website_service import WebSiteService
+                from apps.asset.dtos import WebSiteDTO
+                
+                website_dtos = []
+                for t in domain_targets:
+                    # 添加 https 版本
+                    website_dtos.append(WebSiteDTO(
+                        target_id=t.id,
+                        url=f"https://{t.name}",
+                        host=t.name
+                    ))
+                    # 添加 http 版本
+                    website_dtos.append(WebSiteDTO(
+                        target_id=t.id,
+                        url=f"http://{t.name}",
+                        host=t.name
+                    ))
+                
+                website_service = WebSiteService()
+                website_service.bulk_create_ignore_conflicts(website_dtos)
+                
+                # 5.3 创建 Endpoint (http 和 https)
+                from apps.asset.services.asset.endpoint_service import EndpointService
+                from apps.asset.dtos import EndpointDTO
+                
+                endpoint_dtos = []
+                for t in domain_targets:
+                    # 添加 https 版本
+                    endpoint_dtos.append(EndpointDTO(
+                        target_id=t.id,
+                        url=f"https://{t.name}",
+                        host=t.name
+                    ))
+                    # 添加 http 版本
+                    endpoint_dtos.append(EndpointDTO(
+                        target_id=t.id,
+                        url=f"http://{t.name}",
+                        host=t.name
+                    ))
+                
+                endpoint_service = EndpointService()
+                endpoint_service.bulk_create_endpoints(endpoint_dtos)
         
         success_count = len(all_targets)
         

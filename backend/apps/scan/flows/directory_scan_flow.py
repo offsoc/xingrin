@@ -5,7 +5,7 @@
 
 架构：
 - Flow 负责编排多个原子 Task
-- 支持串行执行扫描工具（流式处理）
+- 支持并发执行扫描工具（使用 ThreadPoolTaskRunner）
 - 每个 Task 可独立重试
 - 配置由 YAML 解析
 """
@@ -14,11 +14,15 @@
 from apps.common.prefect_django_setup import setup_django_for_prefect
 
 from prefect import flow
+from prefect.task_runners import ThreadPoolTaskRunner
 
+import hashlib
 import logging
 import os
 import subprocess
+from datetime import datetime
 from pathlib import Path
+from typing import List, Tuple
 
 from apps.scan.tasks.directory_scan import (
     export_sites_task,
@@ -32,6 +36,9 @@ from apps.scan.handlers.scan_flow_handlers import (
 from apps.scan.utils import config_parser, build_scan_command, ensure_wordlist_local
 
 logger = logging.getLogger(__name__)
+
+# 默认最大并发数
+DEFAULT_MAX_WORKERS = 5
 
 
 def calculate_directory_scan_timeout(
@@ -112,6 +119,25 @@ def calculate_directory_scan_timeout(
         return min_timeout
 
 
+def _get_max_workers(enabled_tools: dict, default: int = DEFAULT_MAX_WORKERS) -> int:
+    """
+    从工具配置中获取 max_workers 参数
+    
+    Args:
+        enabled_tools: 启用的工具配置字典
+        default: 默认值，默认为 5
+        
+    Returns:
+        int: max_workers 值
+    """
+    for tool_config in enabled_tools.values():
+        if isinstance(tool_config, dict) and 'max_workers' in tool_config:
+            max_workers = tool_config['max_workers']
+            if isinstance(max_workers, int) and max_workers > 0:
+                return max_workers
+    return default
+
+
 def _setup_directory_scan_directory(scan_workspace_dir: str) -> Path:
     """
     创建并验证目录扫描工作目录
@@ -185,7 +211,7 @@ def _run_scans_sequentially(
     target_name: str
 ) -> tuple[int, int, list]:
     """
-    串行执行目录扫描任务（支持多工具）
+    串行执行目录扫描任务（支持多工具）- 已废弃，保留用于兼容
     
     Args:
         enabled_tools: 启用的工具配置字典
@@ -333,6 +359,191 @@ def _run_scans_sequentially(
     return total_directories, processed_count, failed_sites
 
 
+def _generate_log_filename(tool_name: str, site_url: str, directory_scan_dir: Path) -> Path:
+    """
+    生成唯一的日志文件名
+    
+    使用 URL 的 hash 确保并发时不会冲突
+    
+    Args:
+        tool_name: 工具名称
+        site_url: 站点 URL
+        directory_scan_dir: 目录扫描目录
+        
+    Returns:
+        Path: 日志文件路径
+    """
+    url_hash = hashlib.md5(site_url.encode()).hexdigest()[:8]
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+    return directory_scan_dir / f"{tool_name}_{url_hash}_{timestamp}.log"
+
+
+def _run_scans_concurrently(
+    enabled_tools: dict,
+    sites_file: str,
+    directory_scan_dir: Path,
+    scan_id: int,
+    target_id: int,
+    site_count: int,
+    target_name: str
+) -> Tuple[int, int, List[str]]:
+    """
+    并发执行目录扫描任务（使用 ThreadPoolTaskRunner）
+    
+    Args:
+        enabled_tools: 启用的工具配置字典
+        sites_file: 站点文件路径
+        directory_scan_dir: 目录扫描目录
+        scan_id: 扫描任务 ID
+        target_id: 目标 ID
+        site_count: 站点数量
+        target_name: 目标名称（用于错误日志）
+        
+    Returns:
+        tuple: (total_directories, processed_sites, failed_sites)
+    """
+    # 读取站点列表
+    sites: List[str] = []
+    with open(sites_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            site_url = line.strip()
+            if site_url:
+                sites.append(site_url)
+    
+    if not sites:
+        logger.warning("站点列表为空")
+        return 0, 0, []
+    
+    # 获取 max_workers 配置
+    max_workers = _get_max_workers(enabled_tools)
+    
+    logger.info(
+        "准备并发扫描 %d 个站点，使用工具: %s，最大并发数: %d",
+        len(sites), ', '.join(enabled_tools.keys()), max_workers
+    )
+    
+    total_directories = 0
+    processed_sites_count = 0
+    failed_sites: List[str] = []
+    
+    # 遍历每个工具
+    for tool_name, tool_config in enabled_tools.items():
+        logger.info("="*60)
+        logger.info("使用工具: %s (并发模式, max_workers=%d)", tool_name, max_workers)
+        logger.info("="*60)
+
+        # 如果配置了 wordlist_name，则先确保本地存在对应的字典文件（含 hash 校验）
+        wordlist_name = tool_config.get('wordlist_name')
+        if wordlist_name:
+            try:
+                local_wordlist_path = ensure_wordlist_local(wordlist_name)
+                tool_config['wordlist'] = local_wordlist_path
+            except Exception as exc:
+                logger.error("为工具 %s 准备字典失败: %s", tool_name, exc)
+                # 当前工具无法执行，将所有站点视为失败，继续下一个工具
+                failed_sites.extend(sites)
+                continue
+        
+        # 计算超时时间（所有站点共用）
+        site_timeout = tool_config.get('timeout', 300)
+        if site_timeout == 'auto':
+            site_timeout = calculate_directory_scan_timeout(tool_config)
+            logger.info(f"✓ 工具 {tool_name} 动态计算 timeout: {site_timeout}秒")
+        
+        # 准备所有站点的扫描参数
+        scan_params_list = []
+        for idx, site_url in enumerate(sites, 1):
+            try:
+                command = build_scan_command(
+                    tool_name=tool_name,
+                    scan_type='directory_scan',
+                    command_params={'url': site_url},
+                    tool_config=tool_config
+                )
+                log_file = _generate_log_filename(tool_name, site_url, directory_scan_dir)
+                scan_params_list.append({
+                    'idx': idx,
+                    'site_url': site_url,
+                    'command': command,
+                    'log_file': str(log_file),
+                    'timeout': site_timeout
+                })
+            except Exception as e:
+                logger.error(
+                    "✗ [%d/%d] 构建 %s 命令失败: %s - 站点: %s",
+                    idx, len(sites), tool_name, e, site_url
+                )
+                failed_sites.append(site_url)
+        
+        if not scan_params_list:
+            logger.warning("没有有效的扫描任务")
+            continue
+        
+        # 使用 ThreadPoolTaskRunner 并发执行
+        logger.info("开始并发提交 %d 个扫描任务...", len(scan_params_list))
+        
+        with ThreadPoolTaskRunner(max_workers=max_workers) as task_runner:
+            # 提交所有任务
+            futures = []
+            for params in scan_params_list:
+                future = run_and_stream_save_directories_task.submit(
+                    cmd=params['command'],
+                    tool_name=tool_name,
+                    scan_id=scan_id,
+                    target_id=target_id,
+                    site_url=params['site_url'],
+                    cwd=str(directory_scan_dir),
+                    shell=True,
+                    batch_size=1000,
+                    timeout=params['timeout'],
+                    log_file=params['log_file']
+                )
+                futures.append((params['idx'], params['site_url'], future))
+            
+            logger.info("✓ 已提交 %d 个扫描任务，等待完成...", len(futures))
+            
+            # 等待所有任务完成并聚合结果
+            for idx, site_url, future in futures:
+                try:
+                    result = future.result()
+                    directories_found = result.get('created_directories', 0)
+                    total_directories += directories_found
+                    processed_sites_count += 1
+                    
+                    logger.info(
+                        "✓ [%d/%d] 站点扫描完成: %s - 发现 %d 个目录",
+                        idx, len(sites), site_url, directories_found
+                    )
+                    
+                except Exception as exc:
+                    failed_sites.append(site_url)
+                    # 判断是否为超时异常
+                    if 'timeout' in str(exc).lower() or isinstance(exc, subprocess.TimeoutExpired):
+                        logger.warning(
+                            "⚠️ [%d/%d] 站点扫描超时: %s - 错误: %s",
+                            idx, len(sites), site_url, exc
+                        )
+                    else:
+                        logger.error(
+                            "✗ [%d/%d] 站点扫描失败: %s - 错误: %s",
+                            idx, len(sites), site_url, exc
+                        )
+    
+    # 输出汇总信息
+    if failed_sites:
+        logger.warning(
+            "部分站点扫描失败: %d/%d",
+            len(failed_sites), len(sites)
+        )
+    
+    logger.info(
+        "✓ 并发目录扫描执行完成 - 成功: %d/%d, 失败: %d, 总目录数: %d",
+        processed_sites_count, len(sites), len(failed_sites), total_directories
+    )
+    
+    return total_directories, processed_sites_count, failed_sites
+
+
 @flow(
     name="directory_scan", 
     log_prints=True,
@@ -359,7 +570,7 @@ def directory_scan_flow(
         Step 0: 创建工作目录
         Step 1: 导出站点 URL 列表到文件（供扫描工具使用）
         Step 2: 验证工具配置
-        Step 3: 串行执行扫描工具并实时保存结果
+        Step 3: 并发执行扫描工具并实时保存结果（使用 ThreadPoolTaskRunner）
     
     ffuf 输出字段：
         - url: 发现的目录/文件 URL
@@ -439,15 +650,16 @@ def directory_scan_flow(
             }
         
         # Step 2: 工具配置信息
+        max_workers = _get_max_workers(enabled_tools)
         logger.info("Step 2: 工具配置信息")
         logger.info(
-            "✓ 启用工具: %s",
-            ', '.join(enabled_tools.keys())
+            "✓ 启用工具: %s, 最大并发数: %d",
+            ', '.join(enabled_tools.keys()), max_workers
         )
         
-        # Step 3: 串行执行扫描工具并实时保存结果
-        logger.info("Step 3: 串行执行扫描工具并实时保存结果")
-        total_directories, processed_sites, failed_sites = _run_scans_sequentially(
+        # Step 3: 并发执行扫描工具并实时保存结果
+        logger.info("Step 3: 并发执行扫描工具并实时保存结果 (max_workers=%d)", max_workers)
+        total_directories, processed_sites, failed_sites = _run_scans_concurrently(
             enabled_tools=enabled_tools,
             sites_file=sites_file,
             directory_scan_dir=directory_scan_dir,
