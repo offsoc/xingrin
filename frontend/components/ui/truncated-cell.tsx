@@ -1,8 +1,6 @@
 "use client"
 
-import React from "react"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
 
 /**
  * 预设的截断长度配置（保留用于兼容）
@@ -36,7 +34,7 @@ interface TruncatedCellProps {
 }
 
 /**
- * 单元格组件 - 完整显示，支持点击复制
+ * 单元格组件 - 多行显示
  */
 export function TruncatedCell({
   value,
@@ -51,15 +49,10 @@ export function TruncatedCell({
   return (
     <div 
       className={cn(
-        "text-sm break-all leading-relaxed whitespace-normal cursor-pointer hover:text-primary transition-colors",
+        "text-sm break-all leading-relaxed whitespace-normal",
         mono && "font-mono",
         className
       )}
-      onClick={() => {
-        navigator.clipboard.writeText(value)
-        toast.success("已复制")
-      }}
-      title="点击复制"
     >
       {value}
     </div>
@@ -67,7 +60,7 @@ export function TruncatedCell({
 }
 
 /**
- * URL 专用的单元格 - 完整显示，支持点击复制
+ * URL 专用的单元格 - 多行显示
  */
 export function TruncatedUrlCell({
   value,
@@ -80,14 +73,9 @@ export function TruncatedUrlCell({
   return (
     <div 
       className={cn(
-        "text-sm text-blue-600 break-all leading-relaxed whitespace-normal cursor-pointer hover:underline",
+        "text-sm break-all leading-relaxed whitespace-normal",
         className
       )}
-      onClick={() => {
-        navigator.clipboard.writeText(value)
-        toast.success("URL 已复制")
-      }}
-      title="点击复制"
     >
       {value}
     </div>

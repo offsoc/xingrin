@@ -13,9 +13,7 @@ export const COLOR_THEMES = [
   { id: 'quantum-rose', name: 'Quantum Rose', color: '#e11d48', colors: ['#e11d48', '#f43f5e', '#fb7185', '#fda4af'], isDark: false },
   { id: 'clean-slate', name: 'Clean Slate', color: '#3b82f6', colors: ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'], isDark: false },
   { id: 'cosmic-night', name: 'Cosmic Night', color: '#6366f1', colors: ['#1e1b4b', '#6366f1', '#818cf8', '#a5b4fc'], isDark: true },
-  { id: 'candyland', name: 'Candyland', color: '#f5a5b8', colors: ['#f5a5b8', '#9dd5f5', '#f9e87c', '#f5a5c8'], isDark: false },
   { id: 'cyberpunk-1', name: 'Cyberpunk', color: '#00ffff', colors: ['#0f172a', '#00ffff', '#a855f7', '#ec4899'], isDark: true },
-  { id: 'gundam', name: 'Gundam', color: '#3b82f6', colors: ['#f8fafc', '#3b82f6', '#ef4444', '#facc15'], isDark: false },
 ] as const
 
 export type ColorThemeId = typeof COLOR_THEMES[number]['id']

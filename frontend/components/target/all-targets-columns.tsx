@@ -75,12 +75,12 @@ function TargetNameCell({
   }
   
   return (
-    <div className="group inline-flex items-center gap-1 max-w-[350px]">
+    <div className="group flex items-start gap-1 flex-1 min-w-0">
       <Tooltip>
         <TooltipTrigger asChild>
           <span
             onClick={() => navigate(`/target/${targetId}/details`)}
-            className="text-sm font-medium hover:text-primary hover:underline underline-offset-2 transition-colors cursor-pointer truncate"
+            className="text-sm font-medium hover:text-primary hover:underline underline-offset-2 transition-colors cursor-pointer text-left break-all leading-relaxed whitespace-normal"
           >
             {name}
           </span>
@@ -284,9 +284,8 @@ export const createAllTargetsColumns = ({
   // 目标名称列
   {
     accessorKey: "name",
-    size: 300,
-    minSize: 200,
-    maxSize: 500,
+    size: 350,
+    minSize: 250,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Target" />
     ),

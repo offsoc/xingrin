@@ -163,52 +163,29 @@ export function createIPAddressColumns(params: {
       accessorKey: "ports",
       size: 250,
       minSize: 150,
-      maxSize: 400,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Open Ports" />
       ),
       cell: ({ getValue }) => {
         const ports = getValue<number[]>()
+        
         if (!ports || ports.length === 0) {
           return <span className="text-muted-foreground">-</span>
         }
 
-        // 常见端口颜色映射
-        const getPortVariant = (portNumber: number) => {
-          const commonPorts = [80, 443, 22, 21, 25, 53, 110, 143, 993, 995]
-          const webPorts = [80, 443, 8080, 8443, 3000, 8000, 8888]
-          const sshPorts = [22]
-          
-          if (sshPorts.includes(portNumber)) return "destructive"
-          if (webPorts.includes(portNumber)) return "default"
-          if (commonPorts.includes(portNumber)) return "secondary"
-          return "outline"
-        }
-
-        // 按端口重要性排序：常见端口优先
-        const sortedPorts = [...ports].sort((a, b) => {
-          const commonPorts = [80, 443, 22, 21, 25, 53, 110, 143, 993, 995]
-          const webPorts = [80, 443, 8080, 8443, 3000, 8000, 8888]
-          
-          const aScore = webPorts.includes(a) ? 3 : 
-                        commonPorts.includes(a) ? 2 : 1
-          const bScore = webPorts.includes(b) ? 3 : 
-                        commonPorts.includes(b) ? 2 : 1
-          
-          if (aScore !== bScore) return bScore - aScore
-          return a - b
-        })
-
+        // 按端口号排序
+        const sortedPorts = [...ports].sort((a, b) => a - b)
+        
         // 显示前8个端口
         const displayPorts = sortedPorts.slice(0, 8)
         const hasMore = sortedPorts.length > 8
 
         return (
-          <div className="flex flex-wrap gap-1 max-w-xs">
+          <div className="flex flex-wrap items-center gap-1.5">
             {displayPorts.map((port, index) => (
               <Badge 
                 key={index} 
-                variant={getPortVariant(port)}
+                variant="outline"
                 className="text-xs font-mono"
               >
                 {port}
@@ -217,18 +194,18 @@ export function createIPAddressColumns(params: {
             {hasMore && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <Badge variant="outline" className="text-xs cursor-pointer hover:bg-muted">
-                    +{ports.length - 8} more
+                  <Badge variant="secondary" className="text-xs cursor-pointer hover:bg-muted">
+                    +{sortedPorts.length - 8} more
                   </Badge>
                 </PopoverTrigger>
                 <PopoverContent className="w-80 p-3">
                   <div className="space-y-2">
                     <h4 className="font-medium text-sm">All Open Ports ({sortedPorts.length})</h4>
-                    <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
+                    <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
                       {sortedPorts.map((port, index) => (
                         <Badge 
                           key={index} 
-                          variant={getPortVariant(port)}
+                          variant="outline"
                           className="text-xs font-mono"
                         >
                           {port}

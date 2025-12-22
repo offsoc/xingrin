@@ -5,12 +5,6 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react"
 import type { Endpoint } from "@/types/endpoint.types"
 import { TruncatedCell, TruncatedUrlCell } from "@/components/ui/truncated-cell"
@@ -79,6 +73,37 @@ function HttpStatusBadge({ statusCode }: { statusCode: number | null | undefined
     <Badge variant={variant} className="px-2 py-1 font-mono tabular-nums">
       {statusCode}
     </Badge>
+  )
+}
+
+/**
+ * Body Preview 单元格组件 - 最多显示3行，超出折叠，点击展开查看完整内容
+ */
+function BodyPreviewCell({ value }: { value: string | null | undefined }) {
+  const [expanded, setExpanded] = React.useState(false)
+  
+  if (!value) {
+    return <span className="text-muted-foreground text-sm">-</span>
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div 
+        className={`text-sm text-muted-foreground break-all leading-relaxed whitespace-normal cursor-pointer hover:text-foreground transition-colors ${!expanded ? 'line-clamp-3' : ''}`}
+        onClick={() => setExpanded(!expanded)}
+        title={expanded ? "点击收起" : "点击展开"}
+      >
+        {value}
+      </div>
+      {value.length > 100 && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-xs text-primary hover:underline self-start"
+        >
+          {expanded ? "收起" : "展开"}
+        </button>
+      )}
+    </div>
   )
 }
 
@@ -209,46 +234,17 @@ export function createEndpointColumns({
       ),
       size: 200,
       minSize: 150,
-      maxSize: 300,
       cell: ({ row }) => {
         const tech = (row.getValue("tech") as string[] | null | undefined) || []
         if (!tech.length) return <span className="text-sm text-muted-foreground">-</span>
 
-        const displayTech = tech.slice(0, 2)
-        const hasMore = tech.length > 2
-
         return (
-          <div className="flex flex-wrap gap-1 max-w-[200px]">
-            {displayTech.map((t, index) => (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {tech.map((t, index) => (
               <Badge key={index} variant="outline" className="text-xs">
                 {t}
               </Badge>
             ))}
-            {hasMore && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Badge variant="secondary" className="text-xs cursor-pointer hover:bg-muted">
-                    +{tech.length - 2}
-                  </Badge>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 p-3">
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-sm">所有技术栈 ({tech.length})</h4>
-                    <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
-                      {tech.map((technology, index) => (
-                        <Badge
-                          key={index}
-                          variant="outline"
-                          className="text-xs"
-                        >
-                          {technology}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            )}
           </div>
         )
       },
@@ -258,11 +254,10 @@ export function createEndpointColumns({
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Body Preview" />
       ),
-      size: 150,
-      minSize: 100,
-      maxSize: 300,
+      size: 350,
+      minSize: 250,
       cell: ({ row }) => (
-        <TruncatedCell value={row.getValue("bodyPreview")} maxLength="bodyPreview" />
+        <BodyPreviewCell value={row.getValue("bodyPreview")} />
       ),
     },
     {

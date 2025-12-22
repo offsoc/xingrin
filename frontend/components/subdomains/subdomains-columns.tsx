@@ -9,7 +9,7 @@ import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react"
 
 import type { Subdomain } from "@/types/subdomain.types"
 
-import { TruncatedCell } from "@/components/ui/truncated-cell"
+
 
 // 列创建函数的参数类型
 interface CreateColumnsProps {
@@ -87,20 +87,21 @@ export const createSubdomainColumns = ({
   // 子域名列
   {
     accessorKey: "name",
-    size: 400,
-    minSize: 200,
-    maxSize: 600,
+    size: 350,
+    minSize: 250,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Subdomain" />
     ),
-    cell: ({ row }) => (
-      <TruncatedCell 
-        value={row.getValue("name")} 
-        maxLength="subdomain" 
-        mono 
-        className="font-medium"
-      />
-    ),
+    cell: ({ row }) => {
+      const name = row.getValue("name") as string
+      return (
+        <div className="flex-1 min-w-0">
+          <span className="text-sm font-medium font-mono break-all leading-relaxed whitespace-normal">
+            {name}
+          </span>
+        </div>
+      )
+    },
   },
 
   // 发现时间列

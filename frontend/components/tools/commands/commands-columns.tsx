@@ -12,22 +12,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import { MoreHorizontal, Eye, Trash2, ChevronsUpDown, ChevronUp, ChevronDown, Copy } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { formatDate } from "@/lib/utils"
 import { toast } from "sonner"
-import { CopyablePopoverContent } from "@/components/ui/copyable-popover-content"
+
 
 /**
  * 数据表格列头组件
@@ -70,6 +59,10 @@ export const commandColumns: ColumnDef<Command>[] = [
   // 选择列
   {
     id: "select",
+    size: 40,
+    minSize: 40,
+    maxSize: 40,
+    enableResizing: false,
     header: ({ table }) => (
       <Checkbox
         checked={
@@ -94,6 +87,8 @@ export const commandColumns: ColumnDef<Command>[] = [
   // 名称列
   {
     accessorKey: "displayName",
+    size: 200,
+    minSize: 150,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
@@ -101,31 +96,14 @@ export const commandColumns: ColumnDef<Command>[] = [
       const displayName = row.getValue("displayName") as string
       const name = row.original.name
       return (
-        <div className="flex flex-col max-w-[200px]">
-          <TooltipProvider delayDuration={500} skipDelayDuration={0}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="font-medium truncate cursor-default">{displayName || name}</span>
-              </TooltipTrigger>
-              <TooltipContent side="top">
-                <p className="text-xs">{displayName || name}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          {displayName && name && name.length > 20 && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground cursor-pointer hover:bg-accent hover:text-foreground flex-shrink-0 transition-colors">
-                  <MoreHorizontal className="h-3.5 w-3.5" />
-                </span>
-              </PopoverTrigger>
-              <PopoverContent className="w-96 p-3">
-                <CopyablePopoverContent value={name} className="font-mono" />
-              </PopoverContent>
-            </Popover>
-          )}
-          {displayName && name && name.length <= 20 && (
-            <span className="text-xs text-muted-foreground font-mono">{name}</span>
+        <div className="flex flex-col flex-1 min-w-0">
+          <span className="text-sm font-medium break-all leading-relaxed whitespace-normal">
+            {displayName || name}
+          </span>
+          {displayName && name && displayName !== name && (
+            <span className="text-xs text-muted-foreground font-mono break-all leading-relaxed whitespace-normal">
+              {name}
+            </span>
           )}
         </div>
       )
@@ -135,6 +113,8 @@ export const commandColumns: ColumnDef<Command>[] = [
   // 所属工具列
   {
     accessorKey: "tool",
+    size: 120,
+    minSize: 80,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Tool" />
     ),
@@ -155,34 +135,20 @@ export const commandColumns: ColumnDef<Command>[] = [
   // 命令模板列
   {
     accessorKey: "commandTemplate",
+    size: 350,
+    minSize: 250,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Command Template" />
     ),
     cell: ({ row }) => {
       const template = row.getValue("commandTemplate") as string
       if (!template) return <span className="text-muted-foreground text-sm">-</span>
-      
-      const maxLength = 60
-      const isLong = template.length > maxLength
-      const displayText = isLong ? template.substring(0, maxLength) + "..." : template
 
       return (
-        <div className="flex items-center gap-1 max-w-[500px]">
-          <span className="text-sm font-mono truncate">
-            {displayText}
+        <div className="flex-1 min-w-0">
+          <span className="text-sm font-mono break-all leading-relaxed whitespace-normal">
+            {template}
           </span>
-          {isLong && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground cursor-pointer hover:bg-accent hover:text-foreground flex-shrink-0 transition-colors">
-                  <MoreHorizontal className="h-3.5 w-3.5" />
-                </span>
-              </PopoverTrigger>
-              <PopoverContent className="w-96 p-3">
-                <CopyablePopoverContent value={template} className="font-mono text-xs" />
-              </PopoverContent>
-            </Popover>
-          )}
         </div>
       )
     },
@@ -191,24 +157,21 @@ export const commandColumns: ColumnDef<Command>[] = [
   // 描述列
   {
     accessorKey: "description",
+    size: 250,
+    minSize: 150,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Description" />
     ),
     cell: ({ row }) => {
       const description = row.getValue("description") as string
+      if (!description) return <span className="text-muted-foreground text-sm">-</span>
+      
       return (
-        <TooltipProvider delayDuration={500} skipDelayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="max-w-[300px] truncate text-sm cursor-default">
-                {description || "-"}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="top" align="start">
-              <p className="text-xs max-w-[400px]">{description || "暂无描述"}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="flex-1 min-w-0">
+          <span className="text-sm text-muted-foreground break-all leading-relaxed whitespace-normal">
+            {description}
+          </span>
+        </div>
       )
     },
   },
@@ -216,6 +179,8 @@ export const commandColumns: ColumnDef<Command>[] = [
   // 更新时间列
   {
     accessorKey: "updatedAt",
+    size: 150,
+    minSize: 120,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Updated At" />
     ),
@@ -229,6 +194,10 @@ export const commandColumns: ColumnDef<Command>[] = [
   // 操作列
   {
     id: "actions",
+    size: 60,
+    minSize: 60,
+    maxSize: 60,
+    enableResizing: false,
     cell: ({ row }) => {
       const command = row.original
 

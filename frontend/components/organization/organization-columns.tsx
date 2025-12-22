@@ -137,6 +137,10 @@ export const createOrganizationColumns = ({
   // 选择列 - 支持单选和全选
   {
     id: "select",
+    size: 40,
+    minSize: 40,
+    maxSize: 40,
+    enableResizing: false,
     header: ({ table }) => (
       <Checkbox
         checked={
@@ -161,18 +165,22 @@ export const createOrganizationColumns = ({
   // 组织名称列
   {
     accessorKey: "name",
+    size: 200,
+    minSize: 150,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Organization" />
     ),
     cell: ({ row }) => {
       const organization = row.original
       return (
-        <Link 
-          href={`/organization/${organization.id}`}
-          className="font-medium hover:text-primary hover:underline transition-colors block"
-        >
-          {row.getValue("name")}
-        </Link>
+        <div className="flex-1 min-w-0">
+          <Link 
+            href={`/organization/${organization.id}`}
+            className="text-sm font-medium hover:text-primary hover:underline underline-offset-2 transition-colors break-all leading-relaxed whitespace-normal"
+          >
+            {row.getValue("name")}
+          </Link>
+        </div>
       )
     },
   },
@@ -180,6 +188,8 @@ export const createOrganizationColumns = ({
   // 组织描述列
   {
     accessorKey: "description",
+    size: 300,
+    minSize: 200,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Description" />
     ),
@@ -191,8 +201,8 @@ export const createOrganizationColumns = ({
       }
       
       return (
-        <div className="max-w-md">
-          <span className="block truncate text-muted-foreground">
+        <div className="flex-1 min-w-0">
+          <span className="text-sm text-muted-foreground break-all leading-relaxed whitespace-normal">
             {description}
           </span>
         </div>
@@ -203,6 +213,8 @@ export const createOrganizationColumns = ({
   // Total Targets 列
   {
     accessorKey: "targetCount",
+    size: 120,
+    minSize: 80,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Total Targets" />
     ),
@@ -221,6 +233,8 @@ export const createOrganizationColumns = ({
   // Added 列（创建时间）
   {
     accessorKey: "createdAt",
+    size: 150,
+    minSize: 120,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Added" />
     ),
@@ -245,6 +259,10 @@ export const createOrganizationColumns = ({
   // 操作列
   {
     id: "actions",
+    size: 120,
+    minSize: 120,
+    maxSize: 120,
+    enableResizing: false,
     cell: ({ row }) => (
       <div className="flex items-center gap-1">
         {/* Target Summary 按钮 */}

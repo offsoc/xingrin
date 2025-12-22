@@ -179,37 +179,20 @@ export const createScheduledScanColumns = ({
   // 任务名称列
   {
     accessorKey: "name",
-    size: 200,
-    minSize: 150,
-    maxSize: 350,
+    size: 350,
+    minSize: 250,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Task Name" />
     ),
     cell: ({ row }) => {
       const name = row.getValue("name") as string
       if (!name) return <span className="text-muted-foreground text-sm">-</span>
-      
-      const maxLength = 35
-      const isLong = name.length > maxLength
-      const displayName = isLong ? name.substring(0, maxLength) + "..." : name
 
       return (
-        <div className="flex items-center gap-1 max-w-[300px]">
-          <span className="text-sm font-medium">
-            {displayName}
+        <div className="flex-1 min-w-0">
+          <span className="text-sm font-medium break-all leading-relaxed whitespace-normal">
+            {name}
           </span>
-          {isLong && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground cursor-pointer hover:bg-accent hover:text-foreground flex-shrink-0 transition-colors">
-                  <MoreHorizontal className="h-3.5 w-3.5" />
-                </span>
-              </PopoverTrigger>
-              <PopoverContent className="w-96 p-3">
-                <CopyablePopoverContent value={name} />
-              </PopoverContent>
-            </Popover>
-          )}
         </div>
       )
     },

@@ -19,11 +19,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import { 
   MoreHorizontal, 
   Eye, 
@@ -31,7 +26,6 @@ import {
   ChevronsUpDown, 
   ChevronUp, 
   ChevronDown,
-  CircleArrowRight,
   StopCircle,
 } from "lucide-react"
 import {
@@ -46,7 +40,7 @@ import {
   IconBug,
 } from "@tabler/icons-react"
 
-import { CopyablePopoverContent } from "@/components/ui/copyable-popover-content"
+
 
 /**
  * 状态徽章组件
@@ -214,9 +208,8 @@ export const createScanHistoryColumns = ({
   // Target 列
   {
     accessorKey: "targetName",
-    size: 200,
-    minSize: 150,
-    maxSize: 350,
+    size: 350,
+    minSize: 250,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Target" />
     ),
@@ -224,55 +217,24 @@ export const createScanHistoryColumns = ({
       const targetName = row.getValue("targetName") as string
       const targetId = row.original.target
       
-      const maxLength = 30
-      const isLong = targetName.length > maxLength
-      const displayText = isLong ? targetName.substring(0, maxLength) + "..." : targetName
-      
       return (
-        <div className="group inline-flex items-center gap-1 max-w-[250px]">
-          <div className="flex items-center gap-1">
-            {targetId ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => navigate(`/target/${targetId}/details`)}
-                    className="text-sm font-medium hover:text-primary hover:underline underline-offset-2 transition-colors cursor-pointer"
-                  >
-                    {displayText}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>目标详情</TooltipContent>
-              </Tooltip>
-            ) : (
-              <span className="text-sm font-medium">
-                {displayText}
-              </span>
-            )}
-            {isLong && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded text-muted-foreground cursor-pointer hover:bg-accent hover:text-foreground flex-shrink-0 transition-colors">
-                    <MoreHorizontal className="h-3.5 w-3.5" />
-                  </span>
-                </PopoverTrigger>
-                <PopoverContent className="w-96 p-3">
-                  <CopyablePopoverContent value={targetName} />
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
-          {targetId && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 flex-shrink-0 hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={(e) => {
-                e.stopPropagation()
-                navigate(`/target/${targetId}/details`)
-              }}
-            >
-              <CircleArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-            </Button>
+        <div className="flex-1 min-w-0">
+          {targetId ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => navigate(`/target/${targetId}/details`)}
+                  className="text-sm font-medium hover:text-primary hover:underline underline-offset-2 transition-colors cursor-pointer text-left break-all leading-relaxed whitespace-normal"
+                >
+                  {targetName}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>目标详情</TooltipContent>
+            </Tooltip>
+          ) : (
+            <span className="text-sm font-medium break-all leading-relaxed whitespace-normal">
+              {targetName}
+            </span>
           )}
         </div>
       )
@@ -284,8 +246,7 @@ export const createScanHistoryColumns = ({
     accessorKey: "summary",
     header: "Summary",
     size: 250,
-    minSize: 180,
-    maxSize: 400,
+    minSize: 150,
     cell: ({ row }) => {
       const summary = (row.getValue("summary") as {
         subdomains: number
@@ -417,7 +378,7 @@ export const createScanHistoryColumns = ({
       }
 
       return (
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           {badges.length > 0 ? (
             badges
           ) : (
@@ -552,7 +513,7 @@ export const createScanHistoryColumns = ({
             onClick={() => navigate(`/scan/history/${scan.id}/`)}
           >
             <Eye className="h-3.5 w-3.5 mr-1" />
-            查看
+            快照
           </Button>
           
           {/* 更多操作菜单 */}

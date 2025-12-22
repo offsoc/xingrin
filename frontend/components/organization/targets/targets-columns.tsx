@@ -6,84 +6,14 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { MoreHorizontal, Eye, Trash2, ChevronsUpDown, ChevronUp, ChevronDown, Copy, Check } from "lucide-react"
+import { Eye, Trash2, ChevronsUpDown, ChevronUp, ChevronDown, Copy, Check } from "lucide-react"
 import type { Target } from "@/types/target.types"
 import { toast } from "sonner"
-
-/**
- * 可复制单元格组件
- */
-function CopyableCell({ 
-  value, 
-  maxWidth = "400px", 
-  truncateLength = 50,
-  successMessage = "已复制",
-  className = "font-medium"
-}: { 
-  value: string
-  maxWidth?: string
-  truncateLength?: number
-  successMessage?: string
-  className?: string
-}) {
-  const [copied, setCopied] = React.useState(false)
-  const isLong = value.length > truncateLength
-  
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(value)
-      setCopied(true)
-      toast.success(successMessage)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      toast.error('复制失败')
-    }
-  }
-  
-  return (
-    <div className="group inline-flex items-center gap-1" style={{ maxWidth }}>
-      <div className={`text-sm truncate cursor-default ${className}`}>
-        {value}
-      </div>
-      
-      <TooltipProvider delayDuration={500} skipDelayDuration={0}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-6 w-6 flex-shrink-0 hover:bg-accent transition-opacity ${
-                copied ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-              }`}
-              onClick={handleCopy}
-            >
-              {copied ? (
-                <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-              ) : (
-                <Copy className="h-3.5 w-3.5 text-muted-foreground" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            <p className="text-xs">{copied ? '已复制!' : '点击复制'}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-  )
-}
 
 // 列创建函数的参数类型
 interface CreateColumnsProps {
@@ -172,10 +102,10 @@ function TargetNameCell({
   }
   
   return (
-    <div className="group inline-flex items-center gap-1 max-w-[400px]">
+    <div className="group flex items-start gap-1 flex-1 min-w-0">
       <button
         onClick={() => navigate(`/target/${targetId}/subdomain/`)}
-        className="text-sm font-medium hover:text-primary hover:underline underline-offset-2 transition-colors cursor-pointer truncate"
+        className="text-sm font-medium hover:text-primary hover:underline underline-offset-2 transition-colors cursor-pointer text-left break-all leading-relaxed whitespace-normal"
       >
         {name}
       </button>
@@ -242,6 +172,10 @@ export const createTargetColumns = ({
   // 选择列
   {
     id: "select",
+    size: 40,
+    minSize: 40,
+    maxSize: 40,
+    enableResizing: false,
     header: ({ table }) => (
       <Checkbox
         checked={
@@ -266,6 +200,8 @@ export const createTargetColumns = ({
   // 目标名称列
   {
     accessorKey: "name",
+    size: 350,
+    minSize: 250,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Target Name" />
     ),
@@ -281,6 +217,8 @@ export const createTargetColumns = ({
   // 类型列
   {
     accessorKey: "type",
+    size: 100,
+    minSize: 80,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Type" />
     ),
@@ -306,6 +244,10 @@ export const createTargetColumns = ({
   // 操作列
   {
     id: "actions",
+    size: 80,
+    minSize: 80,
+    maxSize: 80,
+    enableResizing: false,
     cell: ({ row }) => (
       <TargetRowActions
         target={row.original}
