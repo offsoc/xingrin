@@ -75,13 +75,15 @@ RUN git clone https://github.com/aboul3la/Sublist3r.git /opt/xingrin/tools/Subli
     pip3 install --no-cache-dir -r /opt/xingrin/tools/Sublist3r/requirements.txt --break-system-packages
 
 # 4. 从 go-builder 阶段复制 Go 环境和编译好的工具
+# 扫描工具统一放在 /opt/xingrin/tools/，避免与 Python 包冲突（如 httpx）
 ENV GOPATH=/root/go
-ENV PATH=/usr/local/go/bin:$PATH:$GOPATH/bin
+ENV PATH=/usr/local/go/bin:/opt/xingrin/tools:$PATH:$GOPATH/bin
 ENV GOPROXY=https://goproxy.cn,direct
 
+RUN mkdir -p /opt/xingrin/tools
 COPY --from=go-builder /usr/local/go /usr/local/go
-COPY --from=go-builder /go/bin/* /usr/local/bin/
-COPY --from=go-builder /usr/local/bin/massdns /usr/local/bin/massdns
+COPY --from=go-builder /go/bin/* /opt/xingrin/tools/
+COPY --from=go-builder /usr/local/bin/massdns /opt/xingrin/tools/massdns
 
 # 5. 安装 uv（ Python 包管理器）并安装 Python 依赖
 COPY backend/requirements.txt .
