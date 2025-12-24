@@ -87,7 +87,7 @@ export function RecentVulnerabilities() {
                   <TableHead>Source</TableHead>
                   <TableHead>类型</TableHead>
                   <TableHead>URL</TableHead>
-                  <TableHead>发现时间</TableHead>
+                  <TableHead>创建时间</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -112,7 +112,7 @@ export function RecentVulnerabilities() {
                       {vuln.url}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
-                      {formatTime(vuln.discoveredAt)}
+                      {formatTime(vuln.createdAt)}
                     </TableCell>
                   </TableRow>
                 ))}

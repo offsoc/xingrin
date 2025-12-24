@@ -61,10 +61,10 @@ class DjangoSubdomainSnapshotRepository:
             raise
     
     def get_by_scan(self, scan_id: int):
-        return SubdomainSnapshot.objects.filter(scan_id=scan_id).order_by('-discovered_at')
+        return SubdomainSnapshot.objects.filter(scan_id=scan_id).order_by('-created_at')
 
     def get_all(self):
-        return SubdomainSnapshot.objects.all().order_by('-discovered_at')
+        return SubdomainSnapshot.objects.all().order_by('-created_at')
 
     def iter_raw_data_for_export(
         self, 
@@ -79,12 +79,12 @@ class DjangoSubdomainSnapshotRepository:
             batch_size: 每批数据量
         
         Yields:
-            {'name': 'sub.example.com', 'discovered_at': datetime}
+            {'name': 'sub.example.com', 'created_at': datetime}
         """
         qs = (
             SubdomainSnapshot.objects
             .filter(scan_id=scan_id)
-            .values('name', 'discovered_at')
+            .values('name', 'created_at')
             .order_by('name')
         )
         

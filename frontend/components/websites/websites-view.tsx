@@ -136,7 +136,7 @@ export function WebSitesView({
     const headers = [
       'url', 'host', 'location', 'title', 'status_code',
       'content_length', 'content_type', 'webserver', 'tech',
-      'body_preview', 'vhost', 'discovered_at'
+      'body_preview', 'vhost', 'created_at'
     ]
     
     const rows = items.map(item => [
@@ -151,7 +151,7 @@ export function WebSitesView({
       escapeCSV(formatArrayForCSV(item.tech)),
       escapeCSV(item.bodyPreview),
       escapeCSV(item.vhost),
-      escapeCSV(formatDateForCSV(item.discoveredAt))
+      escapeCSV(formatDateForCSV(item.createdAt))
     ].join(','))
     
     return BOM + [headers.join(','), ...rows].join('\n')

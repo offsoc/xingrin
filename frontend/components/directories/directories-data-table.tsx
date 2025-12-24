@@ -232,7 +232,7 @@ export function DirectoriesDataTable({
                       lines: "Lines",
                       contentType: "Content Type",
                       duration: "Duration",
-                      discoveredAt: "Discovered At",
+                      createdAt: "Created At",
                     }[column.id] || column.id
 
                     return (

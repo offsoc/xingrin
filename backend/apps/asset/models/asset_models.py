@@ -71,7 +71,7 @@ class Endpoint(models.Model):
         default='',
         help_text='重定向地址（HTTP 3xx 响应头 Location）'
     )
-    discovered_at = models.DateTimeField(auto_now_add=True, help_text='发现时间')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
     title = models.CharField(
         max_length=1000,
         blank=True,
@@ -128,9 +128,9 @@ class Endpoint(models.Model):
         db_table = 'endpoint'
         verbose_name = '端点'
         verbose_name_plural = '端点'
-        ordering = ['-discovered_at']
+        ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['-discovered_at']),
+            models.Index(fields=['-created_at']),
             models.Index(fields=['target']),       # 优化从target_id快速查找下面的端点（主关联字段）
             models.Index(fields=['url']),          # URL索引，优化查询性能
             models.Index(fields=['host']),         # host索引，优化根据主机名查询
@@ -172,7 +172,7 @@ class WebSite(models.Model):
         default='',
         help_text='重定向地址（HTTP 3xx 响应头 Location）'
     )
-    discovered_at = models.DateTimeField(auto_now_add=True, help_text='发现时间')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
     title = models.CharField(
         max_length=1000,
         blank=True,
@@ -223,9 +223,9 @@ class WebSite(models.Model):
         db_table = 'website'
         verbose_name = '站点'
         verbose_name_plural = '站点'
-        ordering = ['-discovered_at']
+        ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['-discovered_at']),
+            models.Index(fields=['-created_at']),
             models.Index(fields=['url']),  # URL索引，优化查询性能
             models.Index(fields=['host']),  # host索引，优化根据主机名查询
             models.Index(fields=['target']),     # 优化从target_id快速查找下面的站点
@@ -293,15 +293,15 @@ class Directory(models.Model):
         help_text='请求耗时（单位：纳秒）'
     )
     
-    discovered_at = models.DateTimeField(auto_now_add=True, help_text='发现时间')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
 
     class Meta:
         db_table = 'directory'
         verbose_name = '目录'
         verbose_name_plural = '目录'
-        ordering = ['-discovered_at']
+        ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['-discovered_at']),
+            models.Index(fields=['-created_at']),
             models.Index(fields=['target']),     # 优化从target_id快速查找下面的目录
             models.Index(fields=['url']),        # URL索引，优化搜索和唯一约束
             models.Index(fields=['status']),     # 状态码索引，优化筛选
@@ -358,23 +358,23 @@ class HostPortMapping(models.Model):
     )
     
     # ==================== 时间字段 ====================
-    discovered_at = models.DateTimeField(
+    created_at = models.DateTimeField(
         auto_now_add=True,
-        help_text='发现时间'
+        help_text='创建时间'
     )
 
     class Meta:
         db_table = 'host_port_mapping'
         verbose_name = '主机端口映射'
         verbose_name_plural = '主机端口映射'
-        ordering = ['-discovered_at']
+        ordering = ['-created_at']
         indexes = [
             models.Index(fields=['target']),           # 优化按目标查询
             models.Index(fields=['host']),             # 优化按主机名查询
             models.Index(fields=['ip']),               # 优化按IP查询
             models.Index(fields=['port']),             # 优化按端口查询
             models.Index(fields=['host', 'ip']),       # 优化组合查询
-            models.Index(fields=['-discovered_at']),   # 优化时间排序
+            models.Index(fields=['-created_at']),   # 优化时间排序
         ]
         constraints = [
             # 复合唯一约束：target + host + ip + port 组合唯一
@@ -422,19 +422,19 @@ class Vulnerability(models.Model):
     raw_output = models.JSONField(blank=True, default=dict, help_text='工具原始输出')
     
     # ==================== 时间字段 ====================
-    discovered_at = models.DateTimeField(auto_now_add=True, help_text='首次发现时间')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
 
     class Meta:
         db_table = 'vulnerability'
         verbose_name = '漏洞'
         verbose_name_plural = '漏洞'
-        ordering = ['-discovered_at']
+        ordering = ['-created_at']
         indexes = [
             models.Index(fields=['target']),
             models.Index(fields=['vuln_type']),
             models.Index(fields=['severity']),
             models.Index(fields=['source']),
-            models.Index(fields=['-discovered_at']),
+            models.Index(fields=['-created_at']),
         ]
 
     def __str__(self):

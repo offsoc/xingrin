@@ -15,17 +15,17 @@ class SubdomainSnapshot(models.Model):
     )
     
     name = models.CharField(max_length=1000, help_text='子域名名称')
-    discovered_at = models.DateTimeField(auto_now_add=True, help_text='发现时间')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
     
     class Meta:
         db_table = 'subdomain_snapshot'
         verbose_name = '子域名快照'
         verbose_name_plural = '子域名快照'
-        ordering = ['-discovered_at']
+        ordering = ['-created_at']
         indexes = [
             models.Index(fields=['scan']),
             models.Index(fields=['name']),
-            models.Index(fields=['-discovered_at']),
+            models.Index(fields=['-created_at']),
         ]
         constraints = [
             # 唯一约束：同一次扫描中，同一个子域名只能记录一次
@@ -70,18 +70,18 @@ class WebsiteSnapshot(models.Model):
     )
     body_preview = models.TextField(blank=True, default='', help_text='响应体预览')
     vhost = models.BooleanField(null=True, blank=True, help_text='虚拟主机标志')
-    discovered_at = models.DateTimeField(auto_now_add=True, help_text='发现时间')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
 
     class Meta:
         db_table = 'website_snapshot'
         verbose_name = '网站快照'
         verbose_name_plural = '网站快照'
-        ordering = ['-discovered_at']
+        ordering = ['-created_at']
         indexes = [
             models.Index(fields=['scan']),
             models.Index(fields=['url']),
             models.Index(fields=['host']),  # host索引，优化根据主机名查询
-            models.Index(fields=['-discovered_at']),
+            models.Index(fields=['-created_at']),
         ]
         constraints = [
             # 唯一约束：同一次扫描中，同一个URL只能记录一次
@@ -118,18 +118,18 @@ class DirectorySnapshot(models.Model):
     lines = models.IntegerField(null=True, blank=True, help_text='响应体行数（按换行符分割）')
     content_type = models.CharField(max_length=200, blank=True, default='', help_text='响应头 Content-Type 值')
     duration = models.BigIntegerField(null=True, blank=True, help_text='请求耗时（单位：纳秒）')
-    discovered_at = models.DateTimeField(auto_now_add=True, help_text='发现时间')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
 
     class Meta:
         db_table = 'directory_snapshot'
         verbose_name = '目录快照'
         verbose_name_plural = '目录快照'
-        ordering = ['-discovered_at']
+        ordering = ['-created_at']
         indexes = [
             models.Index(fields=['scan']),
             models.Index(fields=['url']),
             models.Index(fields=['status']),  # 状态码索引，优化筛选
-            models.Index(fields=['-discovered_at']),
+            models.Index(fields=['-created_at']),
         ]
         constraints = [
             # 唯一约束：同一次扫描中，同一个目录URL只能记录一次
@@ -183,16 +183,16 @@ class HostPortMappingSnapshot(models.Model):
     )
     
     # ==================== 时间字段 ====================
-    discovered_at = models.DateTimeField(
+    created_at = models.DateTimeField(
         auto_now_add=True,
-        help_text='发现时间'
+        help_text='创建时间'
     )
 
     class Meta:
         db_table = 'host_port_mapping_snapshot'
         verbose_name = '主机端口映射快照'
         verbose_name_plural = '主机端口映射快照'
-        ordering = ['-discovered_at']
+        ordering = ['-created_at']
         indexes = [
             models.Index(fields=['scan']),             # 优化按扫描查询
             models.Index(fields=['host']),             # 优化按主机名查询
@@ -200,7 +200,7 @@ class HostPortMappingSnapshot(models.Model):
             models.Index(fields=['port']),             # 优化按端口查询
             models.Index(fields=['host', 'ip']),       # 优化组合查询
             models.Index(fields=['scan', 'host']),     # 优化扫描+主机查询
-            models.Index(fields=['-discovered_at']),   # 优化时间排序
+            models.Index(fields=['-created_at']),   # 优化时间排序
         ]
         constraints = [
             # 复合唯一约束：同一次扫描中，scan + host + ip + port 组合唯一
@@ -257,19 +257,19 @@ class EndpointSnapshot(models.Model):
         default=list,
         help_text='匹配的GF模式列表'
     )
-    discovered_at = models.DateTimeField(auto_now_add=True, help_text='发现时间')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
 
     class Meta:
         db_table = 'endpoint_snapshot'
         verbose_name = '端点快照'
         verbose_name_plural = '端点快照'
-        ordering = ['-discovered_at']
+        ordering = ['-created_at']
         indexes = [
             models.Index(fields=['scan']),
             models.Index(fields=['url']),
             models.Index(fields=['host']),  # host索引，优化根据主机名查询
             models.Index(fields=['status_code']),  # 状态码索引，优化筛选
-            models.Index(fields=['-discovered_at']),
+            models.Index(fields=['-created_at']),
         ]
         constraints = [
             # 唯一约束：同一次扫描中，同一个URL只能记录一次
@@ -316,19 +316,19 @@ class VulnerabilitySnapshot(models.Model):
     raw_output = models.JSONField(blank=True, default=dict, help_text='工具原始输出')
     
     # ==================== 时间字段 ====================
-    discovered_at = models.DateTimeField(auto_now_add=True, help_text='发现时间')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='创建时间')
 
     class Meta:
         db_table = 'vulnerability_snapshot'
         verbose_name = '漏洞快照'
         verbose_name_plural = '漏洞快照'
-        ordering = ['-discovered_at']
+        ordering = ['-created_at']
         indexes = [
             models.Index(fields=['scan']),
             models.Index(fields=['vuln_type']),
             models.Index(fields=['severity']),
             models.Index(fields=['source']),
-            models.Index(fields=['-discovered_at']),
+            models.Index(fields=['-created_at']),
         ]
 
     def __str__(self):

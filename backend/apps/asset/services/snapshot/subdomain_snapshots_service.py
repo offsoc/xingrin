@@ -86,6 +86,6 @@ class SubdomainSnapshotsService:
             scan_id: 扫描 ID
         
         Yields:
-            原始数据字典 {name, discovered_at}
+            原始数据字典 {name, created_at}
         """
         return self.subdomain_snapshot_repo.iter_raw_data_for_export(scan_id=scan_id)

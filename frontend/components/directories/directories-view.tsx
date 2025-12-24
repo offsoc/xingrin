@@ -134,7 +134,7 @@ export function DirectoriesView({
     const BOM = '\ufeff'
     const headers = [
       'url', 'status', 'content_length', 'words',
-      'lines', 'content_type', 'duration', 'discovered_at'
+      'lines', 'content_type', 'duration', 'created_at'
     ]
     
     const rows = items.map(item => [
@@ -145,7 +145,7 @@ export function DirectoriesView({
       escapeCSV(item.lines),
       escapeCSV(item.contentType),
       escapeCSV(formatDurationNsToMs(item.duration)),
-      escapeCSV(formatDateForCSV(item.discoveredAt))
+      escapeCSV(formatDateForCSV(item.createdAt))
     ].join(','))
     
     return BOM + [headers.join(','), ...rows].join('\n')

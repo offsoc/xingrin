@@ -122,16 +122,16 @@ export function createVulnerabilityColumns({
       },
     },
     {
-      accessorKey: "discoveredAt",
-      header: "Discovered At",
+      accessorKey: "createdAt",
+      header: "Created At",
       size: 150,
       minSize: 120,
       maxSize: 200,
       cell: ({ row }) => {
-        const discoveredAt = row.getValue("discoveredAt") as string
+        const createdAt = row.getValue("createdAt") as string
         return (
           <span className="text-sm text-muted-foreground">
-            {formatDate(discoveredAt)}
+            {formatDate(createdAt)}
           </span>
         )
       },

@@ -74,10 +74,10 @@ class DjangoWebsiteSnapshotRepository:
             raise
     
     def get_by_scan(self, scan_id: int):
-        return WebsiteSnapshot.objects.filter(scan_id=scan_id).order_by('-discovered_at')
+        return WebsiteSnapshot.objects.filter(scan_id=scan_id).order_by('-created_at')
 
     def get_all(self):
-        return WebsiteSnapshot.objects.all().order_by('-discovered_at')
+        return WebsiteSnapshot.objects.all().order_by('-created_at')
 
     def iter_raw_data_for_export(
         self, 
@@ -100,7 +100,7 @@ class DjangoWebsiteSnapshotRepository:
             .values(
                 'url', 'host', 'location', 'title', 'status',
                 'content_length', 'content_type', 'web_server', 'tech',
-                'body_preview', 'vhost', 'discovered_at'
+                'body_preview', 'vhost', 'created_at'
             )
             .order_by('url')
         )
@@ -119,5 +119,5 @@ class DjangoWebsiteSnapshotRepository:
                 'tech': row['tech'],
                 'body_preview': row['body_preview'],
                 'vhost': row['vhost'],
-                'discovered_at': row['discovered_at'],
+                'created_at': row['created_at'],
             }

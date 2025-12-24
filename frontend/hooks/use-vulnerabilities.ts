@@ -54,7 +54,7 @@ export function useAllVulnerabilities(
           cvssScore = Number.isNaN(num) ? undefined : num
         }
 
-        const discoveredAt: string = item.discoveredAt
+        const createdAt: string = item.createdAt
 
         return {
           id: item.id,
@@ -65,7 +65,7 @@ export function useAllVulnerabilities(
           source: item.source || "scan",
           cvssScore,
           rawOutput: item.rawOutput || {},
-          discoveredAt,
+          createdAt,
         }
       })
 
@@ -124,7 +124,7 @@ export function useScanVulnerabilities(
           cvssScore = Number.isNaN(num) ? undefined : num
         }
 
-        const discoveredAt: string = item.discoveredAt
+        const createdAt: string = item.createdAt
 
         return {
           id: item.id,
@@ -135,7 +135,7 @@ export function useScanVulnerabilities(
           source: item.source || "scan",
           cvssScore,
           rawOutput: item.rawOutput || {},
-          discoveredAt,
+          createdAt,
         }
       })
 
@@ -194,7 +194,7 @@ export function useTargetVulnerabilities(
           cvssScore = Number.isNaN(num) ? undefined : num
         }
 
-        const discoveredAt: string = item.discoveredAt
+        const createdAt: string = item.createdAt
 
         return {
           id: item.id,
@@ -206,7 +206,7 @@ export function useTargetVulnerabilities(
           target: item.target ?? targetId,
           cvssScore,
           rawOutput: item.rawOutput || {},
-          discoveredAt,
+          createdAt,
         }
       })
 

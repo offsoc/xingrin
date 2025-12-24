@@ -80,7 +80,7 @@ class DjangoEndpointRepository:
     
     def get_all(self):
         """获取所有端点（全局查询）"""
-        return Endpoint.objects.all().order_by('-discovered_at')
+        return Endpoint.objects.all().order_by('-created_at')
     
     def get_by_target(self, target_id: int):
         """
@@ -92,7 +92,7 @@ class DjangoEndpointRepository:
         Returns:
             QuerySet: 端点查询集
         """
-        return Endpoint.objects.filter(target_id=target_id).order_by('-discovered_at')
+        return Endpoint.objects.filter(target_id=target_id).order_by('-created_at')
     
     def count_by_target(self, target_id: int) -> int:
         """
@@ -183,7 +183,7 @@ class DjangoEndpointRepository:
             .values(
                 'url', 'host', 'location', 'title', 'status_code',
                 'content_length', 'content_type', 'webserver', 'tech',
-                'body_preview', 'vhost', 'matched_gf_patterns', 'discovered_at'
+                'body_preview', 'vhost', 'matched_gf_patterns', 'created_at'
             )
             .order_by('url')
         )

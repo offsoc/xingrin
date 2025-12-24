@@ -23,7 +23,7 @@ export interface Endpoint {
   bodyPreview?: string
   tech?: string[]
   vhost?: boolean | null
-  discoveredAt?: string
+  createdAt?: string
 
   // 旧版域名关联字段（在部分接口中可能不存在）
   domainId?: number               // 后端: domain_id

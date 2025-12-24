@@ -26,9 +26,9 @@ class SubdomainSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subdomain
         fields = [
-            'id', 'name', 'discovered_at', 'target'
+            'id', 'name', 'created_at', 'target'
         ]
-        read_only_fields = ['id', 'discovered_at']
+        read_only_fields = ['id', 'created_at']
 
 
 class SubdomainListSerializer(serializers.ModelSerializer):
@@ -41,9 +41,9 @@ class SubdomainListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subdomain
         fields = [
-            'id', 'name', 'discovered_at'
+            'id', 'name', 'created_at'
         ]
-        read_only_fields = ['id', 'discovered_at']
+        read_only_fields = ['id', 'created_at']
 
 
 # class IPAddressListSerializer(serializers.ModelSerializer):
@@ -87,7 +87,7 @@ class WebSiteSerializer(serializers.ModelSerializer):
             'tech',
             'vhost',
             'subdomain',
-            'discovered_at',
+            'created_at',
         ]
         read_only_fields = fields
 
@@ -107,7 +107,7 @@ class VulnerabilitySerializer(serializers.ModelSerializer):
             'cvss_score',
             'description',
             'raw_output',
-            'discovered_at',
+            'created_at',
         ]
         read_only_fields = fields
 
@@ -126,7 +126,7 @@ class VulnerabilitySnapshotSerializer(serializers.ModelSerializer):
             'cvss_score',
             'description',
             'raw_output',
-            'discovered_at',
+            'created_at',
         ]
         read_only_fields = fields
 
@@ -156,7 +156,7 @@ class EndpointListSerializer(serializers.ModelSerializer):
             'tech',
             'vhost',
             'tags',
-            'discovered_at',
+            'created_at',
         ]
         read_only_fields = fields
 
@@ -164,7 +164,7 @@ class EndpointListSerializer(serializers.ModelSerializer):
 class DirectorySerializer(serializers.ModelSerializer):
     """目录序列化器"""
     
-    discovered_at = serializers.DateTimeField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
     
     class Meta:
         model = Directory
@@ -177,7 +177,7 @@ class DirectorySerializer(serializers.ModelSerializer):
             'lines',
             'content_type',
             'duration',
-            'discovered_at',
+            'created_at',
         ]
         read_only_fields = fields
 
@@ -190,12 +190,12 @@ class IPAddressAggregatedSerializer(serializers.Serializer):
     - ip: IP 地址
     - hosts: 该 IP 关联的所有主机名列表
     - ports: 该 IP 关联的所有端口列表
-    - discovered_at: 首次发现时间
+    - created_at: 创建时间
     """
     ip = serializers.IPAddressField(read_only=True)
     hosts = serializers.ListField(child=serializers.CharField(), read_only=True)
     ports = serializers.ListField(child=serializers.IntegerField(), read_only=True)
-    discovered_at = serializers.DateTimeField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
 
 
 # ==================== 快照序列化器 ====================
@@ -205,7 +205,7 @@ class SubdomainSnapshotSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = SubdomainSnapshot
-        fields = ['id', 'name', 'discovered_at']
+        fields = ['id', 'name', 'created_at']
         read_only_fields = fields
 
 
@@ -231,7 +231,7 @@ class WebsiteSnapshotSerializer(serializers.ModelSerializer):
             'tech',
             'vhost',
             'subdomain_name',
-            'discovered_at',
+            'created_at',
         ]
         read_only_fields = fields
 
@@ -250,7 +250,7 @@ class DirectorySnapshotSerializer(serializers.ModelSerializer):
             'lines',
             'content_type',
             'duration',
-            'discovered_at',
+            'created_at',
         ]
         read_only_fields = fields
 
@@ -281,6 +281,6 @@ class EndpointSnapshotSerializer(serializers.ModelSerializer):
             'tech',
             'vhost',
             'tags',
-            'discovered_at',
+            'created_at',
         ]
         read_only_fields = fields

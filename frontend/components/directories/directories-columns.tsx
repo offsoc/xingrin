@@ -267,9 +267,9 @@ export function createDirectoryColumns({
         return <span className="text-muted-foreground">{formatDuration(duration)}</span>
       },
     },
-    // Discovered At 列
+    // Created At 列
     {
-      accessorKey: "discoveredAt",
+      accessorKey: "createdAt",
       size: 150,
       minSize: 120,
       maxSize: 200,
@@ -280,7 +280,7 @@ export function createDirectoryColumns({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="h-8 px-2 lg:px-3"
           >
-            Discovered At
+            Created At
             {column.getIsSorted() === "asc" ? (
               <ChevronUp className="ml-2 h-4 w-4" />
             ) : column.getIsSorted() === "desc" ? (
@@ -292,7 +292,7 @@ export function createDirectoryColumns({
         )
       },
       cell: ({ row }) => {
-        const date = row.getValue("discoveredAt") as string
+        const date = row.getValue("createdAt") as string
         return <span className="text-muted-foreground">{formatDate(date)}</span>
       },
     },

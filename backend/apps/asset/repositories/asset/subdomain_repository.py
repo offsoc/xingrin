@@ -96,12 +96,12 @@ class DjangoSubdomainRepository:
             batch_size: 每批数据量
         
         Yields:
-            {'name': 'sub.example.com', 'discovered_at': datetime}
+            {'name': 'sub.example.com', 'created_at': datetime}
         """
         qs = (
             Subdomain.objects
             .filter(target_id=target_id)
-            .values('name', 'discovered_at')
+            .values('name', 'created_at')
             .order_by('name')
         )
         

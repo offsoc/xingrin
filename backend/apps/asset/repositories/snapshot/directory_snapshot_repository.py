@@ -78,10 +78,10 @@ class DjangoDirectorySnapshotRepository:
             raise
     
     def get_by_scan(self, scan_id: int):
-        return DirectorySnapshot.objects.filter(scan_id=scan_id).order_by('-discovered_at')
+        return DirectorySnapshot.objects.filter(scan_id=scan_id).order_by('-created_at')
 
     def get_all(self):
-        return DirectorySnapshot.objects.all().order_by('-discovered_at')
+        return DirectorySnapshot.objects.all().order_by('-created_at')
 
     def iter_raw_data_for_export(
         self, 
@@ -103,7 +103,7 @@ class DjangoDirectorySnapshotRepository:
             .filter(scan_id=scan_id)
             .values(
                 'url', 'status', 'content_length', 'words',
-                'lines', 'content_type', 'duration', 'discovered_at'
+                'lines', 'content_type', 'duration', 'created_at'
             )
             .order_by('url')
         )

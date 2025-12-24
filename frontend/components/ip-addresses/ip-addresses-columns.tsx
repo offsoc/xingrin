@@ -144,14 +144,14 @@ export function createIPAddressColumns(params: {
         )
       },
     },
-    // discoveredAt 列
+    // createdAt 列
     {
-      accessorKey: "discoveredAt",
+      accessorKey: "createdAt",
       size: 150,
       minSize: 120,
       maxSize: 200,
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Discovered At" />
+        <DataTableColumnHeader column={column} title="Created At" />
       ),
       cell: ({ getValue }) => {
         const value = getValue<string | undefined>()

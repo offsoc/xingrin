@@ -96,11 +96,11 @@ class DjangoWebSiteRepository:
 
     def get_all(self):
         """获取所有网站"""
-        return WebSite.objects.all().order_by('-discovered_at')
+        return WebSite.objects.all().order_by('-created_at')
 
     def get_by_target(self, target_id: int):
         """获取目标下的所有网站"""
-        return WebSite.objects.filter(target_id=target_id).order_by('-discovered_at')
+        return WebSite.objects.filter(target_id=target_id).order_by('-created_at')
 
     def count_by_target(self, target_id: int) -> int:
         """统计目标下的站点总数"""
@@ -177,7 +177,7 @@ class DjangoWebSiteRepository:
             .values(
                 'url', 'host', 'location', 'title', 'status_code',
                 'content_length', 'content_type', 'webserver', 'tech',
-                'body_preview', 'vhost', 'discovered_at'
+                'body_preview', 'vhost', 'created_at'
             )
             .order_by('url')
         )

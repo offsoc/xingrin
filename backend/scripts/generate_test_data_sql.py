@@ -483,7 +483,7 @@ class TestDataGenerator:
                     INSERT INTO website (
                         url, target_id, host, title, webserver, tech, status_code,
                         content_length, content_type, location, body_preview, vhost,
-                        discovered_at
+                        created_at
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                     ON CONFLICT DO NOTHING
                     RETURNING id
@@ -568,7 +568,7 @@ class TestDataGenerator:
                     INSERT INTO endpoint (
                         url, target_id, host, title, webserver, status_code, content_length,
                         content_type, tech, location, body_preview, vhost, matched_gf_patterns,
-                        discovered_at
+                        created_at
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                     ON CONFLICT DO NOTHING
                 """, (
@@ -622,7 +622,7 @@ class TestDataGenerator:
                 cur.execute("""
                     INSERT INTO directory (
                         url, target_id, status, content_length, words, lines,
-                        content_type, duration, discovered_at
+                        content_type, duration, created_at
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
                     ON CONFLICT DO NOTHING
                 """, (
@@ -674,7 +674,7 @@ class TestDataGenerator:
                 
                 for port in selected_ports:
                     cur.execute("""
-                        INSERT INTO host_port_mapping (target_id, host, ip, port, discovered_at)
+                        INSERT INTO host_port_mapping (target_id, host, ip, port, created_at)
                         VALUES (%s, %s, %s, %s, NOW())
                         ON CONFLICT DO NOTHING
                     """, (target_id, target_name, ip, port))
@@ -743,7 +743,7 @@ class TestDataGenerator:
                 cur.execute("""
                     INSERT INTO vulnerability (
                         target_id, url, vuln_type, severity, source, cvss_score,
-                        description, raw_output, discovered_at
+                        description, raw_output, created_at
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
                 """, (
                     target_id, url, random.choice(vuln_types), severity,
@@ -786,7 +786,7 @@ class TestDataGenerator:
             for prefix in selected:
                 subdomain_name = f'{prefix}.{target_name}'
                 cur.execute("""
-                    INSERT INTO subdomain_snapshot (scan_id, name, discovered_at)
+                    INSERT INTO subdomain_snapshot (scan_id, name, created_at)
                     VALUES (%s, %s, NOW())
                     ON CONFLICT DO NOTHING
                 """, (scan_id, subdomain_name))
@@ -830,7 +830,7 @@ class TestDataGenerator:
                 cur.execute("""
                     INSERT INTO website_snapshot (
                         scan_id, url, host, title, web_server, tech, status,
-                        content_length, content_type, location, body_preview, discovered_at
+                        content_length, content_type, location, body_preview, created_at
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                     ON CONFLICT DO NOTHING
                 """, (
@@ -877,7 +877,7 @@ class TestDataGenerator:
                     INSERT INTO endpoint_snapshot (
                         scan_id, url, host, title, status_code, content_length,
                         location, webserver, content_type, tech, body_preview,
-                        matched_gf_patterns, discovered_at
+                        matched_gf_patterns, created_at
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                     ON CONFLICT DO NOTHING
                 """, (
@@ -925,7 +925,7 @@ class TestDataGenerator:
                 cur.execute("""
                     INSERT INTO directory_snapshot (
                         scan_id, url, status, content_length, words, lines,
-                        content_type, duration, discovered_at
+                        content_type, duration, created_at
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
                     ON CONFLICT DO NOTHING
                 """, (
@@ -967,7 +967,7 @@ class TestDataGenerator:
             for port in random.sample(common_ports, random.randint(3, 6)):
                 cur.execute("""
                     INSERT INTO host_port_mapping_snapshot (
-                        scan_id, host, ip, port, discovered_at
+                        scan_id, host, ip, port, created_at
                     ) VALUES (%s, %s, %s, %s, NOW())
                     ON CONFLICT DO NOTHING
                 """, (scan_id, target_name, ip, port))
@@ -1014,7 +1014,7 @@ class TestDataGenerator:
                 cur.execute("""
                     INSERT INTO vulnerability_snapshot (
                         scan_id, url, vuln_type, severity, source, cvss_score,
-                        description, raw_output, discovered_at
+                        description, raw_output, created_at
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
                 """, (
                     scan_id, url, random.choice(vuln_types), severity,

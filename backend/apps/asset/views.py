@@ -132,7 +132,7 @@ class SubdomainViewSet(viewsets.ModelViewSet):
     pagination_class = BasePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name']
-    ordering = ['-discovered_at']
+    ordering = ['-created_at']
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -149,7 +149,7 @@ class SubdomainViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出子域名为 CSV 格式
         
-        CSV 列：name, discovered_at
+        CSV 列：name, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime
         
@@ -159,8 +159,8 @@ class SubdomainViewSet(viewsets.ModelViewSet):
         
         data_iterator = self.service.iter_raw_data_for_csv_export(target_id=target_pk)
         
-        headers = ['name', 'discovered_at']
-        formatters = {'discovered_at': format_datetime}
+        headers = ['name', 'created_at']
+        formatters = {'created_at': format_datetime}
         
         response = StreamingHttpResponse(
             generate_csv_rows(data_iterator, headers, formatters),
@@ -182,7 +182,7 @@ class WebSiteViewSet(viewsets.ModelViewSet):
     pagination_class = BasePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['host']
-    ordering = ['-discovered_at']
+    ordering = ['-created_at']
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -199,7 +199,7 @@ class WebSiteViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出网站为 CSV 格式
         
-        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, body_preview, vhost, discovered_at
+        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, body_preview, vhost, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime, format_list_field
         
@@ -212,10 +212,10 @@ class WebSiteViewSet(viewsets.ModelViewSet):
         headers = [
             'url', 'host', 'location', 'title', 'status_code',
             'content_length', 'content_type', 'webserver', 'tech',
-            'body_preview', 'vhost', 'discovered_at'
+            'body_preview', 'vhost', 'created_at'
         ]
         formatters = {
-            'discovered_at': format_datetime,
+            'created_at': format_datetime,
             'tech': lambda x: format_list_field(x, separator=','),
         }
         
@@ -239,7 +239,7 @@ class DirectoryViewSet(viewsets.ModelViewSet):
     pagination_class = BasePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['url']
-    ordering = ['-discovered_at']
+    ordering = ['-created_at']
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -256,7 +256,7 @@ class DirectoryViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出目录为 CSV 格式
         
-        CSV 列：url, status, content_length, words, lines, content_type, duration, discovered_at
+        CSV 列：url, status, content_length, words, lines, content_type, duration, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime
         
@@ -268,10 +268,10 @@ class DirectoryViewSet(viewsets.ModelViewSet):
         
         headers = [
             'url', 'status', 'content_length', 'words',
-            'lines', 'content_type', 'duration', 'discovered_at'
+            'lines', 'content_type', 'duration', 'created_at'
         ]
         formatters = {
-            'discovered_at': format_datetime,
+            'created_at': format_datetime,
         }
         
         response = StreamingHttpResponse(
@@ -294,7 +294,7 @@ class EndpointViewSet(viewsets.ModelViewSet):
     pagination_class = BasePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['host']
-    ordering = ['-discovered_at']
+    ordering = ['-created_at']
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -311,7 +311,7 @@ class EndpointViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出端点为 CSV 格式
         
-        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, body_preview, vhost, matched_gf_patterns, discovered_at
+        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, body_preview, vhost, matched_gf_patterns, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime, format_list_field
         
@@ -324,10 +324,10 @@ class EndpointViewSet(viewsets.ModelViewSet):
         headers = [
             'url', 'host', 'location', 'title', 'status_code',
             'content_length', 'content_type', 'webserver', 'tech',
-            'body_preview', 'vhost', 'matched_gf_patterns', 'discovered_at'
+            'body_preview', 'vhost', 'matched_gf_patterns', 'created_at'
         ]
         formatters = {
-            'discovered_at': format_datetime,
+            'created_at': format_datetime,
             'tech': lambda x: format_list_field(x, separator=','),
             'matched_gf_patterns': lambda x: format_list_field(x, separator=','),
         }
@@ -371,7 +371,7 @@ class HostPortMappingViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出 IP 地址为 CSV 格式
         
-        CSV 列：ip, host, port, discovered_at
+        CSV 列：ip, host, port, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime
         
@@ -383,9 +383,9 @@ class HostPortMappingViewSet(viewsets.ModelViewSet):
         data_iterator = self.service.iter_raw_data_for_csv_export(target_id=target_pk)
         
         # CSV 表头和格式化器
-        headers = ['ip', 'host', 'port', 'discovered_at']
+        headers = ['ip', 'host', 'port', 'created_at']
         formatters = {
-            'discovered_at': format_datetime
+            'created_at': format_datetime
         }
         
         # 生成流式响应
@@ -410,7 +410,7 @@ class VulnerabilityViewSet(viewsets.ModelViewSet):
     pagination_class = BasePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['vuln_type']
-    ordering = ['-discovered_at']
+    ordering = ['-created_at']
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -433,8 +433,8 @@ class SubdomainSnapshotViewSet(viewsets.ModelViewSet):
     pagination_class = BasePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name']
-    ordering_fields = ['name', 'discovered_at']
-    ordering = ['-discovered_at']
+    ordering_fields = ['name', 'created_at']
+    ordering = ['-created_at']
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -450,7 +450,7 @@ class SubdomainSnapshotViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出子域名快照为 CSV 格式
         
-        CSV 列：name, discovered_at
+        CSV 列：name, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime
         
@@ -460,8 +460,8 @@ class SubdomainSnapshotViewSet(viewsets.ModelViewSet):
         
         data_iterator = self.service.iter_raw_data_for_csv_export(scan_id=scan_pk)
         
-        headers = ['name', 'discovered_at']
-        formatters = {'discovered_at': format_datetime}
+        headers = ['name', 'created_at']
+        formatters = {'created_at': format_datetime}
         
         response = StreamingHttpResponse(
             generate_csv_rows(data_iterator, headers, formatters),
@@ -478,7 +478,7 @@ class WebsiteSnapshotViewSet(viewsets.ModelViewSet):
     pagination_class = BasePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['host']
-    ordering = ['-discovered_at']
+    ordering = ['-created_at']
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -494,7 +494,7 @@ class WebsiteSnapshotViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出网站快照为 CSV 格式
         
-        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, body_preview, vhost, discovered_at
+        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, body_preview, vhost, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime, format_list_field
         
@@ -507,10 +507,10 @@ class WebsiteSnapshotViewSet(viewsets.ModelViewSet):
         headers = [
             'url', 'host', 'location', 'title', 'status_code',
             'content_length', 'content_type', 'webserver', 'tech',
-            'body_preview', 'vhost', 'discovered_at'
+            'body_preview', 'vhost', 'created_at'
         ]
         formatters = {
-            'discovered_at': format_datetime,
+            'created_at': format_datetime,
             'tech': lambda x: format_list_field(x, separator=','),
         }
         
@@ -529,7 +529,7 @@ class DirectorySnapshotViewSet(viewsets.ModelViewSet):
     pagination_class = BasePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['url']
-    ordering = ['-discovered_at']
+    ordering = ['-created_at']
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -545,7 +545,7 @@ class DirectorySnapshotViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出目录快照为 CSV 格式
         
-        CSV 列：url, status, content_length, words, lines, content_type, duration, discovered_at
+        CSV 列：url, status, content_length, words, lines, content_type, duration, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime
         
@@ -557,10 +557,10 @@ class DirectorySnapshotViewSet(viewsets.ModelViewSet):
         
         headers = [
             'url', 'status', 'content_length', 'words',
-            'lines', 'content_type', 'duration', 'discovered_at'
+            'lines', 'content_type', 'duration', 'created_at'
         ]
         formatters = {
-            'discovered_at': format_datetime,
+            'created_at': format_datetime,
         }
         
         response = StreamingHttpResponse(
@@ -578,7 +578,7 @@ class EndpointSnapshotViewSet(viewsets.ModelViewSet):
     pagination_class = BasePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['host']
-    ordering = ['-discovered_at']
+    ordering = ['-created_at']
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -594,7 +594,7 @@ class EndpointSnapshotViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出端点快照为 CSV 格式
         
-        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, body_preview, vhost, matched_gf_patterns, discovered_at
+        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, body_preview, vhost, matched_gf_patterns, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime, format_list_field
         
@@ -607,10 +607,10 @@ class EndpointSnapshotViewSet(viewsets.ModelViewSet):
         headers = [
             'url', 'host', 'location', 'title', 'status_code',
             'content_length', 'content_type', 'webserver', 'tech',
-            'body_preview', 'vhost', 'matched_gf_patterns', 'discovered_at'
+            'body_preview', 'vhost', 'matched_gf_patterns', 'created_at'
         ]
         formatters = {
-            'discovered_at': format_datetime,
+            'created_at': format_datetime,
             'tech': lambda x: format_list_field(x, separator=','),
             'matched_gf_patterns': lambda x: format_list_field(x, separator=','),
         }
@@ -647,7 +647,7 @@ class HostPortMappingSnapshotViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出 IP 地址为 CSV 格式
         
-        CSV 列：ip, host, port, discovered_at
+        CSV 列：ip, host, port, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime
         
@@ -659,9 +659,9 @@ class HostPortMappingSnapshotViewSet(viewsets.ModelViewSet):
         data_iterator = self.service.iter_raw_data_for_csv_export(scan_id=scan_pk)
         
         # CSV 表头和格式化器
-        headers = ['ip', 'host', 'port', 'discovered_at']
+        headers = ['ip', 'host', 'port', 'created_at']
         formatters = {
-            'discovered_at': format_datetime
+            'created_at': format_datetime
         }
         
         # 生成流式响应
@@ -681,7 +681,7 @@ class VulnerabilitySnapshotViewSet(viewsets.ModelViewSet):
     pagination_class = BasePagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['vuln_type']
-    ordering = ['-discovered_at']
+    ordering = ['-created_at']
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

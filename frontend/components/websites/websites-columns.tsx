@@ -272,16 +272,16 @@ export function createWebSiteColumns({
       },
     },
     {
-      accessorKey: "discoveredAt",
+      accessorKey: "createdAt",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Discovered At" />
+        <DataTableColumnHeader column={column} title="Created At" />
       ),
       size: 150,
       minSize: 120,
       maxSize: 200,
       cell: ({ row }) => {
-        const discoveredAt = row.getValue("discoveredAt") as string
-        return <div className="text-sm">{discoveredAt ? formatDate(discoveredAt) : "-"}</div>
+        const createdAt = row.getValue("createdAt") as string
+        return <div className="text-sm">{createdAt ? formatDate(createdAt) : "-"}</div>
       },
     },
   ]

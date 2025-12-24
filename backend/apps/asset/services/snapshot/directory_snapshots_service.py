@@ -50,7 +50,7 @@ class DirectorySnapshotsService:
             
             # 步骤 2: 转换为资产 DTO 并保存到资产表（upsert）
             # - 新记录：插入资产表
-            # - 已存在的记录：更新字段（discovered_at 不更新，保留首次发现时间）
+            # - 已存在的记录：更新字段（created_at 不更新，保留创建时间）
             logger.debug("步骤 2: 同步到资产表（通过 Service 层，upsert）")
             asset_items = [item.to_asset_dto() for item in items]
             

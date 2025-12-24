@@ -51,7 +51,7 @@ class WebsiteSnapshotsService:
             
             # 步骤 2: 转换为资产 DTO 并保存到资产表（upsert）
             # - 新记录：插入资产表
-            # - 已存在的记录：更新字段（discovered_at 不更新，保留首次发现时间）
+            # - 已存在的记录：更新字段（created_at 不更新，保留创建时间）
             logger.debug("步骤 2: 同步到资产表（通过 Service 层，upsert）")
             asset_items = [item.to_asset_dto() for item in items]
             
@@ -76,7 +76,7 @@ class WebsiteSnapshotsService:
         return self.snapshot_repo.get_all()
 
     def iter_website_urls_by_scan(self, scan_id: int, chunk_size: int = 1000) -> Iterator[str]:
-        """流式获取某次扫描下的所有站点 URL（按发现时间倒序）。"""
+        """流式获取某次扫描下的所有站点 URL（按创建时间倒序）。"""
         queryset = self.snapshot_repo.get_by_scan(scan_id)
         for snapshot in queryset.iterator(chunk_size=chunk_size):
             yield snapshot.url

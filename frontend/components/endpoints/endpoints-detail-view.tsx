@@ -159,7 +159,7 @@ export function EndpointsDetailView({
     const headers = [
       'url', 'host', 'location', 'title', 'status_code',
       'content_length', 'content_type', 'webserver', 'tech',
-      'body_preview', 'vhost', 'matched_gf_patterns', 'discovered_at'
+      'body_preview', 'vhost', 'matched_gf_patterns', 'created_at'
     ]
     
     const rows = items.map(item => [
@@ -175,7 +175,7 @@ export function EndpointsDetailView({
       escapeCSV(item.bodyPreview),
       escapeCSV(item.vhost),
       escapeCSV(formatArrayForCSV(item.tags ?? undefined)),
-      escapeCSV(formatDateForCSV(item.discoveredAt ?? ''))
+      escapeCSV(formatDateForCSV(item.createdAt ?? ''))
     ].join(','))
     
     return BOM + [headers.join(','), ...rows].join('\n')

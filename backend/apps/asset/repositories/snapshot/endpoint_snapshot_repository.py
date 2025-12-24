@@ -74,10 +74,10 @@ class DjangoEndpointSnapshotRepository:
             raise
     
     def get_by_scan(self, scan_id: int):
-        return EndpointSnapshot.objects.filter(scan_id=scan_id).order_by('-discovered_at')
+        return EndpointSnapshot.objects.filter(scan_id=scan_id).order_by('-created_at')
 
     def get_all(self):
-        return EndpointSnapshot.objects.all().order_by('-discovered_at')
+        return EndpointSnapshot.objects.all().order_by('-created_at')
 
     def iter_raw_data_for_export(
         self, 
@@ -100,7 +100,7 @@ class DjangoEndpointSnapshotRepository:
             .values(
                 'url', 'host', 'location', 'title', 'status_code',
                 'content_length', 'content_type', 'webserver', 'tech',
-                'body_preview', 'vhost', 'matched_gf_patterns', 'discovered_at'
+                'body_preview', 'vhost', 'matched_gf_patterns', 'created_at'
             )
             .order_by('url')
         )

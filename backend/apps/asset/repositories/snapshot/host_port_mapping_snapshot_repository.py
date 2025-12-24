@@ -76,9 +76,9 @@ class DjangoHostPortMappingSnapshotRepository:
             qs
             .values('ip')
             .annotate(
-                discovered_at=Min('discovered_at')
+                created_at=Min('created_at')
             )
-            .order_by('-discovered_at')
+            .order_by('-created_at')
         )
 
         results = []
@@ -98,7 +98,7 @@ class DjangoHostPortMappingSnapshotRepository:
                 'ip': ip,
                 'hosts': hosts,
                 'ports': ports,
-                'discovered_at': item['discovered_at'],
+                'created_at': item['created_at'],
             })
 
         return results
@@ -114,8 +114,8 @@ class DjangoHostPortMappingSnapshotRepository:
         ip_aggregated = (
             qs
             .values('ip')
-            .annotate(discovered_at=Min('discovered_at'))
-            .order_by('-discovered_at')
+            .annotate(created_at=Min('created_at'))
+            .order_by('-created_at')
         )
 
         results = []
@@ -133,7 +133,7 @@ class DjangoHostPortMappingSnapshotRepository:
                 'ip': ip,
                 'hosts': hosts,
                 'ports': ports,
-                'discovered_at': item['discovered_at'],
+                'created_at': item['created_at'],
             })
         return results
 
@@ -167,13 +167,13 @@ class DjangoHostPortMappingSnapshotRepository:
                 'ip': '192.168.1.1',
                 'host': 'example.com',
                 'port': 80,
-                'discovered_at': datetime
+                'created_at': datetime
             }
         """
         qs = (
             HostPortMappingSnapshot.objects
             .filter(scan_id=scan_id)
-            .values('ip', 'host', 'port', 'discovered_at')
+            .values('ip', 'host', 'port', 'created_at')
             .order_by('ip', 'host', 'port')
         )
         

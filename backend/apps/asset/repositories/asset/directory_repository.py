@@ -76,11 +76,11 @@ class DjangoDirectoryRepository:
 
     def get_all(self):
         """获取所有目录"""
-        return Directory.objects.all().order_by('-discovered_at')
+        return Directory.objects.all().order_by('-created_at')
 
     def get_by_target(self, target_id: int):
         """获取目标下的所有目录"""
-        return Directory.objects.filter(target_id=target_id).order_by('-discovered_at')
+        return Directory.objects.filter(target_id=target_id).order_by('-created_at')
 
     def get_urls_for_export(self, target_id: int, batch_size: int = 1000) -> Iterator[str]:
         """流式导出目标下的所有目录 URL"""
@@ -118,7 +118,7 @@ class DjangoDirectoryRepository:
             .filter(target_id=target_id)
             .values(
                 'url', 'status', 'content_length', 'words',
-                'lines', 'content_type', 'duration', 'discovered_at'
+                'lines', 'content_type', 'duration', 'created_at'
             )
             .order_by('url')
         )

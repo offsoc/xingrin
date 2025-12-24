@@ -149,7 +149,7 @@ export function IPAddressesView({
   // 生成 CSV 内容（原始格式：每个 host+port 组合一行）
   const generateCSV = (items: IPAddress[]): string => {
     const BOM = '\ufeff'
-    const headers = ['ip', 'host', 'port', 'discovered_at']
+    const headers = ['ip', 'host', 'port', 'created_at']
     
     const escapeCSV = (value: string): string => {
       if (value.includes(',') || value.includes('"') || value.includes('\n')) {
@@ -167,7 +167,7 @@ export function IPAddressesView({
             escapeCSV(item.ip),
             escapeCSV(host),
             escapeCSV(String(port)),
-            escapeCSV(formatDateForCSV(item.discoveredAt))
+            escapeCSV(formatDateForCSV(item.createdAt))
           ].join(','))
         }
       }

@@ -113,7 +113,7 @@ class SubdomainService:
             target_id: 目标 ID
         
         Yields:
-            原始数据字典 {name, discovered_at}
+            原始数据字典 {name, created_at}
         """
         return self.repo.iter_raw_data_for_export(target_id=target_id)
 

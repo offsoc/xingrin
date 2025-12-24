@@ -12,7 +12,7 @@ export interface Directory {
   contentType: string
   duration: number | null
   websiteUrl: string  // 后端返回 websiteUrl
-  discoveredAt: string  // 后端返回 discoveredAt
+  createdAt: string  // 后端返回 createdAt
 }
 
 export interface DirectoryFilters {
