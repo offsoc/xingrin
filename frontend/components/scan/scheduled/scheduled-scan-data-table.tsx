@@ -44,6 +44,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 import type { ScheduledScan } from "@/types/scheduled-scan.types"
 
@@ -77,7 +85,6 @@ export function ScheduledScanDataTable({
   columns,
   onAddNew,
   searchPlaceholder = "搜索任务名称...",
-  searchColumn = "name",
   searchValue,
   onSearch,
   isSearching = false,
@@ -115,9 +122,6 @@ export function ScheduledScanDataTable({
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 
-  // 服务端分页：不使用 TanStack Table 的分页，而是手动控制
-  const isServerPagination = !!onPageChange
-
   // 过滤有效数据
   const validData = React.useMemo(() => {
     return (data || []).filter(
@@ -133,33 +137,28 @@ export function ScheduledScanDataTable({
       sorting,
       columnVisibility,
       columnFilters,
-      // 服务端分页时不使用内部分页状态
-      ...(isServerPagination ? {} : {
-        pagination: { pageIndex: page - 1, pageSize }
-      }),
+      pagination: { pageIndex: page - 1, pageSize },
       columnSizing,
     },
     enableColumnResizing: true,
     columnResizeMode: 'onChange',
     onColumnSizingChange: setColumnSizing,
+    pageCount: totalPages,
+    manualPagination: true,
     getRowId: (row) => row.id.toString(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    // 服务端分页时不使用客户端分页
-    ...(isServerPagination ? {} : { getPaginationRowModel: getPaginationRowModel() }),
+    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-    // 服务端分页：告诉 table 总行数
-    ...(isServerPagination ? { manualPagination: true, pageCount: totalPages } : {}),
   })
 
-
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full">
       {/* 工具栏 */}
       <div className="flex items-center justify-between">
         {/* 搜索框 */}
@@ -201,13 +200,13 @@ export function ScheduledScanDataTable({
                 .map((column) => {
                   const columnNameMap: Record<string, string> = {
                     name: "任务名称",
-                    engine_name: "扫描引擎",
-                    frequency: "执行频率",
-                    target_domains: "目标域名",
-                    is_enabled: "状态",
-                    next_run_time: "下次执行",
-                    run_count: "执行次数",
-                    last_run_time: "上次执行",
+                    engineName: "扫描引擎",
+                    cronExpression: "Cron 表达式",
+                    scanMode: "扫描范围",
+                    isEnabled: "状态",
+                    nextRunTime: "下次执行",
+                    runCount: "执行次数",
+                    lastRunTime: "上次执行",
                   }
 
                   return (
@@ -236,26 +235,29 @@ export function ScheduledScanDataTable({
         </div>
       </div>
 
+      <div
+        className="border-b mt-4"
+        style={{ borderColor: "var(--sidebar-border)" }}
+      />
+
       {/* 表格容器 */}
       <div className="rounded-md border overflow-x-auto">
-        <table 
-          className="caption-bottom text-sm border-collapse"
-          style={{ width: table.getTotalSize() }}
-        >
+        <Table style={{ minWidth: table.getCenterTotalSize() }}>
           {/* 表头 */}
-          <thead className="[&_tr]:border-b">
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr 
+              <TableRow
                 key={headerGroup.id}
-                className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                className="border-b"
+                style={{ borderColor: "var(--sidebar-border)" }}
               >
                 {headerGroup.headers.map((header) => {
                   return (
-                    <th 
+                    <TableHead 
                       key={header.id} 
                       colSpan={header.colSpan}
                       style={{ width: header.getSize() }}
-                      className="h-10 px-2 text-left align-middle font-medium text-foreground whitespace-nowrap relative group"
+                      className="relative group"
                     >
                       {header.isPlaceholder
                         ? null
@@ -273,53 +275,51 @@ export function ScheduledScanDataTable({
                           <div className="absolute right-0 top-0 h-full w-1 bg-transparent group-hover:bg-border" />
                         </div>
                       )}
-                    </th>
+                    </TableHead>
                   )
                 })}
-              </tr>
+              </TableRow>
             ))}
-          </thead>
+          </TableHeader>
 
           {/* 表体 */}
-          <tbody className="[&_tr:last-child]:border-0">
+          <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <tr
+                <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted group"
+                  className="group border-b [&>td]:py-2 last:border-b-0"
+                  style={{ borderColor: "var(--sidebar)" }}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td 
-                      key={cell.id} 
-                      style={{ width: cell.column.getSize() }}
-                      className="p-2 align-middle whitespace-nowrap"
-                    >
+                    <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
                       )}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               ))
             ) : (
-              <tr className="border-b transition-colors">
-                <td
+              <TableRow
+                className="border-b"
+                style={{ borderColor: "var(--sidebar)" }}
+              >
+                <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center p-2 align-middle"
+                  className="h-24 text-center"
                 >
                   暂无数据
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* 分页控制 */}
-      <div className="flex items-center justify-end px-2">
-        {/* 分页控制器 */}
+      <div className="border-t border-border pt-4 flex items-center justify-end px-2">
         <div className="flex items-center space-x-6 lg:space-x-8">
           {/* 每页显示数量选择 */}
           <div className="flex items-center space-x-2">
@@ -349,7 +349,7 @@ export function ScheduledScanDataTable({
 
           {/* 页码信息 */}
           <div className="flex w-[120px] items-center justify-center text-sm font-medium">
-            Page {page} of {totalPages} ({total} items)
+            Page {page} of {totalPages}
           </div>
 
           {/* 分页按钮 */}

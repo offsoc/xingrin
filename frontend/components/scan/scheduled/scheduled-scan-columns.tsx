@@ -25,6 +25,8 @@ import {
   ChevronUp,
   ChevronDown,
   Edit,
+  Building2,
+  Target,
 } from "lucide-react"
 
 
@@ -179,7 +181,7 @@ export const createScheduledScanColumns = ({
   // 任务名称列
   {
     accessorKey: "name",
-    size: 650,
+    size: 350,
     minSize: 250,
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Task Name" />
@@ -238,12 +240,12 @@ export const createScheduledScanColumns = ({
     enableSorting: false,
   },
 
-  // 目标列（根据 scanMode 显示组织或目标）
+  // 扫描范围列（用图标区分组织/目标）
   {
     accessorKey: "scanMode",
-    header: "Target",
-    size: 180,
-    minSize: 120,
+    header: "Scope",
+    size: 200,
+    minSize: 150,
     cell: ({ row }) => {
       const scanMode = row.original.scanMode
       const organizationName = row.original.organizationName
@@ -252,21 +254,24 @@ export const createScheduledScanColumns = ({
       // 组织扫描模式
       if (scanMode === 'organization' && organizationName) {
         return (
-          <Badge variant="secondary" className="text-xs">
-            组织: {organizationName}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="text-sm truncate">{organizationName}</span>
+          </div>
         )
       }
       
-      // 目标扫描模式：显示单个目标
-      if (!targetName) {
-        return <div className="text-sm text-muted-foreground">-</div>
+      // 目标扫描模式
+      if (targetName) {
+        return (
+          <div className="flex items-center gap-2">
+            <Target className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="text-sm font-mono truncate">{targetName}</span>
+          </div>
+        )
       }
-      return (
-        <Badge variant="outline" className="text-xs font-mono font-normal">
-          {targetName}
-        </Badge>
-      )
+      
+      return <span className="text-sm text-muted-foreground">-</span>
     },
     enableSorting: false,
   },
