@@ -1,17 +1,24 @@
 """Directory Service - 目录业务逻辑层"""
 
 import logging
-from typing import List, Iterator
+from typing import List, Iterator, Optional
 
 from apps.asset.repositories import DjangoDirectoryRepository
 from apps.asset.dtos import DirectoryDTO
 from apps.common.validators import is_valid_url, is_url_match_target
+from apps.common.utils.filter_utils import apply_filters
 
 logger = logging.getLogger(__name__)
 
 
 class DirectoryService:
     """目录业务逻辑层"""
+    
+    # 智能过滤字段映射
+    FILTER_FIELD_MAPPING = {
+        'url': 'url',
+        'status': 'status',
+    }
     
     def __init__(self, repository=None):
         """初始化目录服务"""
@@ -94,13 +101,19 @@ class DirectoryService:
         count_after = self.repo.count_by_target(target_id)
         return count_after - count_before
     
-    def get_directories_by_target(self, target_id: int):
+    def get_directories_by_target(self, target_id: int, filter_query: Optional[str] = None):
         """获取目标下的所有目录"""
-        return self.repo.get_by_target(target_id)
+        queryset = self.repo.get_by_target(target_id)
+        if filter_query:
+            queryset = apply_filters(queryset, filter_query, self.FILTER_FIELD_MAPPING)
+        return queryset
     
-    def get_all(self):
+    def get_all(self, filter_query: Optional[str] = None):
         """获取所有目录"""
-        return self.repo.get_all()
+        queryset = self.repo.get_all()
+        if filter_query:
+            queryset = apply_filters(queryset, filter_query, self.FILTER_FIELD_MAPPING)
+        return queryset
 
     def iter_directory_urls_by_target(self, target_id: int, chunk_size: int = 1000) -> Iterator[str]:
         """流式获取目标下的所有目录 URL"""

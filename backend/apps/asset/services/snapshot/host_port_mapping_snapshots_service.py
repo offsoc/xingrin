@@ -69,12 +69,12 @@ class HostPortMappingSnapshotsService:
             )
             raise
     
-    def get_ip_aggregation_by_scan(self, scan_id: int, search: str = None):
-        return self.snapshot_repo.get_ip_aggregation_by_scan(scan_id, search=search)
+    def get_ip_aggregation_by_scan(self, scan_id: int, filter_query: str = None):
+        return self.snapshot_repo.get_ip_aggregation_by_scan(scan_id, filter_query=filter_query)
 
-    def get_all_ip_aggregation(self, search: str = None):
+    def get_all_ip_aggregation(self, filter_query: str = None):
         """获取所有 IP 聚合数据"""
-        return self.snapshot_repo.get_all_ip_aggregation(search=search)
+        return self.snapshot_repo.get_all_ip_aggregation(filter_query=filter_query)
 
     def iter_ips_by_scan(self, scan_id: int, batch_size: int = 1000) -> Iterator[str]:
         """流式获取某次扫描下的所有唯一 IP 地址。"""

@@ -42,19 +42,17 @@ export function VulnerabilitiesDetailView({
     pageSize: 10,
   })
 
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isSearching, setIsSearching] = useState(false)
+  // 智能过滤查询
+  const [filterQuery, setFilterQuery] = useState("")
 
-  const handleSearchChange = (value: string) => {
-    setIsSearching(true)
-    setSearchQuery(value)
+  const handleFilterChange = (value: string) => {
+    setFilterQuery(value)
     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
   }
 
   const paginationParams = {
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
-    search: searchQuery || undefined,
   }
 
   // 按 scan 维度加载（扫描历史页面）
@@ -62,6 +60,7 @@ export function VulnerabilitiesDetailView({
     scanId ?? 0,
     paginationParams,
     { enabled: !!scanId },
+    filterQuery || undefined,
   )
 
   // 按 target 维度加载（目标详情页面）
@@ -69,24 +68,19 @@ export function VulnerabilitiesDetailView({
     targetId ?? 0,
     paginationParams,
     { enabled: !!targetId && !scanId },
+    filterQuery || undefined,
   )
 
   // 获取所有漏洞（全局漏洞页面）
   const allQuery = useAllVulnerabilities(
     paginationParams,
     { enabled: !scanId && !targetId },
+    filterQuery || undefined,
   )
 
   // 根据参数选择使用哪个 query
   const activeQuery = scanId ? scanQuery : targetId ? targetQuery : allQuery
   const isQueryLoading = activeQuery.isLoading
-
-  // 当请求完成时重置搜索状态
-  React.useEffect(() => {
-    if (!activeQuery.isFetching && isSearching) {
-      setIsSearching(false)
-    }
-  }, [activeQuery.isFetching, isSearching])
 
   const vulnerabilities = activeQuery.data?.vulnerabilities ?? []
   const paginationInfo = activeQuery.data?.pagination ?? {
@@ -206,11 +200,8 @@ export function VulnerabilitiesDetailView({
       <VulnerabilitiesDataTable
         data={vulnerabilities}
         columns={vulnerabilityColumns}
-        searchPlaceholder="搜索漏洞类型..."
-        searchColumn="vulnType"
-        searchValue={searchQuery}
-        onSearch={handleSearchChange}
-        isSearching={isSearching}
+        filterValue={filterQuery}
+        onFilterChange={handleFilterChange}
         pagination={pagination}
         setPagination={setPagination}
         paginationInfo={{

@@ -28,15 +28,15 @@ export function DirectoriesView({
   const [selectedDirectories, setSelectedDirectories] = useState<Directory[]>([])
   const [bulkAddDialogOpen, setBulkAddDialogOpen] = useState(false)
 
-  const [searchQuery, setSearchQuery] = useState("")
+  const [filterQuery, setFilterQuery] = useState("")
   const [isSearching, setIsSearching] = useState(false)
 
   // 获取目标信息（用于 URL 匹配校验）
   const { data: target } = useTarget(targetId || 0, { enabled: !!targetId })
 
-  const handleSearchChange = (value: string) => {
+  const handleFilterChange = (value: string) => {
     setIsSearching(true)
-    setSearchQuery(value)
+    setFilterQuery(value)
     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
   }
 
@@ -45,7 +45,7 @@ export function DirectoriesView({
     {
       page: pagination.pageIndex + 1,
       pageSize: pagination.pageSize,
-      search: searchQuery || undefined,
+      filter: filterQuery || undefined,
     },
     { enabled: !!targetId }
   )
@@ -55,7 +55,7 @@ export function DirectoriesView({
     {
       page: pagination.pageIndex + 1,
       pageSize: pagination.pageSize,
-      search: searchQuery || undefined,
+      filter: filterQuery || undefined,
     },
     { enabled: !!scanId }
   )
@@ -242,10 +242,8 @@ export function DirectoriesView({
       <DirectoriesDataTable
         data={directories}
         columns={columns}
-        searchPlaceholder="搜索URL..."
-        searchColumn="url"
-        searchValue={searchQuery}
-        onSearch={handleSearchChange}
+        filterValue={filterQuery}
+        onFilterChange={handleFilterChange}
         isSearching={isSearching}
         pagination={pagination}
         setPagination={setPagination}

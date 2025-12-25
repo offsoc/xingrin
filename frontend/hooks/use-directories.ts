@@ -8,11 +8,11 @@ const directoryService = {
   // 获取目标的目录列表
   getTargetDirectories: async (
     targetId: number,
-    params: { page: number; pageSize: number; search?: string }
+    params: { page: number; pageSize: number; filter?: string }
   ): Promise<DirectoryListResponse> => {
-    const searchParam = params.search ? `&search=${encodeURIComponent(params.search)}` : ''
+    const filterParam = params.filter ? `&filter=${encodeURIComponent(params.filter)}` : ''
     const response = await fetch(
-      `/api/targets/${targetId}/directories/?page=${params.page}&pageSize=${params.pageSize}${searchParam}`
+      `/api/targets/${targetId}/directories/?page=${params.page}&pageSize=${params.pageSize}${filterParam}`
     )
     if (!response.ok) {
       throw new Error('获取目录列表失败')
@@ -23,11 +23,11 @@ const directoryService = {
   // 获取扫描的目录列表
   getScanDirectories: async (
     scanId: number,
-    params: { page: number; pageSize: number; search?: string }
+    params: { page: number; pageSize: number; filter?: string }
   ): Promise<DirectoryListResponse> => {
-    const searchParam = params.search ? `&search=${encodeURIComponent(params.search)}` : ''
+    const filterParam = params.filter ? `&filter=${encodeURIComponent(params.filter)}` : ''
     const response = await fetch(
-      `/api/scans/${scanId}/directories/?page=${params.page}&pageSize=${params.pageSize}${searchParam}`
+      `/api/scans/${scanId}/directories/?page=${params.page}&pageSize=${params.pageSize}${filterParam}`
     )
     if (!response.ok) {
       throw new Error('获取目录列表失败')
@@ -80,7 +80,7 @@ const directoryService = {
 // 获取目标的目录列表
 export function useTargetDirectories(
   targetId: number,
-  params: { page: number; pageSize: number; search?: string },
+  params: { page: number; pageSize: number; filter?: string },
   options?: { enabled?: boolean }
 ) {
   return useQuery({
@@ -94,7 +94,7 @@ export function useTargetDirectories(
 // 获取扫描的目录列表
 export function useScanDirectories(
   scanId: number,
-  params: { page: number; pageSize: number; search?: string },
+  params: { page: number; pageSize: number; filter?: string },
   options?: { enabled?: boolean }
 ) {
   return useQuery({

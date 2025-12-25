@@ -136,13 +136,13 @@ export async function getTargetEndpoints(
   id: number,
   page = 1,
   pageSize = 10,
-  search?: string
+  filter?: string
 ): Promise<any> {
   const response = await api.get(`/targets/${id}/endpoints/`, {
     params: {
       page,
       pageSize,
-      ...(search && { search }),
+      ...(filter && { filter }),
     },
   })
   return response.data

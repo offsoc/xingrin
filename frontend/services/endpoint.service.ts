@@ -59,12 +59,13 @@ export class EndpointService {
    * 根据目标ID获取 Endpoint 列表（专用路由）
    * @param targetId - 目标ID
    * @param params - 其他查询参数
+   * @param filter - 智能过滤查询字符串
    * @returns Promise<GetEndpointsResponse>
    */
-  static async getEndpointsByTargetId(targetId: number, params: GetEndpointsRequest): Promise<GetEndpointsResponse> {
+  static async getEndpointsByTargetId(targetId: number, params: GetEndpointsRequest, filter?: string): Promise<GetEndpointsResponse> {
     // api-client.ts 会自动将 params 对象的驼峰转换为下划线
     const response = await api.get<GetEndpointsResponse>(`/targets/${targetId}/endpoints/`, {
-      params
+      params: { ...params, filter }
     })
     return response.data
   }
@@ -73,13 +74,15 @@ export class EndpointService {
    * 根据扫描ID获取 Endpoint 列表（历史快照）
    * @param scanId - 扫描任务 ID
    * @param params - 分页等查询参数
+   * @param filter - 智能过滤查询字符串
    */
   static async getEndpointsByScanId(
     scanId: number,
     params: GetEndpointsRequest,
+    filter?: string,
   ): Promise<any> {
     const response = await api.get(`/scans/${scanId}/endpoints/`, {
-      params,
+      params: { ...params, filter },
     })
     return response.data
   }

@@ -16,7 +16,7 @@ function normalizeParams(params?: GetIPAddressesParams): Required<GetIPAddresses
   return {
     page: params?.page ?? 1,
     pageSize: params?.pageSize ?? 10,
-    search: params?.search ?? "",
+    filter: params?.filter ?? "",
   }
 }
 

@@ -25,8 +25,6 @@ import {
   IconLayoutColumns,
   IconTrash,
   IconDownload,
-  IconSearch,
-  IconLoader2,
   IconPlus,
 } from "@tabler/icons-react"
 
@@ -40,7 +38,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -57,17 +54,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { SmartFilterInput, type FilterField } from "@/components/common/smart-filter-input"
 
 import type { Directory } from "@/types/directory.types"
 import type { PaginationInfo } from "@/types/common.types"
 
+// 目录页面的过滤字段配置
+const DIRECTORY_FILTER_FIELDS: FilterField[] = [
+  { key: "url", label: "URL", description: "Directory URL" },
+  { key: "status", label: "Status", description: "HTTP status code" },
+]
+
+// 目录页面的示例
+const DIRECTORY_FILTER_EXAMPLES = [
+  'url="/admin" && status="200"',
+  'url="/api/*" || url="/config/*"',
+  'status="200" && url!="/index.html"',
+]
+
 interface DirectoriesDataTableProps {
   data: Directory[]
   columns: ColumnDef<Directory>[]
-  searchPlaceholder?: string
-  searchColumn?: string
-  searchValue?: string
-  onSearch?: (value: string) => void
+  // 智能过滤
+  filterValue?: string
+  onFilterChange?: (value: string) => void
   isSearching?: boolean
   pagination?: { pageIndex: number; pageSize: number }
   setPagination?: React.Dispatch<React.SetStateAction<{ pageIndex: number; pageSize: number }>>
@@ -84,10 +94,8 @@ interface DirectoriesDataTableProps {
 export function DirectoriesDataTable({
   data = [],
   columns,
-  searchPlaceholder = "搜索URL...",
-  searchColumn = "url",
-  searchValue,
-  onSearch,
+  filterValue,
+  onFilterChange,
   isSearching = false,
   pagination,
   setPagination,
@@ -109,24 +117,10 @@ export function DirectoriesDataTable({
     pageSize: 10,
   })
 
-  // 本地搜索输入状态（只在回车或点击按钮时触发搜索）
-  const [localSearchValue, setLocalSearchValue] = React.useState(searchValue ?? "")
-  
-  React.useEffect(() => {
-    setLocalSearchValue(searchValue ?? "")
-  }, [searchValue])
-
-  const handleSearchSubmit = () => {
-    if (onSearch) {
-      onSearch(localSearchValue)
-    } else {
-      table.getColumn(searchColumn)?.setFilterValue(localSearchValue)
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearchSubmit()
+  // 处理智能过滤搜索
+  const handleSmartSearch = (_filters: any[], rawQuery: string) => {
+    if (onFilterChange) {
+      onFilterChange(rawQuery)
     }
   }
 
@@ -190,22 +184,14 @@ export function DirectoriesDataTable({
       <div className="flex flex-col gap-4 @container/toolbar">
         {/* 第一行：搜索和列控制 */}
         <div className="flex flex-col gap-4 @xl/toolbar:flex-row @xl/toolbar:items-center @xl/toolbar:justify-between">
-          <div className="flex flex-1 items-center gap-2">
-            <Input
-              placeholder={searchPlaceholder}
-              value={localSearchValue}
-              onChange={(e) => setLocalSearchValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="h-8 w-full @xl/toolbar:max-w-sm"
-            />
-            <Button variant="outline" size="sm" onClick={handleSearchSubmit} disabled={isSearching}>
-              {isSearching ? (
-                <IconLoader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <IconSearch className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
+          {/* 智能过滤搜索框 */}
+          <SmartFilterInput
+            fields={DIRECTORY_FILTER_FIELDS}
+            examples={DIRECTORY_FILTER_EXAMPLES}
+            value={filterValue}
+            onSearch={handleSmartSearch}
+            className="flex-1 max-w-xl"
+          />
 
           <div className="flex items-center gap-2">
             {/* 列可见性控制 */}

@@ -10,7 +10,6 @@ import {
 } from "@/hooks/use-subdomains"
 import { SubdomainsDataTable } from "./subdomains-data-table"
 import { createSubdomainColumns } from "./subdomains-columns"
-import { LoadingSpinner } from "@/components/loading-spinner"
 import { DataTableSkeleton } from "@/components/ui/data-table-skeleton"
 import { SubdomainService } from "@/services/subdomain.service"
 import { BulkAddSubdomainsDialog } from "./bulk-add-subdomains-dialog"
@@ -40,23 +39,23 @@ export function SubdomainsDetailView({
     pageSize: 10,
   })
 
-  // 搜索状态（服务端搜索）
-  const [searchQuery, setSearchQuery] = useState("")
+  // 过滤状态（智能过滤语法）
+  const [filterQuery, setFilterQuery] = useState("")
   const [isSearching, setIsSearching] = useState(false)
 
-  const handleSearchChange = (value: string) => {
+  const handleFilterChange = (value: string) => {
     setIsSearching(true)
-    setSearchQuery(value)
+    setFilterQuery(value)
     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
   }
 
-  // 根据 targetId 或 scanId 获取子域名数据（传入分页和搜索参数）
+  // 根据 targetId 或 scanId 获取子域名数据（传入分页和过滤参数）
   const targetSubdomainsQuery = useTargetSubdomains(
     targetId || 0,
     {
       page: pagination.pageIndex + 1, // 转换为 1-based
       pageSize: pagination.pageSize,
-      search: searchQuery || undefined,
+      filter: filterQuery || undefined,
     },
     { enabled: !!targetId }
   )
@@ -65,7 +64,7 @@ export function SubdomainsDetailView({
     {
       page: pagination.pageIndex + 1, // 转换为 1-based
       pageSize: pagination.pageSize,
-      search: searchQuery || undefined,
+      filter: filterQuery || undefined,
     },
     { enabled: !!scanId }
   )
@@ -254,10 +253,8 @@ export function SubdomainsDetailView({
         data={subdomains}
         columns={subdomainColumns}
         onSelectionChange={setSelectedSubdomains}
-        searchPlaceholder="搜索子域名..."
-        searchColumn="name"
-        searchValue={searchQuery}
-        onSearch={handleSearchChange}
+        filterValue={filterQuery}
+        onFilterChange={handleFilterChange}
         isSearching={isSearching}
         onDownloadAll={handleDownloadAll}
         onDownloadSelected={handleDownloadSelected}

@@ -267,11 +267,11 @@ export function useAllSubdomains(
 // 获取目标的子域名列表
 export function useTargetSubdomains(
   targetId: number,
-  params?: { page?: number; pageSize?: number; search?: string },
+  params?: { page?: number; pageSize?: number; filter?: string },
   options?: { enabled?: boolean }
 ) {
   return useQuery({
-    queryKey: ['targets', targetId, 'subdomains', { page: params?.page, pageSize: params?.pageSize, search: params?.search }],
+    queryKey: ['targets', targetId, 'subdomains', { page: params?.page, pageSize: params?.pageSize, filter: params?.filter }],
     queryFn: () => SubdomainService.getSubdomainsByTargetId(targetId, params),
     enabled: options?.enabled !== undefined ? options.enabled : !!targetId,
     placeholderData: keepPreviousData,
@@ -281,11 +281,11 @@ export function useTargetSubdomains(
 // 获取扫描的子域名列表
 export function useScanSubdomains(
   scanId: number,
-  params?: { page?: number; pageSize?: number; search?: string },
+  params?: { page?: number; pageSize?: number; filter?: string },
   options?: { enabled?: boolean }
 ) {
   return useQuery({
-    queryKey: ['scans', scanId, 'subdomains', { page: params?.page, pageSize: params?.pageSize, search: params?.search }],
+    queryKey: ['scans', scanId, 'subdomains', { page: params?.page, pageSize: params?.pageSize, filter: params?.filter }],
     queryFn: () => SubdomainService.getSubdomainsByScanId(scanId, params),
     enabled: options?.enabled !== undefined ? options.enabled : !!scanId,
     placeholderData: keepPreviousData,

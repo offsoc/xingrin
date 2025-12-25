@@ -25,8 +25,6 @@ import {
   IconLayoutColumns,
   IconPlus,
   IconDownload,
-  IconSearch,
-  IconLoader2,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -38,7 +36,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -55,15 +52,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { SmartFilterInput, type FilterField } from "@/components/common/smart-filter-input"
 import type { Endpoint } from "@/types/endpoint.types"
+
+// 端点页面的过滤字段配置
+const ENDPOINT_FILTER_FIELDS: FilterField[] = [
+  { key: "url", label: "URL", description: "Endpoint URL" },
+  { key: "host", label: "Host", description: "Hostname" },
+  { key: "title", label: "Title", description: "Page title" },
+  { key: "status", label: "Status", description: "HTTP status code" },
+]
+
+// 端点页面的示例
+const ENDPOINT_FILTER_EXAMPLES = [
+  'url="/api/*" && status="200"',
+  'host="api.example.com" || host="admin.example.com"',
+  'title="Dashboard" && status!="404"',
+]
 
 interface EndpointsDataTableProps<TData extends { id: number | string }, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  searchPlaceholder?: string
-  searchColumn?: string
-  searchValue?: string
-  onSearch?: (value: string) => void
+  // 智能过滤
+  filterValue?: string
+  onFilterChange?: (value: string) => void
   isSearching?: boolean
   onAddNew?: () => void
   addButtonText?: string
@@ -80,10 +92,8 @@ interface EndpointsDataTableProps<TData extends { id: number | string }, TValue>
 export function EndpointsDataTable<TData extends { id: number | string }, TValue>({
   columns,
   data,
-  searchPlaceholder = "搜索主机名...",
-  searchColumn = "url",
-  searchValue,
-  onSearch,
+  filterValue,
+  onFilterChange,
   isSearching = false,
   onAddNew,
   addButtonText = "Add",
@@ -106,24 +116,10 @@ export function EndpointsDataTable<TData extends { id: number | string }, TValue
     pageSize: 10,
   })
 
-  // 本地搜索输入状态（只在回车或点击按钮时触发搜索）
-  const [localSearchValue, setLocalSearchValue] = React.useState(searchValue ?? "")
-  
-  React.useEffect(() => {
-    setLocalSearchValue(searchValue ?? "")
-  }, [searchValue])
-
-  const handleSearchSubmit = () => {
-    if (onSearch) {
-      onSearch(localSearchValue)
-    } else {
-      table.getColumn(searchColumn)?.setFilterValue(localSearchValue)
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearchSubmit()
+  // 处理智能过滤搜索
+  const handleSmartSearch = (_filters: any[], rawQuery: string) => {
+    if (onFilterChange) {
+      onFilterChange(rawQuery)
     }
   }
 
@@ -183,22 +179,14 @@ export function EndpointsDataTable<TData extends { id: number | string }, TValue
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Input
-            placeholder={searchPlaceholder}
-            value={localSearchValue}
-            onChange={(e) => setLocalSearchValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="h-8 max-w-sm"
-          />
-          <Button variant="outline" size="sm" onClick={handleSearchSubmit} disabled={isSearching}>
-            {isSearching ? (
-              <IconLoader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <IconSearch className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+        {/* 智能过滤搜索框 */}
+        <SmartFilterInput
+          fields={ENDPOINT_FILTER_FIELDS}
+          examples={ENDPOINT_FILTER_EXAMPLES}
+          value={filterValue}
+          onSearch={handleSmartSearch}
+          className="flex-1 max-w-xl"
+        />
 
         <div className="flex items-center space-x-2">
           <DropdownMenu>

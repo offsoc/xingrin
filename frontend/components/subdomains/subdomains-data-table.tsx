@@ -29,8 +29,6 @@ import {
   IconPlus,
   IconTrash,
   IconDownload,
-  IconSearch,
-  IconLoader2,
 } from "@tabler/icons-react"
 
 // 导入 UI 组件
@@ -44,7 +42,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -61,10 +58,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { SmartFilterInput, PREDEFINED_FIELDS, type FilterField } from "@/components/common/smart-filter-input"
 
 // 导入子域名类型定义
 import type { Subdomain } from "@/types/subdomain.types"
 import type { PaginationInfo } from "@/types/common.types"
+
+// 子域名页面的过滤字段配置
+const SUBDOMAIN_FILTER_FIELDS: FilterField[] = [
+  { key: "name", label: "Name", description: "Subdomain name" },
+]
+
+// 子域名页面的示例
+const SUBDOMAIN_FILTER_EXAMPLES = [
+  'name="api.example.com"',
+  'name="*.test.com"',
+]
 
 // 组件属性类型定义
 interface SubdomainsDataTableProps {
@@ -74,10 +83,9 @@ interface SubdomainsDataTableProps {
   onBulkAdd?: () => void                         // 批量添加回调函数
   onBulkDelete?: () => void                      // 批量删除回调函数
   onSelectionChange?: (selectedRows: Subdomain[]) => void  // 选中行变化回调
-  searchPlaceholder?: string                     // 搜索框占位符
-  searchColumn?: string                          // 搜索的列名
-  searchValue?: string                           // 受控：搜索框当前值（服务端搜索）
-  onSearch?: (value: string) => void             // 受控：搜索框变更回调（服务端搜索）
+  // 智能过滤
+  filterValue?: string                           // 受控：过滤值
+  onFilterChange?: (value: string) => void       // 受控：过滤变更回调
   isSearching?: boolean                          // 搜索中状态（显示加载动画）
   addButtonText?: string                         // 添加按钮文本
   // 下载回调函数
@@ -104,10 +112,8 @@ export function SubdomainsDataTable({
   onBulkAdd,
   onBulkDelete,
   onSelectionChange,
-  searchPlaceholder = "搜索子域名...",
-  searchColumn = "name",
-  searchValue,
-  onSearch,
+  filterValue,
+  onFilterChange,
   isSearching = false,
   addButtonText = "Add",
   onDownloadAll,
@@ -140,25 +146,10 @@ export function SubdomainsDataTable({
   const pagination = externalPagination || internalPagination
   const setPagination = setExternalPagination || setInternalPagination
 
-  // 本地搜索输入状态（只在回车或点击按钮时触发搜索）
-  const [localSearchValue, setLocalSearchValue] = React.useState(searchValue ?? "")
-  
-  // 同步外部 searchValue 到本地状态
-  React.useEffect(() => {
-    setLocalSearchValue(searchValue ?? "")
-  }, [searchValue])
-
-  const handleSearchSubmit = () => {
-    if (onSearch) {
-      onSearch(localSearchValue)
-    } else {
-      table.getColumn(searchColumn)?.setFilterValue(localSearchValue)
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearchSubmit()
+  // 处理智能过滤搜索
+  const handleSmartSearch = (_filters: any[], rawQuery: string) => {
+    if (onFilterChange) {
+      onFilterChange(rawQuery)
     }
   }
 
@@ -223,23 +214,14 @@ export function SubdomainsDataTable({
     <div className="w-full space-y-4">
       {/* 工具栏 */}
       <div className="flex items-center justify-between">
-        {/* 搜索框 */}
-        <div className="flex items-center space-x-2">
-          <Input
-            placeholder={searchPlaceholder}
-            value={localSearchValue}
-            onChange={(e) => setLocalSearchValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="h-8 max-w-sm"
-          />
-          <Button variant="outline" size="sm" onClick={handleSearchSubmit} disabled={isSearching}>
-            {isSearching ? (
-              <IconLoader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <IconSearch className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+        {/* 智能过滤搜索框 */}
+        <SmartFilterInput
+          fields={SUBDOMAIN_FILTER_FIELDS}
+          examples={SUBDOMAIN_FILTER_EXAMPLES}
+          value={filterValue}
+          onSearch={handleSmartSearch}
+          className="flex-1 max-w-xl"
+        />
 
         {/* 右侧操作按钮 */}
         <div className="flex items-center space-x-2">

@@ -1,17 +1,26 @@
 """WebSite Service - 网站业务逻辑层"""
 
 import logging
-from typing import List, Iterator
+from typing import List, Iterator, Optional
 
 from apps.asset.repositories import DjangoWebSiteRepository
 from apps.asset.dtos import WebSiteDTO
 from apps.common.validators import is_valid_url, is_url_match_target
+from apps.common.utils.filter_utils import apply_filters
 
 logger = logging.getLogger(__name__)
 
 
 class WebSiteService:
     """网站业务逻辑层"""
+    
+    # 智能过滤字段映射
+    FILTER_FIELD_MAPPING = {
+        'url': 'url',
+        'host': 'host',
+        'title': 'title',
+        'status': 'status_code',
+    }
     
     def __init__(self, repository=None):
         """初始化网站服务"""
@@ -94,13 +103,19 @@ class WebSiteService:
         count_after = self.repo.count_by_target(target_id)
         return count_after - count_before
     
-    def get_websites_by_target(self, target_id: int):
+    def get_websites_by_target(self, target_id: int, filter_query: Optional[str] = None):
         """获取目标下的所有网站"""
-        return self.repo.get_by_target(target_id)
+        queryset = self.repo.get_by_target(target_id)
+        if filter_query:
+            queryset = apply_filters(queryset, filter_query, self.FILTER_FIELD_MAPPING)
+        return queryset
     
-    def get_all(self):
+    def get_all(self, filter_query: Optional[str] = None):
         """获取所有网站"""
-        return self.repo.get_all()
+        queryset = self.repo.get_all()
+        if filter_query:
+            queryset = apply_filters(queryset, filter_query, self.FILTER_FIELD_MAPPING)
+        return queryset
     
     def get_by_url(self, url: str, target_id: int) -> int:
         """根据 URL 和 target_id 查找网站 ID"""

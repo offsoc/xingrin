@@ -81,6 +81,7 @@ class WebsiteSnapshot(models.Model):
             models.Index(fields=['scan']),
             models.Index(fields=['url']),
             models.Index(fields=['host']),  # host索引，优化根据主机名查询
+            models.Index(fields=['title']),  # title索引，优化标题搜索
             models.Index(fields=['-created_at']),
         ]
         constraints = [
@@ -129,6 +130,7 @@ class DirectorySnapshot(models.Model):
             models.Index(fields=['scan']),
             models.Index(fields=['url']),
             models.Index(fields=['status']),  # 状态码索引，优化筛选
+            models.Index(fields=['content_type']),  # content_type索引，优化内容类型搜索
             models.Index(fields=['-created_at']),
         ]
         constraints = [
@@ -268,7 +270,9 @@ class EndpointSnapshot(models.Model):
             models.Index(fields=['scan']),
             models.Index(fields=['url']),
             models.Index(fields=['host']),  # host索引，优化根据主机名查询
+            models.Index(fields=['title']),  # title索引，优化标题搜索
             models.Index(fields=['status_code']),  # 状态码索引，优化筛选
+            models.Index(fields=['webserver']),  # webserver索引，优化服务器搜索
             models.Index(fields=['-created_at']),
         ]
         constraints = [
@@ -302,7 +306,7 @@ class VulnerabilitySnapshot(models.Model):
     )
     
     # ==================== 核心字段 ====================
-    url = models.TextField(help_text='漏洞所在的URL')
+    url = models.CharField(max_length=2000, help_text='漏洞所在的URL')
     vuln_type = models.CharField(max_length=100, help_text='漏洞类型（如 xss, sqli）')
     severity = models.CharField(
         max_length=20,
@@ -325,6 +329,7 @@ class VulnerabilitySnapshot(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['scan']),
+            models.Index(fields=['url']),  # url索引，优化URL搜索
             models.Index(fields=['vuln_type']),
             models.Index(fields=['severity']),
             models.Index(fields=['source']),

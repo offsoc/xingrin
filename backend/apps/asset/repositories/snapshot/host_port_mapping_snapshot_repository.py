@@ -65,12 +65,20 @@ class DjangoHostPortMappingSnapshotRepository:
             )
             raise
     
-    def get_ip_aggregation_by_scan(self, scan_id: int, search: str = None):
+    def get_ip_aggregation_by_scan(self, scan_id: int, filter_query: str = None):
         from django.db.models import Min
+        from apps.common.utils.filter_utils import apply_filters
 
         qs = HostPortMappingSnapshot.objects.filter(scan_id=scan_id)
-        if search:
-            qs = qs.filter(ip__icontains=search)
+        
+        # 应用智能过滤
+        if filter_query:
+            field_mapping = {
+                'ip': 'ip',
+                'port': 'port',
+                'host': 'host',
+            }
+            qs = apply_filters(qs, filter_query, field_mapping)
 
         ip_aggregated = (
             qs
@@ -103,13 +111,21 @@ class DjangoHostPortMappingSnapshotRepository:
 
         return results
 
-    def get_all_ip_aggregation(self, search: str = None):
+    def get_all_ip_aggregation(self, filter_query: str = None):
         """获取所有 IP 聚合数据"""
         from django.db.models import Min
+        from apps.common.utils.filter_utils import apply_filters
 
         qs = HostPortMappingSnapshot.objects.all()
-        if search:
-            qs = qs.filter(ip__icontains=search)
+        
+        # 应用智能过滤
+        if filter_query:
+            field_mapping = {
+                'ip': 'ip',
+                'port': 'port',
+                'host': 'host',
+            }
+            qs = apply_filters(qs, filter_query, field_mapping)
 
         ip_aggregated = (
             qs

@@ -126,12 +126,16 @@ class SubdomainViewSet(viewsets.ModelViewSet):
     支持两种访问方式：
     1. 嵌套路由：GET /api/targets/{target_pk}/subdomains/
     2. 独立路由：GET /api/subdomains/（全局查询）
+    
+    支持智能过滤语法（filter 参数）：
+    - name="api"         子域名模糊匹配
+    - name=="api.example.com"  精确匹配
+    - 多条件空格分隔     AND 关系
     """
     
     serializer_class = SubdomainListSerializer
     pagination_class = BasePagination
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name']
+    filter_backends = [filters.OrderingFilter]
     ordering = ['-created_at']
     
     def __init__(self, **kwargs):
@@ -139,11 +143,13 @@ class SubdomainViewSet(viewsets.ModelViewSet):
         self.service = SubdomainService()
     
     def get_queryset(self):
-        """根据是否有 target_pk 参数决定查询范围"""
+        """根据是否有 target_pk 参数决定查询范围，支持智能过滤"""
         target_pk = self.kwargs.get('target_pk')
+        filter_query = self.request.query_params.get('filter', None)
+        
         if target_pk:
-            return self.service.get_subdomains_by_target(target_pk)
-        return self.service.get_all()
+            return self.service.get_subdomains_by_target(target_pk, filter_query=filter_query)
+        return self.service.get_all(filter_query=filter_query)
 
     @action(detail=False, methods=['post'], url_path='bulk-create')
     def bulk_create(self, request, **kwargs):
@@ -253,12 +259,18 @@ class WebSiteViewSet(viewsets.ModelViewSet):
     支持两种访问方式：
     1. 嵌套路由：GET /api/targets/{target_pk}/websites/
     2. 独立路由：GET /api/websites/（全局查询）
+    
+    支持智能过滤语法（filter 参数）：
+    - url="api"          URL 模糊匹配
+    - host="example"     主机名模糊匹配
+    - title="login"      标题模糊匹配
+    - status="200,301"   状态码多值匹配
+    - 多条件空格分隔     AND 关系
     """
     
     serializer_class = WebSiteSerializer
     pagination_class = BasePagination
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['host']
+    filter_backends = [filters.OrderingFilter]
     ordering = ['-created_at']
     
     def __init__(self, **kwargs):
@@ -266,11 +278,13 @@ class WebSiteViewSet(viewsets.ModelViewSet):
         self.service = WebSiteService()
     
     def get_queryset(self):
-        """根据是否有 target_pk 参数决定查询范围"""
+        """根据是否有 target_pk 参数决定查询范围，支持智能过滤"""
         target_pk = self.kwargs.get('target_pk')
+        filter_query = self.request.query_params.get('filter', None)
+        
         if target_pk:
-            return self.service.get_websites_by_target(target_pk)
-        return self.service.get_all()
+            return self.service.get_websites_by_target(target_pk, filter_query=filter_query)
+        return self.service.get_all(filter_query=filter_query)
 
     @action(detail=False, methods=['post'], url_path='bulk-create')
     def bulk_create(self, request, **kwargs):
@@ -374,12 +388,16 @@ class DirectoryViewSet(viewsets.ModelViewSet):
     支持两种访问方式：
     1. 嵌套路由：GET /api/targets/{target_pk}/directories/
     2. 独立路由：GET /api/directories/（全局查询）
+    
+    支持智能过滤语法（filter 参数）：
+    - url="admin"        URL 模糊匹配
+    - status="200,301"   状态码多值匹配
+    - 多条件空格分隔     AND 关系
     """
     
     serializer_class = DirectorySerializer
     pagination_class = BasePagination
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['url']
+    filter_backends = [filters.OrderingFilter]
     ordering = ['-created_at']
     
     def __init__(self, **kwargs):
@@ -387,11 +405,13 @@ class DirectoryViewSet(viewsets.ModelViewSet):
         self.service = DirectoryService()
     
     def get_queryset(self):
-        """根据是否有 target_pk 参数决定查询范围"""
+        """根据是否有 target_pk 参数决定查询范围，支持智能过滤"""
         target_pk = self.kwargs.get('target_pk')
+        filter_query = self.request.query_params.get('filter', None)
+        
         if target_pk:
-            return self.service.get_directories_by_target(target_pk)
-        return self.service.get_all()
+            return self.service.get_directories_by_target(target_pk, filter_query=filter_query)
+        return self.service.get_all(filter_query=filter_query)
 
     @action(detail=False, methods=['post'], url_path='bulk-create')
     def bulk_create(self, request, **kwargs):
@@ -493,12 +513,18 @@ class EndpointViewSet(viewsets.ModelViewSet):
     支持两种访问方式：
     1. 嵌套路由：GET /api/targets/{target_pk}/endpoints/
     2. 独立路由：GET /api/endpoints/（全局查询）
+    
+    支持智能过滤语法（filter 参数）：
+    - url="api"          URL 模糊匹配
+    - host="example"     主机名模糊匹配
+    - title="login"      标题模糊匹配
+    - status="200,301"   状态码多值匹配
+    - 多条件空格分隔     AND 关系
     """
     
     serializer_class = EndpointListSerializer
     pagination_class = BasePagination
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['host']
+    filter_backends = [filters.OrderingFilter]
     ordering = ['-created_at']
     
     def __init__(self, **kwargs):
@@ -506,11 +532,13 @@ class EndpointViewSet(viewsets.ModelViewSet):
         self.service = EndpointService()
     
     def get_queryset(self):
-        """根据是否有 target_pk 参数决定查询范围"""
+        """根据是否有 target_pk 参数决定查询范围，支持智能过滤"""
         target_pk = self.kwargs.get('target_pk')
+        filter_query = self.request.query_params.get('filter', None)
+        
         if target_pk:
-            return self.service.get_endpoints_by_target(target_pk)
-        return self.service.get_all()
+            return self.service.get_endpoints_by_target(target_pk, filter_query=filter_query)
+        return self.service.get_all(filter_query=filter_query)
 
     @action(detail=False, methods=['post'], url_path='bulk-create')
     def bulk_create(self, request, **kwargs):
@@ -618,23 +646,40 @@ class HostPortMappingViewSet(viewsets.ModelViewSet):
     
     返回按 IP 聚合的数据，每个 IP 显示其关联的所有 hosts 和 ports
     
+    支持智能过滤语法（filter 参数）：
+    - ip="192.168"       IP 模糊匹配
+    - port="80,443"      端口多值匹配
+    - host="api"         主机名模糊匹配
+    - 多条件空格分隔     AND 关系
+    
     注意：由于返回的是聚合数据（字典列表），不支持 DRF SearchFilter
     """
     
     serializer_class = IPAddressAggregatedSerializer
     pagination_class = BasePagination
     
+    # 智能过滤字段映射
+    FILTER_FIELD_MAPPING = {
+        'ip': 'ip',
+        'port': 'port',
+        'host': 'host',
+    }
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.service = HostPortMappingService()
     
     def get_queryset(self):
-        """根据是否有 target_pk 参数决定查询范围，返回按 IP 聚合的数据"""
+        """根据是否有 target_pk 参数决定查询范围，返回按 IP 聚合的数据
+        
+        支持智能过滤语法（filter 参数）
+        """
         target_pk = self.kwargs.get('target_pk')
-        search = self.request.query_params.get('search', None)
+        filter_query = self.request.query_params.get('filter', None)
+        
         if target_pk:
-            return self.service.get_ip_aggregation_by_target(target_pk, search=search)
-        return self.service.get_all_ip_aggregation(search=search)
+            return self.service.get_ip_aggregation_by_target(target_pk, filter_query=filter_query)
+        return self.service.get_all_ip_aggregation(filter_query=filter_query)
 
     @action(detail=False, methods=['get'], url_path='export')
     def export(self, request, **kwargs):
@@ -673,12 +718,18 @@ class VulnerabilityViewSet(viewsets.ModelViewSet):
     支持两种访问方式：
     1. 嵌套路由：GET /api/targets/{target_pk}/vulnerabilities/
     2. 独立路由：GET /api/vulnerabilities/（全局查询）
+    
+    支持智能过滤语法（filter 参数）：
+    - type="xss"         漏洞类型模糊匹配
+    - severity="high"    严重程度匹配
+    - source="nuclei"    来源工具匹配
+    - url="api"          URL 模糊匹配
+    - 多条件空格分隔     AND 关系
     """
     
     serializer_class = VulnerabilitySerializer
     pagination_class = BasePagination
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['vuln_type']
+    filter_backends = [filters.OrderingFilter]
     ordering = ['-created_at']
     
     def __init__(self, **kwargs):
@@ -686,22 +737,29 @@ class VulnerabilityViewSet(viewsets.ModelViewSet):
         self.service = VulnerabilityService()
     
     def get_queryset(self):
-        """根据是否有 target_pk 参数决定查询范围"""
+        """根据是否有 target_pk 参数决定查询范围，支持智能过滤"""
         target_pk = self.kwargs.get('target_pk')
+        filter_query = self.request.query_params.get('filter', None)
+        
         if target_pk:
-            return self.service.get_vulnerabilities_by_target(target_pk)
-        return self.service.get_all()
+            return self.service.get_vulnerabilities_by_target(target_pk, filter_query=filter_query)
+        return self.service.get_all(filter_query=filter_query)
 
 
 # ==================== 快照 ViewSet（Scan 嵌套路由） ====================
 
 class SubdomainSnapshotViewSet(viewsets.ModelViewSet):
-    """子域名快照 ViewSet - 嵌套路由：GET /api/scans/{scan_pk}/subdomains/"""
+    """子域名快照 ViewSet - 嵌套路由：GET /api/scans/{scan_pk}/subdomains/
+    
+    支持智能过滤语法（filter 参数）：
+    - name="api"         子域名模糊匹配
+    - name=="api.example.com"  精确匹配
+    - name!="test"       排除匹配
+    """
     
     serializer_class = SubdomainSnapshotSerializer
     pagination_class = BasePagination
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name']
+    filter_backends = [filters.OrderingFilter]
     ordering_fields = ['name', 'created_at']
     ordering = ['-created_at']
     
@@ -711,9 +769,11 @@ class SubdomainSnapshotViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         scan_pk = self.kwargs.get('scan_pk')
+        filter_query = self.request.query_params.get('filter', None)
+        
         if scan_pk:
-            return self.service.get_by_scan(scan_pk)
-        return self.service.get_all()
+            return self.service.get_by_scan(scan_pk, filter_query=filter_query)
+        return self.service.get_all(filter_query=filter_query)
 
     @action(detail=False, methods=['get'], url_path='export')
     def export(self, request, **kwargs):
@@ -741,12 +801,20 @@ class SubdomainSnapshotViewSet(viewsets.ModelViewSet):
 
 
 class WebsiteSnapshotViewSet(viewsets.ModelViewSet):
-    """网站快照 ViewSet - 嵌套路由：GET /api/scans/{scan_pk}/websites/"""
+    """网站快照 ViewSet - 嵌套路由：GET /api/scans/{scan_pk}/websites/
+    
+    支持智能过滤语法（filter 参数）：
+    - url="api"          URL 模糊匹配
+    - host="example"     主机名模糊匹配
+    - title="login"      标题模糊匹配
+    - status="200"       状态码匹配
+    - webserver="nginx"  服务器类型匹配
+    - tech="php"         技术栈匹配
+    """
     
     serializer_class = WebsiteSnapshotSerializer
     pagination_class = BasePagination
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['host']
+    filter_backends = [filters.OrderingFilter]
     ordering = ['-created_at']
     
     def __init__(self, **kwargs):
@@ -755,9 +823,11 @@ class WebsiteSnapshotViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         scan_pk = self.kwargs.get('scan_pk')
+        filter_query = self.request.query_params.get('filter', None)
+        
         if scan_pk:
-            return self.service.get_by_scan(scan_pk)
-        return self.service.get_all()
+            return self.service.get_by_scan(scan_pk, filter_query=filter_query)
+        return self.service.get_all(filter_query=filter_query)
 
     @action(detail=False, methods=['get'], url_path='export')
     def export(self, request, **kwargs):
@@ -792,12 +862,17 @@ class WebsiteSnapshotViewSet(viewsets.ModelViewSet):
 
 
 class DirectorySnapshotViewSet(viewsets.ModelViewSet):
-    """目录快照 ViewSet - 嵌套路由：GET /api/scans/{scan_pk}/directories/"""
+    """目录快照 ViewSet - 嵌套路由：GET /api/scans/{scan_pk}/directories/
+    
+    支持智能过滤语法（filter 参数）：
+    - url="admin"        URL 模糊匹配
+    - status="200"       状态码匹配
+    - content_type="html" 内容类型匹配
+    """
     
     serializer_class = DirectorySnapshotSerializer
     pagination_class = BasePagination
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['url']
+    filter_backends = [filters.OrderingFilter]
     ordering = ['-created_at']
     
     def __init__(self, **kwargs):
@@ -806,9 +881,11 @@ class DirectorySnapshotViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         scan_pk = self.kwargs.get('scan_pk')
+        filter_query = self.request.query_params.get('filter', None)
+        
         if scan_pk:
-            return self.service.get_by_scan(scan_pk)
-        return self.service.get_all()
+            return self.service.get_by_scan(scan_pk, filter_query=filter_query)
+        return self.service.get_all(filter_query=filter_query)
 
     @action(detail=False, methods=['get'], url_path='export')
     def export(self, request, **kwargs):
@@ -841,12 +918,20 @@ class DirectorySnapshotViewSet(viewsets.ModelViewSet):
 
 
 class EndpointSnapshotViewSet(viewsets.ModelViewSet):
-    """端点快照 ViewSet - 嵌套路由：GET /api/scans/{scan_pk}/endpoints/"""
+    """端点快照 ViewSet - 嵌套路由：GET /api/scans/{scan_pk}/endpoints/
+    
+    支持智能过滤语法（filter 参数）：
+    - url="api"          URL 模糊匹配
+    - host="example"     主机名模糊匹配
+    - title="login"      标题模糊匹配
+    - status="200"       状态码匹配
+    - webserver="nginx"  服务器类型匹配
+    - tech="php"         技术栈匹配
+    """
     
     serializer_class = EndpointSnapshotSerializer
     pagination_class = BasePagination
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['host']
+    filter_backends = [filters.OrderingFilter]
     ordering = ['-created_at']
     
     def __init__(self, **kwargs):
@@ -855,9 +940,11 @@ class EndpointSnapshotViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         scan_pk = self.kwargs.get('scan_pk')
+        filter_query = self.request.query_params.get('filter', None)
+        
         if scan_pk:
-            return self.service.get_by_scan(scan_pk)
-        return self.service.get_all()
+            return self.service.get_by_scan(scan_pk, filter_query=filter_query)
+        return self.service.get_all(filter_query=filter_query)
 
     @action(detail=False, methods=['get'], url_path='export')
     def export(self, request, **kwargs):
@@ -895,7 +982,12 @@ class EndpointSnapshotViewSet(viewsets.ModelViewSet):
 class HostPortMappingSnapshotViewSet(viewsets.ModelViewSet):
     """主机端口映射快照 ViewSet - 嵌套路由：GET /api/scans/{scan_pk}/ip-addresses/
     
-    注意：由于返回的是聚合数据（字典列表），不支持 DRF SearchFilter
+    支持智能过滤语法（filter 参数）：
+    - ip="192.168"       IP 模糊匹配
+    - port="80"          端口匹配
+    - host="api"         主机名模糊匹配
+    
+    注意：由于返回的是聚合数据（字典列表），过滤在 Service 层处理
     """
     
     serializer_class = IPAddressAggregatedSerializer
@@ -907,10 +999,11 @@ class HostPortMappingSnapshotViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         scan_pk = self.kwargs.get('scan_pk')
-        search = self.request.query_params.get('search', None)
+        filter_query = self.request.query_params.get('filter', None)
+        
         if scan_pk:
-            return self.service.get_ip_aggregation_by_scan(scan_pk, search=search)
-        return self.service.get_all_ip_aggregation(search=search)
+            return self.service.get_ip_aggregation_by_scan(scan_pk, filter_query=filter_query)
+        return self.service.get_all_ip_aggregation(filter_query=filter_query)
 
     @action(detail=False, methods=['get'], url_path='export')
     def export(self, request, **kwargs):
@@ -944,12 +1037,18 @@ class HostPortMappingSnapshotViewSet(viewsets.ModelViewSet):
 
 
 class VulnerabilitySnapshotViewSet(viewsets.ModelViewSet):
-    """漏洞快照 ViewSet - 嵌套路由：GET /api/scans/{scan_pk}/vulnerabilities/"""
+    """漏洞快照 ViewSet - 嵌套路由：GET /api/scans/{scan_pk}/vulnerabilities/
+    
+    支持智能过滤语法（filter 参数）：
+    - type="xss"         漏洞类型模糊匹配
+    - url="api"          URL 模糊匹配
+    - severity="high"    严重程度匹配
+    - source="nuclei"    来源工具匹配
+    """
     
     serializer_class = VulnerabilitySnapshotSerializer
     pagination_class = BasePagination
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['vuln_type']
+    filter_backends = [filters.OrderingFilter]
     ordering = ['-created_at']
     
     def __init__(self, **kwargs):
@@ -958,6 +1057,8 @@ class VulnerabilitySnapshotViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         scan_pk = self.kwargs.get('scan_pk')
+        filter_query = self.request.query_params.get('filter', None)
+        
         if scan_pk:
-            return self.service.get_by_scan(scan_pk)
-        return self.service.get_all()
+            return self.service.get_by_scan(scan_pk, filter_query=filter_query)
+        return self.service.get_all(filter_query=filter_query)

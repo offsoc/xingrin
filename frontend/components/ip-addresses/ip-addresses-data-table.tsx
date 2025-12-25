@@ -23,8 +23,6 @@ import {
   IconLayoutColumns,
   IconTrash,
   IconDownload,
-  IconSearch,
-  IconLoader2,
 } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -36,7 +34,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -53,36 +50,45 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { SmartFilterInput, PREDEFINED_FIELDS, type ParsedFilter, type FilterField } from "@/components/common/smart-filter-input"
 import type { IPAddress } from "@/types/ip-address.types"
 import type { PaginationInfo } from "@/types/common.types"
+
+// IP 地址页面的过滤字段配置
+const IP_ADDRESS_FILTER_FIELDS: FilterField[] = [
+  PREDEFINED_FIELDS.ip,
+  PREDEFINED_FIELDS.port,
+  PREDEFINED_FIELDS.host,
+]
+
+// IP 地址页面的示例
+const IP_ADDRESS_FILTER_EXAMPLES = [
+  'ip="192.168.1.*" && port="80"',
+  'port="443" || port="8443"',
+  'host="api.example.com" && port!="22"',
+]
+
 
 interface IPAddressesDataTableProps {
   data: IPAddress[]
   columns: ColumnDef<IPAddress>[]
-  searchPlaceholder?: string
-  searchColumn?: string
-  searchValue?: string
-  onSearch?: (value: string) => void
-  isSearching?: boolean
+  filterValue?: string
+  onFilterChange?: (value: string) => void
   pagination?: { pageIndex: number; pageSize: number }
   setPagination?: React.Dispatch<React.SetStateAction<{ pageIndex: number; pageSize: number }>>
   paginationInfo?: PaginationInfo
   onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void
-  onBulkDelete?: () => void                      // 批量删除回调函数
-  onSelectionChange?: (selectedRows: IPAddress[]) => void  // 选中行变化回调
-  // 下载回调函数
-  onDownloadAll?: () => void                     // 下载所有 IP 地址
-  onDownloadSelected?: () => void                // 下载选中的 IP 地址
+  onBulkDelete?: () => void
+  onSelectionChange?: (selectedRows: IPAddress[]) => void
+  onDownloadAll?: () => void
+  onDownloadSelected?: () => void
 }
 
 export function IPAddressesDataTable({
   data = [],
   columns,
-  searchPlaceholder = "搜索 IP 地址...",
-  searchColumn = "ip",
-  searchValue,
-  onSearch,
-  isSearching = false,
+  filterValue = "",
+  onFilterChange,
   pagination,
   setPagination,
   paginationInfo,
@@ -102,25 +108,9 @@ export function IPAddressesDataTable({
     pageSize: 10,
   })
 
-  // 本地搜索输入状态（只在回车或点击按钮时触发搜索）
-  const [localSearchValue, setLocalSearchValue] = React.useState(searchValue ?? "")
-  
-  React.useEffect(() => {
-    setLocalSearchValue(searchValue ?? "")
-  }, [searchValue])
-
-  const handleSearchSubmit = () => {
-    if (onSearch) {
-      onSearch(localSearchValue)
-    } else {
-      table.getColumn(searchColumn)?.setFilterValue(localSearchValue)
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearchSubmit()
-    }
+  // 智能搜索处理
+  const handleSmartSearch = (filters: ParsedFilter[], rawQuery: string) => {
+    onFilterChange?.(rawQuery)
   }
 
   const useServerPagination = !!paginationInfo && !!pagination && !!setPagination
@@ -141,7 +131,7 @@ export function IPAddressesDataTable({
     enableColumnResizing: true,
     columnResizeMode: 'onChange',
     onColumnSizingChange: setColumnSizing,
-    getRowId: (row) => row.ip, // IP 地址本身就是唯一标识
+    getRowId: (row) => row.ip,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -163,10 +153,6 @@ export function IPAddressesDataTable({
       : Math.ceil(data.length / tablePagination.pageSize) || 1,
   })
 
-  const totalItems = useServerPagination
-    ? paginationInfo?.total ?? data.length
-    : table.getFilteredRowModel().rows.length
-
   // 处理选中行变化
   React.useEffect(() => {
     if (onSelectionChange) {
@@ -177,25 +163,16 @@ export function IPAddressesDataTable({
 
   return (
     <div className="w-full space-y-4">
-      {/* 工具栏 */}
-      <div className="flex items-center justify-between">
-        {/* 搜索框 */}
-        <div className="flex items-center space-x-2">
-          <Input
-            placeholder={searchPlaceholder}
-            value={localSearchValue}
-            onChange={(e) => setLocalSearchValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="h-8 max-w-sm"
-          />
-          <Button variant="outline" size="sm" onClick={handleSearchSubmit} disabled={isSearching}>
-            {isSearching ? (
-              <IconLoader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <IconSearch className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+      {/* 工具栏 - 方案 D：智能搜索框 */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        {/* 左侧：智能搜索框 */}
+        <SmartFilterInput
+          fields={IP_ADDRESS_FILTER_FIELDS}
+          examples={IP_ADDRESS_FILTER_EXAMPLES}
+          value={filterValue}
+          onSearch={handleSmartSearch}
+          className="flex-1 max-w-xl"
+        />
 
         {/* 右侧操作按钮 */}
         <div className="flex items-center space-x-2">

@@ -10,7 +10,7 @@ export class IPAddressService {
       params: {
         page: params?.page || 1,
         pageSize: params?.pageSize || 10,
-        ...(params?.search && { search: params.search }),
+        ...(params?.filter && { filter: params.filter }),
       },
     })
     return response.data
@@ -24,7 +24,7 @@ export class IPAddressService {
       params: {
         page: params?.page || 1,
         pageSize: params?.pageSize || 10,
-        ...(params?.search && { search: params.search }),
+        ...(params?.filter && { filter: params.filter }),
       },
     })
     return response.data

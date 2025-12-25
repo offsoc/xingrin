@@ -25,8 +25,6 @@ import {
   IconLayoutColumns,
   IconTrash,
   IconDownload,
-  IconSearch,
-  IconLoader2,
 } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
@@ -39,7 +37,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -56,37 +53,47 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { SmartFilterInput, PREDEFINED_FIELDS, type FilterField } from "@/components/common/smart-filter-input"
 
 import type { Vulnerability } from "@/types/vulnerability.types"
 import type { PaginationInfo } from "@/types/common.types"
 
+// 漏洞页面的过滤字段
+const VULNERABILITY_FILTER_FIELDS: FilterField[] = [
+  { key: "type", label: "Type", description: "Vulnerability type" },
+  PREDEFINED_FIELDS.severity,
+  { key: "source", label: "Source", description: "Scanner source" },
+  PREDEFINED_FIELDS.url,
+]
+
+// 漏洞页面的示例
+const VULNERABILITY_FILTER_EXAMPLES = [
+  'type="xss" || type="sqli"',
+  'severity="critical" || severity="high"',
+  'source="nuclei" && severity="high"',
+  'type="xss" && url="/api/*"',
+]
+
 interface VulnerabilitiesDataTableProps {
   data: Vulnerability[]
   columns: ColumnDef<Vulnerability>[]
-  searchPlaceholder?: string
-  searchColumn?: string
-  searchValue?: string
-  onSearch?: (value: string) => void
-  isSearching?: boolean
+  filterValue?: string
+  onFilterChange?: (value: string) => void
   pagination?: { pageIndex: number; pageSize: number }
   setPagination?: React.Dispatch<React.SetStateAction<{ pageIndex: number; pageSize: number }>>
   paginationInfo?: PaginationInfo
   onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void
-  onBulkDelete?: () => void                      // 批量删除回调函数
-  onSelectionChange?: (selectedRows: Vulnerability[]) => void  // 选中行变化回调
-  // 下载回调函数
-  onDownloadAll?: () => void                     // 下载所有漏洞
-  onDownloadSelected?: () => void                // 下载选中的漏洞
+  onBulkDelete?: () => void
+  onSelectionChange?: (selectedRows: Vulnerability[]) => void
+  onDownloadAll?: () => void
+  onDownloadSelected?: () => void
 }
 
 export function VulnerabilitiesDataTable({
   data = [],
   columns,
-  searchPlaceholder = "搜索漏洞类型...",
-  searchColumn = "title",
-  searchValue,
-  onSearch,
-  isSearching = false,
+  filterValue,
+  onFilterChange,
   pagination,
   setPagination,
   paginationInfo,
@@ -106,27 +113,6 @@ export function VulnerabilitiesDataTable({
     pageIndex: 0,
     pageSize: 10,
   })
-
-  // 本地搜索输入状态（只在回车或点击按钮时触发搜索）
-  const [localSearchValue, setLocalSearchValue] = React.useState(searchValue ?? "")
-  
-  React.useEffect(() => {
-    setLocalSearchValue(searchValue ?? "")
-  }, [searchValue])
-
-  const handleSearchSubmit = () => {
-    if (onSearch) {
-      onSearch(localSearchValue)
-    } else {
-      table.getColumn(searchColumn)?.setFilterValue(localSearchValue)
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearchSubmit()
-    }
-  }
 
   const useServerPagination = !!paginationInfo && !!pagination && !!setPagination
   const tablePagination = useServerPagination ? pagination : internalPagination
@@ -182,27 +168,23 @@ export function VulnerabilitiesDataTable({
     }
   }, [rowSelection, onSelectionChange, table])
 
+  // 处理智能过滤搜索
+  const handleFilterSearch = (_filters: any[], rawQuery: string) => {
+    onFilterChange?.(rawQuery)
+  }
+
   return (
     <div className="w-full space-y-4">
       {/* 工具栏 */}
       <div className="flex items-center justify-between">
-        {/* 搜索框 */}
-        <div className="flex items-center space-x-2">
-          <Input
-            placeholder={searchPlaceholder}
-            value={localSearchValue}
-            onChange={(e) => setLocalSearchValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="h-8 max-w-sm"
-          />
-          <Button variant="outline" size="sm" onClick={handleSearchSubmit} disabled={isSearching}>
-            {isSearching ? (
-              <IconLoader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <IconSearch className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+        {/* 智能过滤输入框 */}
+        <SmartFilterInput
+          fields={VULNERABILITY_FILTER_FIELDS}
+          examples={VULNERABILITY_FILTER_EXAMPLES}
+          value={filterValue}
+          onSearch={handleFilterSearch}
+          className="flex-1 max-w-xl"
+        />
 
         {/* 右侧操作按钮 */}
         <div className="flex items-center space-x-2">

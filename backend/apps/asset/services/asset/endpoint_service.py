@@ -5,11 +5,12 @@ Endpoint 服务层
 """
 
 import logging
-from typing import List, Iterator
+from typing import List, Iterator, Optional
 
 from apps.asset.dtos.asset import EndpointDTO
 from apps.asset.repositories.asset import DjangoEndpointRepository
 from apps.common.validators import is_valid_url, is_url_match_target
+from apps.common.utils.filter_utils import apply_filters
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,14 @@ class EndpointService:
     
     提供 Endpoint（URL/端点）相关的业务逻辑
     """
+    
+    # 智能过滤字段映射
+    FILTER_FIELD_MAPPING = {
+        'url': 'url',
+        'host': 'host',
+        'title': 'title',
+        'status': 'status_code',
+    }
     
     def __init__(self):
         """初始化 Endpoint 服务"""
@@ -102,9 +111,12 @@ class EndpointService:
         count_after = self.repo.count_by_target(target_id)
         return count_after - count_before
     
-    def get_endpoints_by_target(self, target_id: int):
+    def get_endpoints_by_target(self, target_id: int, filter_query: Optional[str] = None):
         """获取目标下的所有端点"""
-        return self.repo.get_by_target(target_id)
+        queryset = self.repo.get_by_target(target_id)
+        if filter_query:
+            queryset = apply_filters(queryset, filter_query, self.FILTER_FIELD_MAPPING)
+        return queryset
     
     def count_endpoints_by_target(self, target_id: int) -> int:
         """
@@ -118,9 +130,12 @@ class EndpointService:
         """
         return self.repo.count_by_target(target_id)
 
-    def get_all(self):
+    def get_all(self, filter_query: Optional[str] = None):
         """获取所有端点（全局查询）"""
-        return self.repo.get_all()
+        queryset = self.repo.get_all()
+        if filter_query:
+            queryset = apply_filters(queryset, filter_query, self.FILTER_FIELD_MAPPING)
+        return queryset
     
     def iter_endpoint_urls_by_target(self, target_id: int, chunk_size: int = 1000) -> Iterator[str]:
         """流式获取目标下的所有端点 URL，用于导出。"""

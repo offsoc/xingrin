@@ -12,18 +12,19 @@ import type { PaginationInfo } from "@/types/common.types"
 
 export const vulnerabilityKeys = {
   all: ["vulnerabilities"] as const,
-  list: (params: GetVulnerabilitiesParams) =>
-    [...vulnerabilityKeys.all, "list", params] as const,
-  byScan: (scanId: number, params: GetVulnerabilitiesParams) =>
-    [...vulnerabilityKeys.all, "scan", scanId, params] as const,
-  byTarget: (targetId: number, params: GetVulnerabilitiesParams) =>
-    [...vulnerabilityKeys.all, "target", targetId, params] as const,
+  list: (params: GetVulnerabilitiesParams, filter?: string) =>
+    [...vulnerabilityKeys.all, "list", params, filter] as const,
+  byScan: (scanId: number, params: GetVulnerabilitiesParams, filter?: string) =>
+    [...vulnerabilityKeys.all, "scan", scanId, params, filter] as const,
+  byTarget: (targetId: number, params: GetVulnerabilitiesParams, filter?: string) =>
+    [...vulnerabilityKeys.all, "target", targetId, params, filter] as const,
 }
 
 /** 获取所有漏洞 */
 export function useAllVulnerabilities(
   params?: GetVulnerabilitiesParams,
   options?: { enabled?: boolean },
+  filter?: string,
 ) {
   const defaultParams: GetVulnerabilitiesParams = {
     page: 1,
@@ -32,8 +33,8 @@ export function useAllVulnerabilities(
   }
 
   return useQuery({
-    queryKey: vulnerabilityKeys.list(defaultParams),
-    queryFn: () => VulnerabilityService.getAllVulnerabilities(defaultParams),
+    queryKey: vulnerabilityKeys.list(defaultParams, filter),
+    queryFn: () => VulnerabilityService.getAllVulnerabilities(defaultParams, filter),
     enabled: options?.enabled ?? true,
     select: (response: any) => {
       const items = (response?.results ?? []) as any[]
@@ -93,6 +94,7 @@ export function useScanVulnerabilities(
   scanId: number,
   params?: GetVulnerabilitiesParams,
   options?: { enabled?: boolean },
+  filter?: string,
 ) {
   const defaultParams: GetVulnerabilitiesParams = {
     page: 1,
@@ -101,9 +103,9 @@ export function useScanVulnerabilities(
   }
 
   return useQuery({
-    queryKey: vulnerabilityKeys.byScan(scanId, defaultParams),
+    queryKey: vulnerabilityKeys.byScan(scanId, defaultParams, filter),
     queryFn: () =>
-      VulnerabilityService.getVulnerabilitiesByScanId(scanId, defaultParams),
+      VulnerabilityService.getVulnerabilitiesByScanId(scanId, defaultParams, filter),
     enabled: options?.enabled !== undefined ? options.enabled : !!scanId,
     select: (response: any) => {
       const items = (response?.results ?? []) as any[]
@@ -163,6 +165,7 @@ export function useTargetVulnerabilities(
   targetId: number,
   params?: GetVulnerabilitiesParams,
   options?: { enabled?: boolean },
+  filter?: string,
 ) {
   const defaultParams: GetVulnerabilitiesParams = {
     page: 1,
@@ -171,9 +174,9 @@ export function useTargetVulnerabilities(
   }
 
   return useQuery({
-    queryKey: vulnerabilityKeys.byTarget(targetId, defaultParams),
+    queryKey: vulnerabilityKeys.byTarget(targetId, defaultParams, filter),
     queryFn: () =>
-      VulnerabilityService.getVulnerabilitiesByTargetId(targetId, defaultParams),
+      VulnerabilityService.getVulnerabilitiesByTargetId(targetId, defaultParams, filter),
     enabled: options?.enabled !== undefined ? options.enabled : !!targetId,
     select: (response: any) => {
       const items = (response?.results ?? []) as any[]

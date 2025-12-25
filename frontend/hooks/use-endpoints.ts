@@ -61,7 +61,7 @@ export function useEndpoints(params?: GetEndpointsRequest) {
 }
 
 // 根据目标ID获取 Endpoint 列表（使用专用路由）
-export function useEndpointsByTarget(targetId: number, params?: Omit<GetEndpointsRequest, 'targetId'>) {
+export function useEndpointsByTarget(targetId: number, params?: Omit<GetEndpointsRequest, 'targetId'>, filter?: string) {
   const defaultParams: GetEndpointsRequest = {
     page: 1,
     pageSize: 10,
@@ -69,8 +69,8 @@ export function useEndpointsByTarget(targetId: number, params?: Omit<GetEndpoint
   }
   
   return useQuery({
-    queryKey: endpointKeys.byTarget(targetId, defaultParams),
-    queryFn: () => EndpointService.getEndpointsByTargetId(targetId, defaultParams),
+    queryKey: [...endpointKeys.byTarget(targetId, defaultParams), filter],
+    queryFn: () => EndpointService.getEndpointsByTargetId(targetId, defaultParams, filter),
     select: (response) => {
       // RESTful 标准：直接返回数据
       return response as GetEndpointsResponse
@@ -81,7 +81,7 @@ export function useEndpointsByTarget(targetId: number, params?: Omit<GetEndpoint
 }
 
 // 根据扫描ID获取 Endpoint 列表（历史快照）
-export function useScanEndpoints(scanId: number, params?: Omit<GetEndpointsRequest, 'targetId'>, options?: { enabled?: boolean }) {
+export function useScanEndpoints(scanId: number, params?: Omit<GetEndpointsRequest, 'targetId'>, options?: { enabled?: boolean }, filter?: string) {
   const defaultParams: GetEndpointsRequest = {
     page: 1,
     pageSize: 10,
@@ -89,8 +89,8 @@ export function useScanEndpoints(scanId: number, params?: Omit<GetEndpointsReque
   }
 
   return useQuery({
-    queryKey: endpointKeys.byScan(scanId, defaultParams),
-    queryFn: () => EndpointService.getEndpointsByScanId(scanId, defaultParams),
+    queryKey: [...endpointKeys.byScan(scanId, defaultParams), filter],
+    queryFn: () => EndpointService.getEndpointsByScanId(scanId, defaultParams, filter),
     enabled: options?.enabled !== undefined ? options.enabled : !!scanId,
     select: (response: any) => {
       // 后端使用通用分页格式：results/total/page/pageSize/totalPages

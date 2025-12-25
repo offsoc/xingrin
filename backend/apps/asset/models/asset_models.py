@@ -135,6 +135,7 @@ class Endpoint(models.Model):
             models.Index(fields=['url']),          # URL索引，优化查询性能
             models.Index(fields=['host']),         # host索引，优化根据主机名查询
             models.Index(fields=['status_code']),  # 状态码索引，优化筛选
+            models.Index(fields=['title']),        # title索引，优化智能过滤搜索
         ]
         constraints = [
             # 普通唯一约束：url + target 组合唯一
@@ -229,6 +230,8 @@ class WebSite(models.Model):
             models.Index(fields=['url']),  # URL索引，优化查询性能
             models.Index(fields=['host']),  # host索引，优化根据主机名查询
             models.Index(fields=['target']),     # 优化从target_id快速查找下面的站点
+            models.Index(fields=['title']),      # title索引，优化智能过滤搜索
+            models.Index(fields=['status_code']),  # 状态码索引，优化智能过滤搜索
         ]
         constraints = [
             # 普通唯一约束：url + target 组合唯一
@@ -408,7 +411,7 @@ class Vulnerability(models.Model):
     )
     
     # ==================== 核心字段 ====================
-    url = models.TextField(help_text='漏洞所在的URL')
+    url = models.CharField(max_length=2000, help_text='漏洞所在的URL')
     vuln_type = models.CharField(max_length=100, help_text='漏洞类型（如 xss, sqli）')
     severity = models.CharField(
         max_length=20,
@@ -434,6 +437,7 @@ class Vulnerability(models.Model):
             models.Index(fields=['vuln_type']),
             models.Index(fields=['severity']),
             models.Index(fields=['source']),
+            models.Index(fields=['url']),          # url索引，优化智能过滤搜索
             models.Index(fields=['-created_at']),
         ]
 

@@ -267,7 +267,7 @@ export function useTargetEndpoints(
   params?: {
     page?: number
     pageSize?: number
-    search?: string
+    filter?: string
   },
   options?: {
     enabled?: boolean
@@ -277,9 +277,9 @@ export function useTargetEndpoints(
     queryKey: ['targets', 'detail', targetId, 'endpoints', {
       page: params?.page,
       pageSize: params?.pageSize,
-      search: params?.search,
+      filter: params?.filter,
     }],
-    queryFn: () => getTargetEndpoints(targetId, params?.page || 1, params?.pageSize || 10, params?.search),
+    queryFn: () => getTargetEndpoints(targetId, params?.page || 1, params?.pageSize || 10, params?.filter),
     enabled: options?.enabled !== undefined ? options.enabled : !!targetId,
     select: (response: any) => {
       // 后端使用通用分页格式：results/total/page/pageSize/totalPages

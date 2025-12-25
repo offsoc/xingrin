@@ -67,12 +67,29 @@ class DirectorySnapshotsService:
             )
             raise
     
-    def get_by_scan(self, scan_id: int):
-        return self.snapshot_repo.get_by_scan(scan_id)
+    # 智能过滤字段映射
+    FILTER_FIELD_MAPPING = {
+        'url': 'url',
+        'status': 'status',
+        'content_type': 'content_type',
+    }
+    
+    def get_by_scan(self, scan_id: int, filter_query: str = None):
+        from apps.common.utils.filter_utils import apply_filters
+        
+        queryset = self.snapshot_repo.get_by_scan(scan_id)
+        if filter_query:
+            queryset = apply_filters(queryset, filter_query, self.FILTER_FIELD_MAPPING)
+        return queryset
 
-    def get_all(self):
+    def get_all(self, filter_query: str = None):
         """获取所有目录快照"""
-        return self.snapshot_repo.get_all()
+        from apps.common.utils.filter_utils import apply_filters
+        
+        queryset = self.snapshot_repo.get_all()
+        if filter_query:
+            queryset = apply_filters(queryset, filter_query, self.FILTER_FIELD_MAPPING)
+        return queryset
 
     def iter_directory_urls_by_scan(self, scan_id: int, chunk_size: int = 1000) -> Iterator[str]:
         """流式获取某次扫描下的所有目录 URL。"""

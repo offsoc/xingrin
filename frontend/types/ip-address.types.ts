@@ -15,7 +15,7 @@ export interface IPAddress {
 export interface GetIPAddressesParams {
   page?: number
   pageSize?: number
-  search?: string
+  filter?: string  // 智能过滤语法字符串
 }
 
 export interface GetIPAddressesResponse {

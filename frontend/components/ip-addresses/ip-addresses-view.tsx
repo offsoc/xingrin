@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback, useMemo, useState, useEffect } from "react"
+import React, { useCallback, useMemo, useState } from "react"
 import { AlertTriangle } from "lucide-react"
 import { IPAddressesDataTable } from "./ip-addresses-data-table"
 import { createIPAddressColumns } from "./ip-addresses-columns"
@@ -23,13 +23,10 @@ export function IPAddressesView({
     pageSize: 10,
   })
   const [selectedIPAddresses, setSelectedIPAddresses] = useState<IPAddress[]>([])
+  const [filterQuery, setFilterQuery] = useState("")
 
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isSearching, setIsSearching] = useState(false)
-
-  const handleSearchChange = (value: string) => {
-    setIsSearching(true)
-    setSearchQuery(value)
+  const handleFilterChange = (value: string) => {
+    setFilterQuery(value)
     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
   }
 
@@ -38,7 +35,7 @@ export function IPAddressesView({
     {
       page: pagination.pageIndex + 1,
       pageSize: pagination.pageSize,
-      search: searchQuery || undefined,
+      filter: filterQuery || undefined,
     },
     { enabled: !!targetId }
   )
@@ -48,19 +45,13 @@ export function IPAddressesView({
     {
       page: pagination.pageIndex + 1,
       pageSize: pagination.pageSize,
-      search: searchQuery || undefined,
+      filter: filterQuery || undefined,
     },
     { enabled: !!scanId }
   )
 
   const activeQuery = targetId ? targetQuery : scanQuery
-  const { data, isLoading, isFetching, error, refetch } = activeQuery
-
-  useEffect(() => {
-    if (!isFetching && isSearching) {
-      setIsSearching(false)
-    }
-  }, [isFetching, isSearching])
+  const { data, isLoading, error, refetch } = activeQuery
 
   const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleString("zh-CN", {
@@ -225,11 +216,8 @@ export function IPAddressesView({
       <IPAddressesDataTable
         data={ipAddresses}
         columns={columns}
-        searchPlaceholder="搜索IP地址..."
-        searchColumn="ip"
-        searchValue={searchQuery}
-        onSearch={handleSearchChange}
-        isSearching={isSearching}
+        filterValue={filterQuery}
+        onFilterChange={handleFilterChange}
         pagination={pagination}
         setPagination={setPagination}
         paginationInfo={paginationInfo}

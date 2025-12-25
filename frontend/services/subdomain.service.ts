@@ -173,32 +173,32 @@ export class SubdomainService {
     return response.data
   }
 
-  /** 获取目标的子域名列表（支持分页和搜索） */
+  /** 获取目标的子域名列表（支持分页和过滤） */
   static async getSubdomainsByTargetId(
     targetId: number,
     params?: {
       page?: number
       pageSize?: number
-      search?: string
+      filter?: string
     }
   ): Promise<any> {
     const response = await api.get(`/targets/${targetId}/subdomains/`, {
       params: {
         page: params?.page || 1,
         pageSize: params?.pageSize || 10,
-        ...(params?.search && { search: params.search }),
+        ...(params?.filter && { filter: params.filter }),
       }
     })
     return response.data
   }
 
-  /** 获取扫描的子域名列表（支持分页） */
+  /** 获取扫描的子域名列表（支持分页和过滤） */
   static async getSubdomainsByScanId(
     scanId: number,
     params?: {
       page?: number
       pageSize?: number
-      search?: string
+      filter?: string
     }
   ): Promise<{
     results: Array<{
@@ -225,7 +225,7 @@ export class SubdomainService {
       params: {
         page: params?.page || 1,
         pageSize: params?.pageSize || 10,
-        ...(params?.search && { search: params.search }),
+        ...(params?.filter && { filter: params.filter }),
       }
     })
     return response.data as any

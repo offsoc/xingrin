@@ -1,7 +1,9 @@
 """HostPortMapping Repository - Django ORM 实现"""
 
 import logging
-from typing import List, Iterator
+from typing import List, Iterator, Dict, Optional
+
+from django.db.models import QuerySet, Min
 
 from apps.asset.models.asset_models import HostPortMapping
 from apps.asset.dtos.asset import HostPortMappingDTO
@@ -13,7 +15,10 @@ logger = logging.getLogger(__name__)
 
 @auto_ensure_db_connection
 class DjangoHostPortMappingRepository:
-    """HostPortMapping Repository - Django ORM 实现"""
+    """HostPortMapping Repository - Django ORM 实现
+    
+    职责：纯数据访问，不包含业务逻辑
+    """
 
     def bulk_create_ignore_conflicts(self, items: List[HostPortMappingDTO]) -> int:
         """
@@ -90,72 +95,20 @@ class DjangoHostPortMappingRepository:
         for ip in queryset:
             yield ip
 
-    def get_ip_aggregation_by_target(self, target_id: int, search: str = None):
-        from django.db.models import Min
+    def get_queryset_by_target(self, target_id: int) -> QuerySet:
+        """获取目标下的 QuerySet"""
+        return HostPortMapping.objects.filter(target_id=target_id)
 
-        qs = HostPortMapping.objects.filter(target_id=target_id)
-        if search:
-            qs = qs.filter(ip__icontains=search)
+    def get_all_queryset(self) -> QuerySet:
+        """获取所有记录的 QuerySet"""
+        return HostPortMapping.objects.all()
 
-        ip_aggregated = (
-            qs
-            .values('ip')
-            .annotate(created_at=Min('created_at'))
-            .order_by('-created_at')
-        )
-
-        results = []
-        for item in ip_aggregated:
-            ip = item['ip']
-            mappings = (
-                HostPortMapping.objects
-                .filter(target_id=target_id, ip=ip)
-                .values('host', 'port')
-                .distinct()
-            )
-            hosts = sorted({m['host'] for m in mappings})
-            ports = sorted({m['port'] for m in mappings})
-            results.append({
-                'ip': ip,
-                'hosts': hosts,
-                'ports': ports,
-                'created_at': item['created_at'],
-            })
-        return results
-
-    def get_all_ip_aggregation(self, search: str = None):
-        """获取所有 IP 聚合数据（全局查询）"""
-        from django.db.models import Min
-
-        qs = HostPortMapping.objects.all()
-        if search:
-            qs = qs.filter(ip__icontains=search)
-
-        ip_aggregated = (
-            qs
-            .values('ip')
-            .annotate(created_at=Min('created_at'))
-            .order_by('-created_at')
-        )
-
-        results = []
-        for item in ip_aggregated:
-            ip = item['ip']
-            mappings = (
-                HostPortMapping.objects
-                .filter(ip=ip)
-                .values('host', 'port')
-                .distinct()
-            )
-            hosts = sorted({m['host'] for m in mappings})
-            ports = sorted({m['port'] for m in mappings})
-            results.append({
-                'ip': ip,
-                'hosts': hosts,
-                'ports': ports,
-                'created_at': item['created_at'],
-            })
-        return results
+    def get_queryset_by_ip(self, ip: str, target_id: Optional[int] = None) -> QuerySet:
+        """获取指定 IP 的 QuerySet"""
+        qs = HostPortMapping.objects.filter(ip=ip)
+        if target_id:
+            qs = qs.filter(target_id=target_id)
+        return qs
 
     def iter_raw_data_for_export(
         self, 

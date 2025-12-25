@@ -25,8 +25,6 @@ import {
   IconLayoutColumns,
   IconTrash,
   IconDownload,
-  IconSearch,
-  IconLoader2,
   IconPlus,
 } from "@tabler/icons-react"
 
@@ -40,7 +38,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -57,17 +54,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { SmartFilterInput, type FilterField } from "@/components/common/smart-filter-input"
 
 import type { WebSite } from "@/types/website.types"
 import type { PaginationInfo } from "@/types/common.types"
 
+// 网站页面的过滤字段配置
+const WEBSITE_FILTER_FIELDS: FilterField[] = [
+  { key: "url", label: "URL", description: "Full URL" },
+  { key: "host", label: "Host", description: "Hostname" },
+  { key: "title", label: "Title", description: "Page title" },
+  { key: "status", label: "Status", description: "HTTP status code" },
+]
+
+// 网站页面的示例
+const WEBSITE_FILTER_EXAMPLES = [
+  'host="api.example.com" && status="200"',
+  'title="Login" || title="Admin"',
+  'url="/api/*" && status!="404"',
+]
+
 interface WebSitesDataTableProps {
   data: WebSite[]
   columns: ColumnDef<WebSite>[]
-  searchPlaceholder?: string
-  searchColumn?: string
-  searchValue?: string
-  onSearch?: (value: string) => void
+  // 智能过滤
+  filterValue?: string
+  onFilterChange?: (value: string) => void
   isSearching?: boolean
   pagination?: { pageIndex: number; pageSize: number }
   setPagination?: React.Dispatch<React.SetStateAction<{ pageIndex: number; pageSize: number }>>
@@ -84,10 +96,8 @@ interface WebSitesDataTableProps {
 export function WebSitesDataTable({
   data = [],
   columns,
-  searchPlaceholder = "搜索主机名...",
-  searchColumn = "url",
-  searchValue,
-  onSearch,
+  filterValue,
+  onFilterChange,
   isSearching = false,
   pagination,
   setPagination,
@@ -109,24 +119,10 @@ export function WebSitesDataTable({
     pageSize: 10,
   })
 
-  // 本地搜索输入状态（只在回车或点击按钮时触发搜索）
-  const [localSearchValue, setLocalSearchValue] = React.useState(searchValue ?? "")
-  
-  React.useEffect(() => {
-    setLocalSearchValue(searchValue ?? "")
-  }, [searchValue])
-
-  const handleSearchSubmit = () => {
-    if (onSearch) {
-      onSearch(localSearchValue)
-    } else {
-      table.getColumn(searchColumn)?.setFilterValue(localSearchValue)
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearchSubmit()
+  // 处理智能过滤搜索
+  const handleSmartSearch = (_filters: any[], rawQuery: string) => {
+    if (onFilterChange) {
+      onFilterChange(rawQuery)
     }
   }
 
@@ -188,23 +184,14 @@ export function WebSitesDataTable({
     <div className="w-full space-y-4">
       {/* 工具栏 */}
       <div className="flex items-center justify-between">
-        {/* 搜索框 */}
-        <div className="flex items-center space-x-2">
-          <Input
-            placeholder={searchPlaceholder}
-            value={localSearchValue}
-            onChange={(e) => setLocalSearchValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="h-8 max-w-sm"
-          />
-          <Button variant="outline" size="sm" onClick={handleSearchSubmit} disabled={isSearching}>
-            {isSearching ? (
-              <IconLoader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <IconSearch className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+        {/* 智能过滤搜索框 */}
+        <SmartFilterInput
+          fields={WEBSITE_FILTER_FIELDS}
+          examples={WEBSITE_FILTER_EXAMPLES}
+          value={filterValue}
+          onSearch={handleSmartSearch}
+          className="flex-1 max-w-xl"
+        />
 
         {/* 右侧操作按钮 */}
         <div className="flex items-center space-x-2">

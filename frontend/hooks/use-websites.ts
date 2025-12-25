@@ -8,11 +8,11 @@ const websiteService = {
   // 获取目标的网站列表
   getTargetWebSites: async (
     targetId: number,
-    params: { page: number; pageSize: number; search?: string }
+    params: { page: number; pageSize: number; filter?: string }
   ): Promise<WebSiteListResponse> => {
-    const searchParam = params.search ? `&search=${encodeURIComponent(params.search)}` : ''
+    const filterParam = params.filter ? `&filter=${encodeURIComponent(params.filter)}` : ''
     const response = await fetch(
-      `/api/targets/${targetId}/websites/?page=${params.page}&pageSize=${params.pageSize}${searchParam}`
+      `/api/targets/${targetId}/websites/?page=${params.page}&pageSize=${params.pageSize}${filterParam}`
     )
     if (!response.ok) {
       throw new Error('获取网站列表失败')
@@ -23,11 +23,11 @@ const websiteService = {
   // 获取扫描的网站列表
   getScanWebSites: async (
     scanId: number,
-    params: { page: number; pageSize: number; search?: string }
+    params: { page: number; pageSize: number; filter?: string }
   ): Promise<WebSiteListResponse> => {
-    const searchParam = params.search ? `&search=${encodeURIComponent(params.search)}` : ''
+    const filterParam = params.filter ? `&filter=${encodeURIComponent(params.filter)}` : ''
     const response = await fetch(
-      `/api/scans/${scanId}/websites/?page=${params.page}&pageSize=${params.pageSize}${searchParam}`
+      `/api/scans/${scanId}/websites/?page=${params.page}&pageSize=${params.pageSize}${filterParam}`
     )
     if (!response.ok) {
       throw new Error('获取网站列表失败')
@@ -80,7 +80,7 @@ const websiteService = {
 // 获取目标的网站列表
 export function useTargetWebSites(
   targetId: number,
-  params: { page: number; pageSize: number; search?: string },
+  params: { page: number; pageSize: number; filter?: string },
   options?: { enabled?: boolean }
 ) {
   return useQuery({
@@ -94,7 +94,7 @@ export function useTargetWebSites(
 // 获取扫描的网站列表
 export function useScanWebSites(
   scanId: number,
-  params: { page: number; pageSize: number; search?: string },
+  params: { page: number; pageSize: number; filter?: string },
   options?: { enabled?: boolean }
 ) {
   return useQuery({

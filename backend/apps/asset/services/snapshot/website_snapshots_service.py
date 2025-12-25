@@ -68,12 +68,32 @@ class WebsiteSnapshotsService:
             )
             raise
     
-    def get_by_scan(self, scan_id: int):
-        return self.snapshot_repo.get_by_scan(scan_id)
+    # 智能过滤字段映射
+    FILTER_FIELD_MAPPING = {
+        'url': 'url',
+        'host': 'host',
+        'title': 'title',
+        'status': 'status',
+        'webserver': 'web_server',
+        'tech': 'tech',
+    }
+    
+    def get_by_scan(self, scan_id: int, filter_query: str = None):
+        from apps.common.utils.filter_utils import apply_filters
+        
+        queryset = self.snapshot_repo.get_by_scan(scan_id)
+        if filter_query:
+            queryset = apply_filters(queryset, filter_query, self.FILTER_FIELD_MAPPING)
+        return queryset
 
-    def get_all(self):
+    def get_all(self, filter_query: str = None):
         """获取所有网站快照"""
-        return self.snapshot_repo.get_all()
+        from apps.common.utils.filter_utils import apply_filters
+        
+        queryset = self.snapshot_repo.get_all()
+        if filter_query:
+            queryset = apply_filters(queryset, filter_query, self.FILTER_FIELD_MAPPING)
+        return queryset
 
     def iter_website_urls_by_scan(self, scan_id: int, chunk_size: int = 1000) -> Iterator[str]:
         """流式获取某次扫描下的所有站点 URL（按创建时间倒序）。"""
