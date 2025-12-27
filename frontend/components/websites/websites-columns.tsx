@@ -171,6 +171,28 @@ export function createWebSiteColumns({
       },
     },
     {
+      accessorKey: "tech",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Technologies" />
+      ),
+      size: 200,
+      minSize: 150,
+      cell: ({ row }) => {
+        const tech = row.getValue("tech") as string[]
+        if (!tech || tech.length === 0) return <span className="text-sm text-muted-foreground">-</span>
+
+        return (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {tech.map((technology, index) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                {technology}
+              </Badge>
+            ))}
+          </div>
+        )
+      },
+    },
+    {
       accessorKey: "contentLength",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Content Length" />
@@ -219,28 +241,6 @@ export function createWebSiteColumns({
       cell: ({ row }) => (
         <TruncatedCell value={row.getValue("contentType")} maxLength="contentType" />
       ),
-    },
-    {
-      accessorKey: "tech",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Technologies" />
-      ),
-      size: 200,
-      minSize: 150,
-      cell: ({ row }) => {
-        const tech = row.getValue("tech") as string[]
-        if (!tech || tech.length === 0) return <span className="text-sm text-muted-foreground">-</span>
-
-        return (
-          <div className="flex flex-wrap items-center gap-1.5">
-            {tech.map((technology, index) => (
-              <Badge key={index} variant="outline" className="text-xs">
-                {technology}
-              </Badge>
-            ))}
-          </div>
-        )
-      },
     },
     {
       accessorKey: "bodyPreview",
