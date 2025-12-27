@@ -1,7 +1,7 @@
 """指纹文件本地缓存工具
 
 提供 Worker 侧的指纹文件缓存和版本校验功能，用于：
-- 指纹识别扫描 (fingerprint_scan_flow)
+- 指纹识别扫描 (fingerprint_detect_flow)
 """
 
 import logging
@@ -10,6 +10,18 @@ import os
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+
+# 指纹库映射：lib_name → ensure_func_name
+# 以后扩展其他指纹库时，在此添加映射
+FINGERPRINT_LIB_MAP = {
+    'ehole': 'ensure_ehole_fingerprint_local',
+    # 以后扩展：
+    # 'goby': 'ensure_goby_fingerprint_local',
+    # 'wappalyzer': 'ensure_wappalyzer_fingerprint_local',
+    # 'fingers': 'ensure_fingers_fingerprint_local',
+    # 'fingerprinthub': 'ensure_fingerprinthub_fingerprint_local',
+}
 
 
 def ensure_ehole_fingerprint_local() -> str:
@@ -70,4 +82,40 @@ def ensure_ehole_fingerprint_local() -> str:
     return cache_file
 
 
-__all__ = ["ensure_ehole_fingerprint_local"]
+def get_fingerprint_paths(lib_names: list) -> dict:
+    """
+    获取多个指纹库的本地路径
+    
+    Args:
+        lib_names: 指纹库名称列表，如 ['ehole', 'goby']
+        
+    Returns:
+        dict: {lib_name: local_path}，如 {'ehole': '/opt/xingrin/fingerprints/ehole.json'}
+        
+    示例：
+        paths = get_fingerprint_paths(['ehole'])
+        # {'ehole': '/opt/xingrin/fingerprints/ehole.json'}
+    """
+    paths = {}
+    for lib_name in lib_names:
+        if lib_name not in FINGERPRINT_LIB_MAP:
+            logger.warning("不支持的指纹库: %s，跳过", lib_name)
+            continue
+        
+        ensure_func_name = FINGERPRINT_LIB_MAP[lib_name]
+        # 获取当前模块中的函数
+        ensure_func = globals().get(ensure_func_name)
+        if ensure_func is None:
+            logger.warning("指纹库 %s 的导出函数 %s 未实现，跳过", lib_name, ensure_func_name)
+            continue
+        
+        try:
+            paths[lib_name] = ensure_func()
+        except Exception as e:
+            logger.error("获取指纹库 %s 路径失败: %s", lib_name, e)
+            continue
+    
+    return paths
+
+
+__all__ = ["ensure_ehole_fingerprint_local", "get_fingerprint_paths", "FINGERPRINT_LIB_MAP"]

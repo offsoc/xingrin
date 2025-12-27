@@ -40,8 +40,13 @@ flowchart TB
             HTTPX1[httpx<br/>Web Service Detection]
         end
         
+        subgraph FINGER["Fingerprint Detect"]
+            XINGFINGER[xingfinger<br/>Tech Stack Detection]
+        end
+        
         RESOLVE --> NAABU
         NAABU --> HTTPX1
+        HTTPX1 --> XINGFINGER
     end
     
     TARGET --> SUBFINDER
@@ -69,9 +74,9 @@ flowchart TB
         end
     end
     
-    HTTPX1 --> WAYMORE
-    HTTPX1 --> KATANA
-    HTTPX1 --> FFUF
+    XINGFINGER --> WAYMORE
+    XINGFINGER --> KATANA
+    XINGFINGER --> FFUF
     
     subgraph STAGE3["Stage 3: Vulnerability Sequential"]
         direction TB
@@ -105,7 +110,7 @@ flowchart TB
 ```python
 # backend/apps/scan/configs/command_templates.py
 EXECUTION_STAGES = [
-    {'mode': 'sequential', 'flows': ['subdomain_discovery', 'port_scan', 'site_scan']},
+    {'mode': 'sequential', 'flows': ['subdomain_discovery', 'port_scan', 'site_scan', 'fingerprint_detect']},
     {'mode': 'parallel', 'flows': ['url_fetch', 'directory_scan']},
     {'mode': 'sequential', 'flows': ['vuln_scan']},
 ]
@@ -118,6 +123,7 @@ EXECUTION_STAGES = [
 | subdomain_discovery | subfinder, amass, sublist3r, assetfinder, puredns | Subdomain |
 | port_scan | naabu | HostPortMapping |
 | site_scan | httpx | WebSite |
+| fingerprint_detect | xingfinger | WebSite.tech（更新） |
 | url_fetch | waymore, katana, uro, httpx | Endpoint |
 | directory_scan | ffuf | Directory |
 | vuln_scan | dalfox, nuclei | Vulnerability |
