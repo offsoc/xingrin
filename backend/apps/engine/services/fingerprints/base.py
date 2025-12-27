@@ -109,7 +109,7 @@ class BaseFingerprintService:
         """
         raise NotImplementedError("子类必须实现 get_export_data 方法")
     
-    def export_to_file(self, output_path: str) -> str:
+    def export_to_file(self, output_path: str) -> int:
         """
         导出所有指纹到 JSON 文件
         
@@ -117,13 +117,14 @@ class BaseFingerprintService:
             output_path: 输出文件路径
             
         Returns:
-            str: 导出的文件路径
+            int: 导出的指纹数量
         """
         data = self.get_export_data()
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False)
-        logger.info("导出指纹文件: %s", output_path)
-        return output_path
+        count = len(data.get('fingerprint', []))
+        logger.info("导出指纹文件: %s, 数量: %d", output_path, count)
+        return count
     
     def get_fingerprint_version(self) -> str:
         """

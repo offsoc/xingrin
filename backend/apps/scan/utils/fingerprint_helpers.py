@@ -69,7 +69,7 @@ def ensure_ehole_fingerprint_local() -> str:
         "EHole 指纹文件需要更新: cached=%s, current=%s",
         cached_version, current_version
     )
-    service.export_to_file(cache_file)
+    count = service.export_to_file(cache_file)
     
     # 写入版本文件
     try:
