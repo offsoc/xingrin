@@ -164,8 +164,7 @@ def _export_site_urls(target_id: int, target_name: str, directory_scan_dir: Path
     export_result = export_sites_task(
         target_id=target_id,
         output_file=sites_file,
-        batch_size=1000,  # 每次读取 1000 条，优化内存占用
-        target_name=target_name  # 传入 target_name 用于懒加载
+        batch_size=1000  # 每次读取 1000 条，优化内存占用
     )
     
     site_count = export_result['total_count']

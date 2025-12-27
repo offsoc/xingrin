@@ -40,8 +40,7 @@ def _export_sites_file(target_id: int, scan_id: int, target_name: str, output_di
     result = export_sites_task(
         output_file=output_file,
         target_id=target_id,
-        scan_id=scan_id,
-        target_name=target_name
+        scan_id=scan_id
     )
     
     count = result['asset_count']

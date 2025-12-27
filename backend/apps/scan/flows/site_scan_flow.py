@@ -109,7 +109,6 @@ def _export_site_urls(target_id: int, site_scan_dir: Path, target_name: str = No
     export_result = export_site_urls_task(
         target_id=target_id,
         output_file=urls_file,
-        target_name=target_name,
         batch_size=1000  # 每次处理1000个子域名
     )
     

@@ -70,7 +70,6 @@ def calculate_fingerprint_detect_timeout(
 def _export_urls(
     target_id: int,
     fingerprint_dir: Path,
-    target_name: str = None,
     source: str = 'website'
 ) -> tuple[str, int]:
     """
@@ -79,7 +78,6 @@ def _export_urls(
     Args:
         target_id: 目标 ID
         fingerprint_dir: 指纹识别目录
-        target_name: 目标名称（用于懒加载）
         source: 数据源类型
         
     Returns:
@@ -91,7 +89,6 @@ def _export_urls(
     export_result = export_urls_for_fingerprint_task(
         target_id=target_id,
         output_file=urls_file,
-        target_name=target_name,
         source=source,
         batch_size=1000
     )
@@ -296,7 +293,7 @@ def fingerprint_detect_flow(
         fingerprint_dir = setup_scan_directory(scan_workspace_dir, 'fingerprint_detect')
         
         # Step 1: 导出 URL（支持懒加载）
-        urls_file, url_count = _export_urls(target_id, fingerprint_dir, target_name, source)
+        urls_file, url_count = _export_urls(target_id, fingerprint_dir, source)
         
         if url_count == 0:
             logger.warning("目标下没有可用的 URL，跳过指纹识别")
