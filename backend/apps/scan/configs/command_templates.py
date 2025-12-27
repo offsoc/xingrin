@@ -230,10 +230,10 @@ VULN_SCAN_COMMANDS = {
 FINGERPRINT_DETECT_COMMANDS = {
     'xingfinger': {
         # 流式输出模式（不使用 -o，输出到 stdout）
-        # -f: URL 列表文件输入
+        # -l: URL 列表文件输入
         # -s: 静默模式，只输出命中结果
         # --json: JSON 格式输出（每行一条）
-        'base': "xingfinger -f '{urls_file}' -s --json",
+        'base': "xingfinger -l '{urls_file}' -s --json",
         'optional': {
             # 自定义指纹库路径（当前只实现 ehole，以后扩展其他）
             'ehole': '--ehole {ehole}',
