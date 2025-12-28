@@ -3,7 +3,6 @@
 import React from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   DropdownMenu,
@@ -15,18 +14,11 @@ import {
 import {
   MoreHorizontal,
   Trash2,
-  ChevronsUpDown,
-  ChevronUp,
-  ChevronDown,
   Check,
   Edit,
   X as XIcon,
 } from "lucide-react"
-import {
-  IconTarget,
-  IconBolt,
-  IconSettings,
-} from "@tabler/icons-react"
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import * as yaml from "js-yaml"
 import type { ScanEngine } from "@/types/engine.types"
 
@@ -90,47 +82,8 @@ function FeatureStatus({ enabled }: { enabled?: boolean }) {
   )
 }
 
-/**
- * 数据表格列头组件
- */
-function DataTableColumnHeader({
-  column,
-  title,
-}: {
-  column: {
-    getCanSort: () => boolean
-    getIsSorted: () => false | "asc" | "desc"
-    toggleSorting: (desc?: boolean) => void
-  }
-  title: string
-}) {
-  if (!column.getCanSort()) {
-    return <div className="-ml-3 font-medium">{title}</div>
-  }
-
-  const isSorted = column.getIsSorted()
-
-  return (
-    <Button
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-muted"
-    >
-      {title}
-      {isSorted === "asc" ? (
-        <ChevronUp />
-      ) : isSorted === "desc" ? (
-        <ChevronDown />
-      ) : (
-        <ChevronsUpDown />
-      )}
-    </Button>
-  )
-}
-
 // 列创建函数的参数类型
 interface CreateColumnsProps {
-  formatDate: (dateString: string) => string
   handleEdit: (engine: ScanEngine) => void
   handleDelete: (engine: ScanEngine) => void
 }
@@ -139,11 +92,9 @@ interface CreateColumnsProps {
  * 引擎行操作组件
  */
 function EngineRowActions({
-  engine,
   onEdit,
   onDelete,
 }: {
-  engine: ScanEngine
   onEdit: () => void
   onDelete: () => void
 }) {
@@ -180,7 +131,6 @@ function EngineRowActions({
  * 创建引擎表格列定义
  */
 export const createEngineColumns = ({
-  formatDate,
   handleEdit,
   handleDelete,
 }: CreateColumnsProps): ColumnDef<ScanEngine>[] => [
@@ -190,6 +140,7 @@ export const createEngineColumns = ({
     size: 200,
     minSize: 150,
     maxSize: 350,
+    meta: { title: "Engine Name" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Engine Name" />
     ),
@@ -214,7 +165,10 @@ export const createEngineColumns = ({
   // Subdomain Discovery
   {
     id: "subdomain_discovery",
-    header: "Subdomain Discovery",
+    meta: { title: "Subdomain Discovery" },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Subdomain Discovery" />
+    ),
     size: 80,
     minSize: 60,
     maxSize: 100,
@@ -228,7 +182,10 @@ export const createEngineColumns = ({
   // Port Scan
   {
     id: "port_scan",
-    header: "Port Scan",
+    meta: { title: "Port Scan" },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Port Scan" />
+    ),
     size: 80,
     minSize: 60,
     maxSize: 100,
@@ -242,7 +199,10 @@ export const createEngineColumns = ({
   // Site Scan (原 HTTP Crawl)
   {
     id: "site_scan",
-    header: "Site Scan",
+    meta: { title: "Site Scan" },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Site Scan" />
+    ),
     size: 80,
     minSize: 60,
     maxSize: 100,
@@ -256,7 +216,10 @@ export const createEngineColumns = ({
   // Directory Scan
   {
     id: "directory_scan",
-    header: "Directory Scan",
+    meta: { title: "Directory Scan" },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Directory Scan" />
+    ),
     size: 80,
     minSize: 60,
     maxSize: 100,
@@ -270,7 +233,10 @@ export const createEngineColumns = ({
   // URL Fetch
   {
     id: "url_fetch",
-    header: "URL Fetch",
+    meta: { title: "URL Fetch" },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="URL Fetch" />
+    ),
     size: 80,
     minSize: 60,
     maxSize: 100,
@@ -284,7 +250,10 @@ export const createEngineColumns = ({
   // OSINT
   {
     id: "osint",
-    header: "OSINT",
+    meta: { title: "OSINT" },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="OSINT" />
+    ),
     size: 80,
     minSize: 60,
     maxSize: 100,
@@ -298,7 +267,10 @@ export const createEngineColumns = ({
   // Vulnerability Scan
   {
     id: "vulnerability_scan",
-    header: "Vulnerability Scan",
+    meta: { title: "Vulnerability Scan" },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Vulnerability Scan" />
+    ),
     size: 80,
     minSize: 60,
     maxSize: 100,
@@ -312,7 +284,10 @@ export const createEngineColumns = ({
   // WAF Detection
   {
     id: "waf_detection",
-    header: "WAF Detection",
+    meta: { title: "WAF Detection" },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="WAF Detection" />
+    ),
     size: 80,
     minSize: 60,
     maxSize: 100,
@@ -326,7 +301,10 @@ export const createEngineColumns = ({
   // Screenshot
   {
     id: "screenshot",
-    header: "Screenshot",
+    meta: { title: "Screenshot" },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Screenshot" />
+    ),
     size: 80,
     minSize: 60,
     maxSize: 100,
@@ -346,7 +324,6 @@ export const createEngineColumns = ({
     enableResizing: false,
     cell: ({ row }) => (
       <EngineRowActions
-        engine={row.original}
         onEdit={() => handleEdit(row.original)}
         onDelete={() => handleDelete(row.original)}
       />

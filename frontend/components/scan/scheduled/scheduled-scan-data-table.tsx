@@ -84,18 +84,6 @@ export function ScheduledScanDataTable({
     }
   }
 
-  // 列标签映射
-  const columnLabels: Record<string, string> = {
-    name: "任务名称",
-    engineName: "扫描引擎",
-    cronExpression: "Cron 表达式",
-    scanMode: "扫描范围",
-    isEnabled: "状态",
-    nextRunTime: "下次执行",
-    runCount: "执行次数",
-    lastRunTime: "上次执行",
-  }
-
   return (
     <UnifiedDataTable
       data={data}
@@ -111,8 +99,6 @@ export function ScheduledScanDataTable({
       showBulkDelete={false}
       onAddNew={onAddNew}
       addButtonLabel={addButtonText}
-      // 列控制
-      columnLabels={columnLabels}
       // 空状态
       emptyMessage="暂无数据"
       // 自定义搜索框

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { TruncatedUrlCell, TruncatedCell } from "@/components/ui/truncated-cell"
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 
 import type { Vulnerability, VulnerabilitySeverity } from "@/types/vulnerability.types"
 
@@ -57,7 +58,10 @@ export function createVulnerabilityColumns({
     },
     {
       accessorKey: "severity",
-      header: "Status",
+      meta: { title: "Status" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Status" />
+      ),
       size: 80,
       minSize: 60,
       maxSize: 120,
@@ -73,7 +77,10 @@ export function createVulnerabilityColumns({
     },
     {
       accessorKey: "source",
-      header: "Source",
+      meta: { title: "Source" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Source" />
+      ),
       size: 100,
       minSize: 80,
       maxSize: 150,
@@ -88,7 +95,10 @@ export function createVulnerabilityColumns({
     },
     {
       accessorKey: "vulnType",
-      header: "Vuln Type",
+      meta: { title: "Vuln Type" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Vuln Type" />
+      ),
       size: 150,
       minSize: 100,
       maxSize: 250,
@@ -112,7 +122,10 @@ export function createVulnerabilityColumns({
     },
     {
       accessorKey: "url",
-      header: "URL",
+      meta: { title: "URL" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="URL" />
+      ),
       size: 500,
       minSize: 300,
       maxSize: 700,
@@ -123,7 +136,10 @@ export function createVulnerabilityColumns({
     },
     {
       accessorKey: "createdAt",
-      header: "Created At",
+      meta: { title: "Created At" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Created At" />
+      ),
       size: 150,
       minSize: 120,
       maxSize: 200,

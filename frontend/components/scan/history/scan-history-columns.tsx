@@ -23,11 +23,9 @@ import {
   MoreHorizontal, 
   Eye, 
   Trash2, 
-  ChevronsUpDown, 
-  ChevronUp, 
-  ChevronDown,
   StopCircle,
 } from "lucide-react"
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import {
   IconClock,
   IconCircleCheck,
@@ -134,40 +132,6 @@ interface CreateColumnsProps {
 }
 
 /**
- * 数据表格列头组件
- */
-function DataTableColumnHeader({
-  column,
-  title,
-}: {
-  column: { getCanSort: () => boolean; getIsSorted: () => false | "asc" | "desc"; toggleSorting: (desc?: boolean) => void }
-  title: string
-}) {
-  if (!column.getCanSort()) {
-    return <div className="-ml-3 font-medium">{title}</div>
-  }
-
-  const isSorted = column.getIsSorted()
-
-  return (
-    <Button
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-muted"
-    >
-      {title}
-      {isSorted === "asc" ? (
-        <ChevronUp />
-      ) : isSorted === "desc" ? (
-        <ChevronDown />
-      ) : (
-        <ChevronsUpDown />
-      )}
-    </Button>
-  )
-}
-
-/**
  * 创建扫描历史表格列定义
  */
 export const createScanHistoryColumns = ({
@@ -210,6 +174,7 @@ export const createScanHistoryColumns = ({
     accessorKey: "targetName",
     size: 350,
     minSize: 100,
+    meta: { title: "Target" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Target" />
     ),
@@ -244,7 +209,10 @@ export const createScanHistoryColumns = ({
   // Summary 列
   {
     accessorKey: "summary",
-    header: "Summary",
+    meta: { title: "Summary" },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Summary" />
+    ),
     size: 420,
     minSize: 150,
     cell: ({ row }) => {
@@ -402,6 +370,7 @@ export const createScanHistoryColumns = ({
     size: 120,
     minSize: 80,
     maxSize: 180,
+    meta: { title: "Engine Name" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Engine Name" />
     ),
@@ -421,6 +390,7 @@ export const createScanHistoryColumns = ({
     size: 150,
     minSize: 120,
     maxSize: 200,
+    meta: { title: "Created At" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created At" />
     ),
@@ -440,6 +410,7 @@ export const createScanHistoryColumns = ({
     size: 100,
     minSize: 80,
     maxSize: 130,
+    meta: { title: "Status" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Status" />
     ),
@@ -457,7 +428,10 @@ export const createScanHistoryColumns = ({
   // Progress 列
   {
     accessorKey: "progress",
-    header: "Progress",
+    meta: { title: "Progress" },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Progress" />
+    ),
     size: 150,
     minSize: 120,
     maxSize: 200,

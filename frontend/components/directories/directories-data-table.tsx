@@ -73,18 +73,6 @@ export function DirectoriesDataTable({
     onSelectionChange?.(rows)
   }
 
-  // 列标签映射
-  const columnLabels: Record<string, string> = {
-    url: "URL",
-    status: "Status",
-    contentLength: "Length",
-    words: "Words",
-    lines: "Lines",
-    contentType: "Content Type",
-    duration: "Duration",
-    createdAt: "Created At",
-  }
-
   // 下载选项
   const downloadOptions: DownloadOption[] = []
   if (onDownloadAll) {
@@ -128,8 +116,6 @@ export function DirectoriesDataTable({
       showAddButton={false}
       // 下载
       downloadOptions={downloadOptions.length > 0 ? downloadOptions : undefined}
-      // 列控制
-      columnLabels={columnLabels}
       // 空状态
       emptyMessage="暂无数据"
       // 自定义工具栏按钮

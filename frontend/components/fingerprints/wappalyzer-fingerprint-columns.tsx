@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import type { WappalyzerFingerprint } from "@/types/fingerprint.types"
 
 interface ColumnOptions {
@@ -21,9 +22,9 @@ function ExpandableTextCell({ value, maxLength = 80 }: { value: string | null | 
   const needsExpand = value.length > maxLength
   
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 overflow-hidden w-full">
       <div 
-        className={`text-sm text-muted-foreground break-all cursor-pointer hover:text-foreground transition-colors ${!expanded ? 'line-clamp-2' : ''}`}
+        className={`text-sm text-muted-foreground break-words cursor-pointer hover:text-foreground transition-colors ${!expanded ? 'line-clamp-2' : ''}`}
         onClick={() => needsExpand && setExpanded(!expanded)}
         title={needsExpand ? (expanded ? "点击收起" : "点击展开") : undefined}
       >
@@ -52,9 +53,9 @@ function ExpandableLinkCell({ value, maxLength = 50 }: { value: string | null | 
   const needsExpand = value.length > maxLength
   
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 overflow-hidden w-full">
       <div 
-        className={`text-sm text-muted-foreground break-all ${!expanded ? 'line-clamp-1' : ''}`}
+        className={`text-sm text-muted-foreground break-words ${!expanded ? 'line-clamp-1' : ''}`}
       >
         {value}
       </div>
@@ -105,7 +106,10 @@ export function createWappalyzerFingerprintColumns({
     // 应用名称
     {
       accessorKey: "name",
-      header: "Name",
+      meta: { title: "Name" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Name" />
+      ),
       cell: ({ row }) => (
         <div className="font-medium">{row.getValue("name")}</div>
       ),
@@ -115,7 +119,10 @@ export function createWappalyzerFingerprintColumns({
     // 分类
     {
       accessorKey: "cats",
-      header: "Categories",
+      meta: { title: "Categories" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Categories" />
+      ),
       cell: ({ row }) => {
         const cats = row.getValue("cats") as number[]
         if (!cats || cats.length === 0) return "-"
@@ -140,7 +147,10 @@ export function createWappalyzerFingerprintColumns({
     // 描述
     {
       accessorKey: "description",
-      header: "Description",
+      meta: { title: "Description" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Description" />
+      ),
       cell: ({ row }) => <ExpandableTextCell value={row.getValue("description")} />,
       enableResizing: true,
       size: 250,
@@ -148,7 +158,10 @@ export function createWappalyzerFingerprintColumns({
     // 官网
     {
       accessorKey: "website",
-      header: "Website",
+      meta: { title: "Website" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Website" />
+      ),
       cell: ({ row }) => <ExpandableLinkCell value={row.getValue("website")} />,
       enableResizing: true,
       size: 200,
@@ -156,7 +169,10 @@ export function createWappalyzerFingerprintColumns({
     // 检测方式数量
     {
       id: "detectionMethods",
-      header: "Detection",
+      meta: { title: "Detection" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Detection" />
+      ),
       cell: ({ row }) => {
         const fp = row.original
         const methods: string[] = []
@@ -184,7 +200,10 @@ export function createWappalyzerFingerprintColumns({
     // 创建时间
     {
       accessorKey: "createdAt",
-      header: "Created",
+      meta: { title: "Created" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Created" />
+      ),
       cell: ({ row }) => {
         const date = row.getValue("createdAt") as string
         return (

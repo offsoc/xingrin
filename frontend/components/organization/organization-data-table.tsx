@@ -41,14 +41,6 @@ export function OrganizationDataTable({
     }
   }
 
-  // 列标签映射
-  const columnLabels: Record<string, string> = {
-    name: "Organization",
-    description: "Description",
-    targetCount: "Total Targets",
-    createdAt: "Added",
-  }
-
   // 默认排序
   const defaultSorting = [{ id: "createdAt", desc: true }]
 
@@ -68,8 +60,6 @@ export function OrganizationDataTable({
       bulkDeleteLabel="Delete"
       onAddNew={onAddNew}
       addButtonLabel="Add Organization"
-      // 列控制
-      columnLabels={columnLabels}
       // 排序
       defaultSorting={defaultSorting}
       // 空状态

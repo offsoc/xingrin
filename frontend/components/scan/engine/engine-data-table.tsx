@@ -39,15 +39,6 @@ export function EngineDataTable({
     })
   }, [data, searchValue])
 
-  // 列标签映射
-  const columnLabels: Record<string, string> = {
-    name: "引擎名称",
-    type: "类型",
-    description: "描述",
-    tools: "关联工具",
-    updated_at: "更新时间",
-  }
-
   return (
     <UnifiedDataTable
       data={filteredData}
@@ -57,7 +48,6 @@ export function EngineDataTable({
       onAddNew={onAddNew}
       addButtonLabel={addButtonText}
       showBulkDelete={false}
-      columnLabels={columnLabels}
       emptyMessage="暂无数据"
       toolbarLeft={
         <Input

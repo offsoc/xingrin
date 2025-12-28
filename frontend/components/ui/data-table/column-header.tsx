@@ -1,7 +1,7 @@
 "use client"
 
 import type { Column } from "@tanstack/react-table"
-import { IconArrowUp, IconArrowDown, IconArrowsSort } from "@tabler/icons-react"
+import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
@@ -39,11 +39,11 @@ export function DataTableColumnHeader<TData, TValue>({
     >
       <span>{title}</span>
       {sorted === "desc" ? (
-        <IconArrowDown className="ml-2 h-4 w-4" />
+        <ChevronDown className="ml-2 h-4 w-4" />
       ) : sorted === "asc" ? (
-        <IconArrowUp className="ml-2 h-4 w-4" />
+        <ChevronUp className="ml-2 h-4 w-4" />
       ) : (
-        <IconArrowsSort className="ml-2 h-4 w-4 opacity-50" />
+        <ChevronsUpDown className="ml-2 h-4 w-4" />
       )}
     </Button>
   )

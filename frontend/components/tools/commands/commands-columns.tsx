@@ -12,45 +12,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Eye, Trash2, ChevronsUpDown, ChevronUp, ChevronDown, Copy } from "lucide-react"
+import { MoreHorizontal, Eye, Trash2, Copy } from "lucide-react"
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import { Badge } from "@/components/ui/badge"
 import { formatDate } from "@/lib/utils"
 import { toast } from "sonner"
 
-
-/**
- * 数据表格列头组件
- */
-function DataTableColumnHeader({
-  column,
-  title,
-}: {
-  column: { getCanSort: () => boolean; getIsSorted: () => false | "asc" | "desc"; toggleSorting: (desc?: boolean) => void }
-  title: string
-}) {
-  if (!column.getCanSort()) {
-    return <div className="-ml-3 font-medium">{title}</div>
-  }
-
-  const isSorted = column.getIsSorted()
-
-  return (
-    <Button
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-muted"
-    >
-      {title}
-      {isSorted === "asc" ? (
-        <ChevronUp />
-      ) : isSorted === "desc" ? (
-        <ChevronDown />
-      ) : (
-        <ChevronsUpDown />
-      )}
-    </Button>
-  )
-}
 
 /**
  * 命令表格列定义
@@ -89,6 +56,7 @@ export const commandColumns: ColumnDef<Command>[] = [
     accessorKey: "displayName",
     size: 200,
     minSize: 150,
+    meta: { title: "Name" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
     ),
@@ -115,6 +83,7 @@ export const commandColumns: ColumnDef<Command>[] = [
     accessorKey: "tool",
     size: 120,
     minSize: 80,
+    meta: { title: "Tool" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Tool" />
     ),
@@ -137,6 +106,7 @@ export const commandColumns: ColumnDef<Command>[] = [
     accessorKey: "commandTemplate",
     size: 350,
     minSize: 250,
+    meta: { title: "Command Template" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Command Template" />
     ),
@@ -159,6 +129,7 @@ export const commandColumns: ColumnDef<Command>[] = [
     accessorKey: "description",
     size: 250,
     minSize: 150,
+    meta: { title: "Description" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Description" />
     ),
@@ -181,6 +152,7 @@ export const commandColumns: ColumnDef<Command>[] = [
     accessorKey: "updatedAt",
     size: 150,
     minSize: 120,
+    meta: { title: "Updated At" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Updated At" />
     ),

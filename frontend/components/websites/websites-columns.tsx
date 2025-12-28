@@ -3,46 +3,10 @@
 import React from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-
-import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react"
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import type { WebSite } from "@/types/website.types"
 import { TruncatedCell, TruncatedUrlCell } from "@/components/ui/truncated-cell"
-
-/**
- * 数据表格列头组件 - 支持排序
- */
-function DataTableColumnHeader({
-  column,
-  title,
-}: {
-  column: { getCanSort: () => boolean; getIsSorted: () => false | "asc" | "desc"; toggleSorting: (desc?: boolean) => void }
-  title: string
-}) {
-  if (!column.getCanSort()) {
-    return <div className="-ml-3 font-medium">{title}</div>
-  }
-
-  const isSorted = column.getIsSorted()
-
-  return (
-    <Button
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-muted"
-    >
-      {title}
-      {isSorted === "asc" ? (
-        <ChevronUp className="h-4 w-4" />
-      ) : isSorted === "desc" ? (
-        <ChevronDown className="h-4 w-4" />
-      ) : (
-        <ChevronsUpDown className="h-4 w-4" />
-      )}
-    </Button>
-  )
-}
 
 /**
  * Body Preview 单元格组件 - 最多显示3行，超出折叠，点击展开查看完整内容
@@ -111,6 +75,7 @@ export function createWebSiteColumns({
     },
     {
       accessorKey: "url",
+      meta: { title: "URL" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="URL" />
       ),
@@ -124,6 +89,7 @@ export function createWebSiteColumns({
     },
     {
       accessorKey: "host",
+      meta: { title: "Host" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Host" />
       ),
@@ -136,6 +102,7 @@ export function createWebSiteColumns({
     },
     {
       accessorKey: "title",
+      meta: { title: "Title" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Title" />
       ),
@@ -148,6 +115,7 @@ export function createWebSiteColumns({
     },
     {
       accessorKey: "statusCode",
+      meta: { title: "Status" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Status" />
       ),
@@ -172,6 +140,7 @@ export function createWebSiteColumns({
     },
     {
       accessorKey: "tech",
+      meta: { title: "Technologies" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Technologies" />
       ),
@@ -194,6 +163,7 @@ export function createWebSiteColumns({
     },
     {
       accessorKey: "contentLength",
+      meta: { title: "Content Length" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Content Length" />
       ),
@@ -208,6 +178,7 @@ export function createWebSiteColumns({
     },
     {
       accessorKey: "location",
+      meta: { title: "Location" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Location" />
       ),
@@ -220,6 +191,7 @@ export function createWebSiteColumns({
     },
     {
       accessorKey: "webserver",
+      meta: { title: "Web Server" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Web Server" />
       ),
@@ -232,6 +204,7 @@ export function createWebSiteColumns({
     },
     {
       accessorKey: "contentType",
+      meta: { title: "Content Type" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Content Type" />
       ),
@@ -244,6 +217,7 @@ export function createWebSiteColumns({
     },
     {
       accessorKey: "bodyPreview",
+      meta: { title: "Body Preview" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Body Preview" />
       ),
@@ -255,6 +229,7 @@ export function createWebSiteColumns({
     },
     {
       accessorKey: "vhost",
+      meta: { title: "VHost" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="VHost" />
       ),
@@ -273,6 +248,7 @@ export function createWebSiteColumns({
     },
     {
       accessorKey: "createdAt",
+      meta: { title: "Created At" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Created At" />
       ),

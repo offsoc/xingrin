@@ -3,11 +3,9 @@
 import React from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import { TruncatedUrlCell } from "@/components/ui/truncated-cell"
-import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react"
 import type { Directory } from "@/types/directory.types"
 
 /**
@@ -86,24 +84,10 @@ export function createDirectoryColumns({
       size: 400,
       minSize: 200,
       maxSize: 800,
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-8 px-2 lg:px-3"
-          >
-            URL
-            {column.getIsSorted() === "asc" ? (
-              <ChevronUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ChevronDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ChevronsUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        )
-      },
+      meta: { title: "URL" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="URL" />
+      ),
       cell: ({ row }) => {
         const url = row.getValue("url") as string
         return <TruncatedUrlCell value={url} />
@@ -115,24 +99,10 @@ export function createDirectoryColumns({
       size: 80,
       minSize: 60,
       maxSize: 120,
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-8 px-2 lg:px-3"
-          >
-            Status
-            {column.getIsSorted() === "asc" ? (
-              <ChevronUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ChevronDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ChevronsUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        )
-      },
+      meta: { title: "Status" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Status" />
+      ),
       cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
     },
     // Content Length 列
@@ -141,24 +111,10 @@ export function createDirectoryColumns({
       size: 100,
       minSize: 80,
       maxSize: 150,
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-8 px-2 lg:px-3"
-          >
-            Length
-            {column.getIsSorted() === "asc" ? (
-              <ChevronUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ChevronDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ChevronsUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        )
-      },
+      meta: { title: "Length" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Length" />
+      ),
       cell: ({ row }) => {
         const length = row.getValue("contentLength") as number | null
         return <span>{length !== null ? length.toLocaleString() : "-"}</span>
@@ -170,24 +126,10 @@ export function createDirectoryColumns({
       size: 80,
       minSize: 60,
       maxSize: 120,
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-8 px-2 lg:px-3"
-          >
-            Words
-            {column.getIsSorted() === "asc" ? (
-              <ChevronUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ChevronDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ChevronsUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        )
-      },
+      meta: { title: "Words" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Words" />
+      ),
       cell: ({ row }) => {
         const words = row.getValue("words") as number | null
         return <span>{words !== null ? words.toLocaleString() : "-"}</span>
@@ -199,24 +141,10 @@ export function createDirectoryColumns({
       size: 80,
       minSize: 60,
       maxSize: 120,
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-8 px-2 lg:px-3"
-          >
-            Lines
-            {column.getIsSorted() === "asc" ? (
-              <ChevronUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ChevronDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ChevronsUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        )
-      },
+      meta: { title: "Lines" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Lines" />
+      ),
       cell: ({ row }) => {
         const lines = row.getValue("lines") as number | null
         return <span>{lines !== null ? lines.toLocaleString() : "-"}</span>
@@ -228,7 +156,10 @@ export function createDirectoryColumns({
       size: 120,
       minSize: 80,
       maxSize: 200,
-      header: "Content Type",
+      meta: { title: "Content Type" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Content Type" />
+      ),
       cell: ({ row }) => {
         const contentType = row.getValue("contentType") as string
         return contentType ? (
@@ -244,24 +175,10 @@ export function createDirectoryColumns({
       size: 100,
       minSize: 80,
       maxSize: 150,
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-8 px-2 lg:px-3"
-          >
-            Duration
-            {column.getIsSorted() === "asc" ? (
-              <ChevronUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ChevronDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ChevronsUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        )
-      },
+      meta: { title: "Duration" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Duration" />
+      ),
       cell: ({ row }) => {
         const duration = row.getValue("duration") as number | null
         return <span className="text-muted-foreground">{formatDuration(duration)}</span>
@@ -273,24 +190,10 @@ export function createDirectoryColumns({
       size: 150,
       minSize: 120,
       maxSize: 200,
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="h-8 px-2 lg:px-3"
-          >
-            Created At
-            {column.getIsSorted() === "asc" ? (
-              <ChevronUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ChevronDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ChevronsUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        )
-      },
+      meta: { title: "Created At" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Created At" />
+      ),
       cell: ({ row }) => {
         const date = row.getValue("createdAt") as string
         return <span className="text-muted-foreground">{formatDate(date)}</span>

@@ -21,13 +21,11 @@ import {
 import {
   MoreHorizontal,
   Trash2,
-  ChevronsUpDown,
-  ChevronUp,
-  ChevronDown,
   Edit,
   Building2,
   Target,
 } from "lucide-react"
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 
 
 import type { ScheduledScan } from "@/types/scheduled-scan.types"
@@ -82,44 +80,6 @@ function parseCronExpression(cron: string): string {
   }
   
   return cron
-}
-
-/**
- * 数据表格列头组件
- */
-function DataTableColumnHeader({
-  column,
-  title,
-}: {
-  column: {
-    getCanSort: () => boolean
-    getIsSorted: () => false | "asc" | "desc"
-    toggleSorting: (desc?: boolean) => void
-  }
-  title: string
-}) {
-  if (!column.getCanSort()) {
-    return <div className="-ml-3 font-medium">{title}</div>
-  }
-
-  const isSorted = column.getIsSorted()
-
-  return (
-    <Button
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-muted"
-    >
-      {title}
-      {isSorted === "asc" ? (
-        <ChevronUp />
-      ) : isSorted === "desc" ? (
-        <ChevronDown />
-      ) : (
-        <ChevronsUpDown />
-      )}
-    </Button>
-  )
 }
 
 // 列创建函数的参数类型
@@ -183,6 +143,7 @@ export const createScheduledScanColumns = ({
     accessorKey: "name",
     size: 350,
     minSize: 250,
+    meta: { title: "Task Name" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Task Name" />
     ),
@@ -205,6 +166,7 @@ export const createScheduledScanColumns = ({
     accessorKey: "engineName",
     size: 120,
     minSize: 80,
+    meta: { title: "Scan Engine" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Scan Engine" />
     ),
@@ -221,7 +183,10 @@ export const createScheduledScanColumns = ({
   // Cron 表达式列
   {
     accessorKey: "cronExpression",
-    header: "Cron Expression",
+    meta: { title: "Cron Expression" },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Cron Expression" />
+    ),
     size: 150,
     minSize: 100,
     cell: ({ row }) => {
@@ -243,7 +208,10 @@ export const createScheduledScanColumns = ({
   // 扫描范围列（用图标区分组织/目标）
   {
     accessorKey: "scanMode",
-    header: "Scope",
+    meta: { title: "Scope" },
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Scope" />
+    ),
     size: 200,
     minSize: 150,
     cell: ({ row }) => {
@@ -281,6 +249,7 @@ export const createScheduledScanColumns = ({
     accessorKey: "isEnabled",
     size: 100,
     minSize: 80,
+    meta: { title: "Status" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Status" />
     ),
@@ -308,6 +277,7 @@ export const createScheduledScanColumns = ({
     accessorKey: "nextRunTime",
     size: 150,
     minSize: 120,
+    meta: { title: "Next Run" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Next Run" />
     ),
@@ -326,6 +296,7 @@ export const createScheduledScanColumns = ({
     accessorKey: "runCount",
     size: 80,
     minSize: 60,
+    meta: { title: "Run Count" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Run Count" />
     ),
@@ -342,6 +313,7 @@ export const createScheduledScanColumns = ({
     accessorKey: "lastRunTime",
     size: 150,
     minSize: 120,
+    meta: { title: "Last Run" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Last Run" />
     ),

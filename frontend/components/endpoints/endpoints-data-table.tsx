@@ -91,22 +91,6 @@ export function EndpointsDataTable<TData extends { id: number | string }, TValue
     pageSize: pagination.pageSize,
   } : undefined
 
-  // 列标签映射
-  const columnLabels: Record<string, string> = {
-    id: "ID",
-    url: "URL",
-    endpoint: "Endpoint",
-    method: "Method",
-    statusCode: "Status",
-    title: "Title",
-    contentLength: "Size",
-    contentType: "Content Type",
-    responseTime: "Response time",
-    tags: "Tags",
-    createdAt: "Created At",
-    updatedAt: "Updated At",
-  }
-
   // 下载选项
   const downloadOptions: DownloadOption[] = []
   if (onDownloadAll) {
@@ -158,8 +142,6 @@ export function EndpointsDataTable<TData extends { id: number | string }, TValue
       addButtonLabel={addButtonText}
       // 下载
       downloadOptions={downloadOptions.length > 0 ? downloadOptions : undefined}
-      // 列控制
-      columnLabels={columnLabels}
       // 空状态
       emptyMessage="No results"
       // 自定义工具栏按钮

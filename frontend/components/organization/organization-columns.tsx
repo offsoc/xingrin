@@ -13,7 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 // 导入图标组件
-import { MoreHorizontal, Play, Calendar, Edit, Trash2, ChevronsUpDown, ChevronUp, ChevronDown, Eye } from "lucide-react"
+import { MoreHorizontal, Play, Calendar, Edit, Trash2, Eye } from "lucide-react"
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import {
   Tooltip,
   TooltipContent,
@@ -83,41 +84,6 @@ function OrganizationRowActions({
 }
 
 /**
- * 数据表格列头组件
- * 支持排序功能的列头，参考 shadcn/ui 示例设计
- */
-function DataTableColumnHeader({ 
-  column, 
-  title 
-}: { 
-  column: { getCanSort: () => boolean; getIsSorted: () => false | "asc" | "desc"; toggleSorting: (desc?: boolean) => void }
-  title: string 
-}) {
-  if (!column.getCanSort()) {
-    return <div className="font-medium">{title}</div>
-  }
-
-  const isSorted = column.getIsSorted()
-
-  return (
-    <Button
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-muted"
-    >
-      {title}
-      {isSorted === "asc" ? (
-        <ChevronUp />
-      ) : isSorted === "desc" ? (
-        <ChevronDown />
-      ) : (
-        <ChevronsUpDown />
-      )}
-    </Button>
-  )
-}
-
-/**
  * 创建组织表格列定义
  * 
  * @param formatDate - 日期格式化函数
@@ -167,6 +133,7 @@ export const createOrganizationColumns = ({
     accessorKey: "name",
     size: 200,
     minSize: 150,
+    meta: { title: "Organization" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Organization" />
     ),
@@ -190,6 +157,7 @@ export const createOrganizationColumns = ({
     accessorKey: "description",
     size: 300,
     minSize: 200,
+    meta: { title: "Description" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Description" />
     ),
@@ -215,6 +183,7 @@ export const createOrganizationColumns = ({
     accessorKey: "targetCount",
     size: 120,
     minSize: 80,
+    meta: { title: "Total Targets" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Total Targets" />
     ),
@@ -235,6 +204,7 @@ export const createOrganizationColumns = ({
     accessorKey: "createdAt",
     size: 150,
     minSize: 120,
+    meta: { title: "Added" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Added" />
     ),

@@ -39,16 +39,6 @@ export function CommandsDataTable<TData extends { id: number }>({
     }
   }
 
-  // 列标签映射
-  const columnLabels: Record<string, string> = {
-    id: "ID",
-    displayName: "名称",
-    tool: "所属工具",
-    commandTemplate: "命令模板",
-    description: "描述",
-    updatedAt: "更新时间",
-  }
-
   return (
     <UnifiedDataTable
       data={filteredData}
@@ -59,7 +49,6 @@ export function CommandsDataTable<TData extends { id: number }>({
       onAddNew={onAdd}
       addButtonLabel="Add"
       bulkDeleteLabel="Delete"
-      columnLabels={columnLabels}
       emptyMessage="暂无数据"
       toolbarLeft={
         <Input

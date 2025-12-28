@@ -69,16 +69,6 @@ export function ScanHistoryDataTable({
     }
   }
 
-  // 列标签映射
-  const columnLabels: Record<string, string> = {
-    domainName: "Domain Name",
-    summary: "Summary",
-    scanEngine: "Scan Engine Used",
-    lastScan: "Last Scan",
-    status: "Status",
-    progress: "Progress",
-  }
-
   return (
     <UnifiedDataTable
       data={data}
@@ -97,8 +87,6 @@ export function ScanHistoryDataTable({
       bulkDeleteLabel="Delete"
       onAddNew={onAddNew}
       addButtonLabel={addButtonText}
-      // 列控制
-      columnLabels={columnLabels}
       // 工具栏
       hideToolbar={hideToolbar}
       // 空状态

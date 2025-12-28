@@ -56,17 +56,6 @@ export function IPAddressesDataTable({
     onFilterChange?.(rawQuery)
   }
 
-  // 列标签映射
-  const columnLabels: Record<string, string> = {
-    select: "Select",
-    ip: "IP Address",
-    subdomain: "Subdomain",
-    createdAt: "Created At",
-    ports: "Ports",
-    reversePointer: "Reverse Pointer",
-    actions: "Actions",
-  }
-
   // 下载选项
   const downloadOptions: DownloadOption[] = []
   if (onDownloadAll) {
@@ -109,8 +98,6 @@ export function IPAddressesDataTable({
       showAddButton={false}
       // 下载
       downloadOptions={downloadOptions.length > 0 ? downloadOptions : undefined}
-      // 列控制
-      columnLabels={columnLabels}
       // 空状态
       emptyMessage="暂无数据"
     />

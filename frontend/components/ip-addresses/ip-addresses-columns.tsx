@@ -1,9 +1,7 @@
 "use client"
 
 import React from "react"
-import { Column, ColumnDef } from "@tanstack/react-table"
-import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -11,43 +9,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import type { IPAddress } from "@/types/ip-address.types"
-
-import { TruncatedCell, TruncatedUrlCell } from "@/components/ui/truncated-cell"
-
-interface DataTableColumnHeaderProps<TData, TValue> {
-  column: Column<TData, TValue>
-  title: string
-}
-
-function DataTableColumnHeader<TData, TValue>({
-  column,
-  title,
-}: DataTableColumnHeaderProps<TData, TValue>) {
-  if (!column?.getCanSort()) {
-    return <div className="-ml-3 font-medium">{title}</div>
-  }
-
-  const isSorted = column.getIsSorted()
-
-  return (
-    <Button
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-muted"
-    >
-      {title}
-      {isSorted === "asc" ? (
-        <ChevronUp />
-      ) : isSorted === "desc" ? (
-        <ChevronDown />
-      ) : (
-        <ChevronsUpDown />
-      )}
-    </Button>
-  )
-}
+import { TruncatedCell } from "@/components/ui/truncated-cell"
 
 export function createIPAddressColumns(params: {
   formatDate: (value: string) => string
@@ -88,6 +52,7 @@ export function createIPAddressColumns(params: {
       size: 150,
       minSize: 100,
       maxSize: 200,
+      meta: { title: "IP Address" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="IP Address" />
       ),
@@ -101,6 +66,7 @@ export function createIPAddressColumns(params: {
       size: 200,
       minSize: 150,
       maxSize: 350,
+      meta: { title: "Hosts" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Hosts" />
       ),
@@ -150,6 +116,7 @@ export function createIPAddressColumns(params: {
       size: 150,
       minSize: 120,
       maxSize: 200,
+      meta: { title: "Created At" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Created At" />
       ),
@@ -163,6 +130,7 @@ export function createIPAddressColumns(params: {
       accessorKey: "ports",
       size: 250,
       minSize: 150,
+      meta: { title: "Open Ports" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Open Ports" />
       ),

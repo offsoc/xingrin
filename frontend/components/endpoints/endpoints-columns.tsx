@@ -5,43 +5,12 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react"
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import type { Endpoint } from "@/types/endpoint.types"
 import { TruncatedCell, TruncatedUrlCell } from "@/components/ui/truncated-cell"
 
 interface CreateColumnsProps {
   formatDate: (dateString: string) => string
-}
-
-function DataTableColumnHeader({
-  column,
-  title,
-}: {
-  column: { getCanSort: () => boolean; getIsSorted: () => false | "asc" | "desc"; toggleSorting: (desc?: boolean) => void }
-  title: string
-}) {
-  if (!column.getCanSort()) {
-    return <div className="-ml-3 font-medium">{title}</div>
-  }
-
-  const isSorted = column.getIsSorted()
-
-  return (
-    <Button
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-muted"
-    >
-      {title}
-      {isSorted === "asc" ? (
-        <ChevronUp />
-      ) : isSorted === "desc" ? (
-        <ChevronDown />
-      ) : (
-        <ChevronsUpDown />
-      )}
-    </Button>
-  )
 }
 
 function HttpStatusBadge({ statusCode }: { statusCode: number | null | undefined }) {
@@ -139,6 +108,7 @@ export function createEndpointColumns({
     },
     {
       accessorKey: "url",
+      meta: { title: "URL" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="URL" />
       ),
@@ -152,6 +122,7 @@ export function createEndpointColumns({
     },
     {
       accessorKey: "title",
+      meta: { title: "Title" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Title" />
       ),
@@ -164,6 +135,7 @@ export function createEndpointColumns({
     },
     {
       accessorKey: "statusCode",
+      meta: { title: "Status" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Status" />
       ),
@@ -177,6 +149,7 @@ export function createEndpointColumns({
     },
     {
       accessorKey: "contentLength",
+      meta: { title: "Content Length" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Content Length" />
       ),
@@ -193,6 +166,7 @@ export function createEndpointColumns({
     },
     {
       accessorKey: "location",
+      meta: { title: "Location" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Location" />
       ),
@@ -205,6 +179,7 @@ export function createEndpointColumns({
     },
     {
       accessorKey: "webserver",
+      meta: { title: "Web Server" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Web Server" />
       ),
@@ -217,6 +192,7 @@ export function createEndpointColumns({
     },
     {
       accessorKey: "contentType",
+      meta: { title: "Content Type" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Content Type" />
       ),
@@ -229,6 +205,7 @@ export function createEndpointColumns({
     },
     {
       accessorKey: "tech",
+      meta: { title: "Technologies" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Technologies" />
       ),
@@ -251,6 +228,7 @@ export function createEndpointColumns({
     },
     {
       accessorKey: "bodyPreview",
+      meta: { title: "Body Preview" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Body Preview" />
       ),
@@ -262,6 +240,7 @@ export function createEndpointColumns({
     },
     {
       accessorKey: "vhost",
+      meta: { title: "VHost" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="VHost" />
       ),
@@ -276,6 +255,7 @@ export function createEndpointColumns({
     },
     {
       accessorKey: "tags",
+      meta: { title: "Tags" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Tags" />
       ),
@@ -305,6 +285,7 @@ export function createEndpointColumns({
     },
     {
       accessorKey: "responseTime",
+      meta: { title: "Response Time" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Response Time" />
       ),
@@ -322,6 +303,7 @@ export function createEndpointColumns({
     },
     {
       accessorKey: "createdAt",
+      meta: { title: "Created At" },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Created At" />
       ),

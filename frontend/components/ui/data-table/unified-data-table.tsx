@@ -35,7 +35,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -57,7 +56,6 @@ import { cn } from "@/lib/utils"
 import { DataTableToolbar } from "./toolbar"
 import { DataTablePagination } from "./pagination"
 import { ColumnResizer } from "./column-resizer"
-import type { FilterField } from "@/components/common/smart-filter-input"
 import type {
   UnifiedDataTableProps,
   PaginationState,
@@ -124,7 +122,6 @@ export function UnifiedDataTable<TData>({
   // 列控制
   columnVisibility: externalColumnVisibility,
   onColumnVisibilityChange: externalOnColumnVisibilityChange,
-  columnLabels = {},
   
   // 排序
   sorting: externalSorting,
@@ -238,9 +235,15 @@ export function UnifiedDataTable<TData>({
       pagination,
       columnSizing,
     },
+    // 列宽调整配置 - 按照 TanStack Table 官方推荐
     enableColumnResizing: true,
     columnResizeMode: 'onChange',
     onColumnSizingChange: setColumnSizing,
+    // 默认列配置
+    defaultColumn: {
+      minSize: 50,
+      maxSize: 1000,
+    },
     pageCount: paginationInfo?.totalPages ?? -1,
     manualPagination: !!paginationInfo,
     getRowId,
@@ -257,6 +260,22 @@ export function UnifiedDataTable<TData>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
+
+  /**
+   * 按照 TanStack Table 官方推荐的高性能方案：
+   * 在表格根元素一次性计算所有列宽，存为 CSS 变量
+   * 避免在每个单元格上调用 column.getSize()
+   */
+  const columnSizeVars = React.useMemo(() => {
+    const headers = table.getFlatHeaders()
+    const colSizes: Record<string, number> = {}
+    for (let i = 0; i < headers.length; i++) {
+      const header = headers[i]!
+      colSizes[`--header-${header.id}-size`] = header.getSize()
+      colSizes[`--col-${header.column.id}-size`] = header.column.getSize()
+    }
+    return colSizes
+  }, [table.getState().columnSizingInfo, table.getState().columnSizing])
 
   // 监听选中行变化
   const prevRowSelectionRef = React.useRef<Record<string, boolean>>({})
@@ -292,9 +311,10 @@ export function UnifiedDataTable<TData>({
     onBulkDelete?.()
   }
 
-  // 获取列标签
-  const getColumnLabel = (columnId: string) => {
-    return columnLabels[columnId] || columnId
+  // 获取列标签 - 仅使用 meta.title，强制开发者显式定义
+  const getColumnLabel = (column: { id: string; columnDef: { meta?: { title?: string } } }) => {
+    // 只使用 meta.title，如果没有定义则返回 column.id（便于发现遗漏）
+    return column.columnDef.meta?.title ?? column.id
   }
 
   // 渲染下载按钮
@@ -387,7 +407,7 @@ export function UnifiedDataTable<TData>({
                     checked={column.getIsVisible()}
                     onCheckedChange={(value) => column.toggleVisibility(!!value)}
                   >
-                    {getColumnLabel(column.id)}
+                    {getColumnLabel(column)}
                   </DropdownMenuCheckboxItem>
                 ))}
             </DropdownMenuContent>
@@ -424,9 +444,15 @@ export function UnifiedDataTable<TData>({
         </DataTableToolbar>
       )}
 
-      {/* 表格 */}
+      {/* 表格 - 按照 TanStack Table 官方推荐使用 CSS 变量 */}
       <div className={cn("rounded-md border overflow-x-auto", tableClassName)}>
-        <Table style={{ minWidth: table.getCenterTotalSize() }}>
+        <table 
+          className="w-full caption-bottom text-sm table-fixed"
+          style={{ 
+            ...columnSizeVars,
+            minWidth: table.getTotalSize(),
+          }}
+        >
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -434,7 +460,9 @@ export function UnifiedDataTable<TData>({
                   <TableHead
                     key={header.id}
                     colSpan={header.colSpan}
-                    style={{ width: header.getSize() }}
+                    style={{ 
+                      width: `calc(var(--header-${header.id}-size) * 1px)`,
+                    }}
                     className="relative group"
                   >
                     {header.isPlaceholder
@@ -455,7 +483,12 @@ export function UnifiedDataTable<TData>({
                   className="group"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
+                    <TableCell 
+                      key={cell.id} 
+                      style={{ 
+                        width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                      }}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -469,7 +502,7 @@ export function UnifiedDataTable<TData>({
               </TableRow>
             )}
           </TableBody>
-        </Table>
+        </table>
       </div>
 
       {/* 分页 */}

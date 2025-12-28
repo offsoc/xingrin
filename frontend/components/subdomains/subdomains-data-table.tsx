@@ -76,23 +76,6 @@ export function SubdomainsDataTable({
     }
   }
 
-  // 列标签映射
-  const columnLabels: Record<string, string> = {
-    id: "ID",
-    name: "Subdomain",
-    status: "Status",
-    title: "Title",
-    ip: "IP",
-    ports: "Ports",
-    contentLength: "Content Length",
-    screenshot: "Screenshot",
-    responseTime: "Response Time",
-    assetId: "Target ID",
-    asset: "Target",
-    createdAt: "Created At",
-    updatedAt: "Updated At",
-  }
-
   // 下载选项
   const downloadOptions: DownloadOption[] = []
   if (onDownloadAll) {
@@ -156,8 +139,6 @@ export function SubdomainsDataTable({
       addButtonLabel={addButtonText}
       // 下载
       downloadOptions={downloadOptions.length > 0 ? downloadOptions : undefined}
-      // 列控制
-      columnLabels={columnLabels}
       // 空状态
       emptyMessage="No results"
       // 自定义工具栏按钮

@@ -66,23 +66,6 @@ export function WebSitesDataTable({
     }
   }
 
-  // 列标签映射
-  const columnLabels: Record<string, string> = {
-    select: "Select",
-    url: "URL",
-    title: "Title",
-    statusCode: "Status",
-    contentLength: "Content Length",
-    location: "Location",
-    webserver: "Web Server",
-    contentType: "Content Type",
-    tech: "Technologies",
-    bodyPreview: "Body Preview",
-    vhost: "VHost",
-    createdAt: "Created At",
-    actions: "Actions",
-  }
-
   // 下载选项
   const downloadOptions: DownloadOption[] = []
   if (onDownloadAll) {
@@ -134,8 +117,6 @@ export function WebSitesDataTable({
       showAddButton={false}
       // 下载
       downloadOptions={downloadOptions.length > 0 ? downloadOptions : undefined}
-      // 列控制
-      columnLabels={columnLabels}
       // 空状态
       emptyMessage="暂无数据"
       // 自定义工具栏按钮

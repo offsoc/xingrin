@@ -1,47 +1,10 @@
 "use client"
 
 import * as React from "react"
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  ColumnSizingState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
-import { IconLayoutColumns, IconBug, IconRadar, IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight, IconChevronDown } from "@tabler/icons-react"
-import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { IconBug, IconRadar } from "@tabler/icons-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
+import { UnifiedDataTable } from "@/components/ui/data-table"
 import { useAllVulnerabilities } from "@/hooks/use-vulnerabilities"
 import { useScans } from "@/hooks/use-scans"
 import { VulnerabilityDetailDialog } from "@/components/vulnerabilities/vulnerability-detail-dialog"
@@ -65,25 +28,12 @@ import {
 } from "@/components/ui/alert-dialog"
 import type { Vulnerability } from "@/types/vulnerability.types"
 import type { ScanRecord } from "@/types/scan.types"
-
-function formatTime(dateStr: string) {
-  const date = new Date(dateStr)
-  return date.toLocaleString("zh-CN", {
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
+import type { PaginationInfo } from "@/types/common.types"
 
 export function DashboardDataTable() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = React.useState("scans")
-  const [vulnColumnVisibility, setVulnColumnVisibility] = React.useState<VisibilityState>({})
-  const [scanColumnVisibility, setScanColumnVisibility] = React.useState<VisibilityState>({})
-  const [vulnColumnSizing, setVulnColumnSizing] = React.useState<ColumnSizingState>({})
-  const [scanColumnSizing, setScanColumnSizing] = React.useState<ColumnSizingState>({})
   
   // 漏洞详情弹窗
   const [selectedVuln, setSelectedVuln] = React.useState<Vulnerability | null>(null)
@@ -155,7 +105,7 @@ export function DashboardDataTable() {
     setVulnDialogOpen(true)
   }, [])
 
-  // 漏洞列定义 - 复用 vulnerabilities 页面的列
+  // 漏洞列定义
   const vulnColumns = React.useMemo(
     () => createVulnerabilityColumns({
       formatDate,
@@ -218,7 +168,7 @@ export function DashboardDataTable() {
     }
   }
 
-  // 扫描列定义 - 复用 scan-history 页面的列
+  // 扫描列定义
   const scanColumns = React.useMemo(
     () => createScanHistoryColumns({
       formatDate,
@@ -230,47 +180,21 @@ export function DashboardDataTable() {
     [router, handleViewProgress, handleDelete, handleStop]
   )
 
-  // 漏洞表格
-  const vulnTable = useReactTable({
-    data: vulnerabilities,
-    columns: vulnColumns,
-    getCoreRowModel: getCoreRowModel(),
-    onColumnVisibilityChange: setVulnColumnVisibility,
-    onColumnSizingChange: setVulnColumnSizing,
-    enableColumnResizing: true,
-    columnResizeMode: 'onChange',
-    state: {
-      columnVisibility: vulnColumnVisibility,
-      columnSizing: vulnColumnSizing,
-    },
-    manualPagination: true,
-    pageCount: vulnQuery.data?.pagination?.totalPages ?? -1,
-  })
+  // 漏洞分页信息
+  const vulnPaginationInfo: PaginationInfo = {
+    total: vulnQuery.data?.pagination?.total ?? 0,
+    page: vulnPagination.pageIndex + 1,
+    pageSize: vulnPagination.pageSize,
+    totalPages: vulnQuery.data?.pagination?.totalPages ?? 1,
+  }
 
-  // 扫描表格
-  const scanTable = useReactTable({
-    data: scans,
-    columns: scanColumns,
-    getCoreRowModel: getCoreRowModel(),
-    onColumnVisibilityChange: setScanColumnVisibility,
-    onColumnSizingChange: setScanColumnSizing,
-    enableColumnResizing: true,
-    columnResizeMode: 'onChange',
-    state: {
-      columnVisibility: scanColumnVisibility,
-      columnSizing: scanColumnSizing,
-    },
-    manualPagination: true,
-    pageCount: scanQuery.data?.totalPages ?? -1,
-  })
-
-  const currentTable = activeTab === "vulnerabilities" ? vulnTable : scanTable
-  const isLoading = activeTab === "vulnerabilities" ? vulnQuery.isLoading : scanQuery.isLoading
-  const pagination = activeTab === "vulnerabilities" ? vulnPagination : scanPagination
-  const setPagination = activeTab === "vulnerabilities" ? setVulnPagination : setScanPagination
-  const totalPages = activeTab === "vulnerabilities" 
-    ? (vulnQuery.data?.pagination?.totalPages ?? 1) 
-    : (scanQuery.data?.totalPages ?? 1)
+  // 扫描分页信息
+  const scanPaginationInfo: PaginationInfo = {
+    total: scanQuery.data?.total ?? 0,
+    page: scanPagination.pageIndex + 1,
+    pageSize: scanPagination.pageSize,
+    totalPages: scanQuery.data?.totalPages ?? 1,
+  }
 
   return (
     <>
@@ -330,248 +254,73 @@ export function DashboardDataTable() {
       </AlertDialog>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        {/* Tab + Columns 在同一行 */}
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <TabsList>
-            <TabsTrigger value="scans" className="gap-1.5">
-              <IconRadar className="h-4 w-4" />
-              扫描历史
-            </TabsTrigger>
-            <TabsTrigger value="vulnerabilities" className="gap-1.5">
-              <IconBug className="h-4 w-4" />
-              漏洞
-            </TabsTrigger>
-          </TabsList>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <IconLayoutColumns />
-                Columns
-                <IconChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {currentTable
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* 表格内容 */}
+        {/* 漏洞表格 */}
         <TabsContent value="vulnerabilities" className="mt-0">
-          {isLoading ? (
+          {vulnQuery.isLoading ? (
             <div className="space-y-2">
               {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : (
-            <div className="rounded-md border overflow-x-auto">
-              <Table style={{ minWidth: vulnTable.getCenterTotalSize() }}>
-                <TableHeader>
-                  {vulnTable.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead 
-                          key={header.id}
-                          style={{ width: header.getSize() }}
-                          className="relative group"
-                        >
-                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                          {header.column.getCanResize() && (
-                            <div
-                              onMouseDown={header.getResizeHandler()}
-                              onTouchStart={header.getResizeHandler()}
-                              onDoubleClick={() => header.column.resetSize()}
-                              className="absolute -right-2.5 top-0 h-full w-8 cursor-col-resize select-none touch-none bg-transparent flex justify-center"
-                            >
-                              <div className="w-1.5 h-full bg-transparent group-hover:bg-border" />
-                            </div>
-                          )}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {vulnTable.getRowModel().rows?.length ? (
-                    vulnTable.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        className="hover:bg-muted/50"
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={vulnColumns.length} className="h-24 text-center">
-                        暂无漏洞数据
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+            <UnifiedDataTable
+              data={vulnerabilities}
+              columns={vulnColumns}
+              getRowId={(row) => String(row.id)}
+              enableRowSelection={false}
+              pagination={vulnPagination}
+              onPaginationChange={setVulnPagination}
+              paginationInfo={vulnPaginationInfo}
+              emptyMessage="暂无漏洞数据"
+              toolbarLeft={
+                <TabsList>
+                  <TabsTrigger value="scans" className="gap-1.5">
+                    <IconRadar className="h-4 w-4" />
+                    扫描历史
+                  </TabsTrigger>
+                  <TabsTrigger value="vulnerabilities" className="gap-1.5">
+                    <IconBug className="h-4 w-4" />
+                    漏洞
+                  </TabsTrigger>
+                </TabsList>
+              }
+              showAddButton={false}
+              showBulkDelete={false}
+            />
           )}
         </TabsContent>
 
+        {/* 扫描历史表格 */}
         <TabsContent value="scans" className="mt-0">
           {scanQuery.isLoading ? (
             <div className="space-y-2">
               {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
             </div>
           ) : (
-            <div className="rounded-md border overflow-x-auto">
-              <Table style={{ minWidth: scanTable.getCenterTotalSize() }}>
-                <TableHeader>
-                  {scanTable.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead 
-                          key={header.id}
-                          style={{ width: header.getSize() }}
-                          className="relative group"
-                        >
-                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                          {header.column.getCanResize() && (
-                            <div
-                              onMouseDown={header.getResizeHandler()}
-                              onTouchStart={header.getResizeHandler()}
-                              onDoubleClick={() => header.column.resetSize()}
-                              className="absolute -right-2.5 top-0 h-full w-8 cursor-col-resize select-none touch-none bg-transparent flex justify-center"
-                            >
-                              <div className="w-1.5 h-full bg-transparent group-hover:bg-border" />
-                            </div>
-                          )}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {scanTable.getRowModel().rows?.length ? (
-                    scanTable.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        className="hover:bg-muted/50"
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={scanColumns.length} className="h-24 text-center">
-                        暂无扫描记录
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+            <UnifiedDataTable
+              data={scans}
+              columns={scanColumns}
+              getRowId={(row) => String(row.id)}
+              enableRowSelection={false}
+              pagination={scanPagination}
+              onPaginationChange={setScanPagination}
+              paginationInfo={scanPaginationInfo}
+              emptyMessage="暂无扫描记录"
+              toolbarLeft={
+                <TabsList>
+                  <TabsTrigger value="scans" className="gap-1.5">
+                    <IconRadar className="h-4 w-4" />
+                    扫描历史
+                  </TabsTrigger>
+                  <TabsTrigger value="vulnerabilities" className="gap-1.5">
+                    <IconBug className="h-4 w-4" />
+                    漏洞
+                  </TabsTrigger>
+                </TabsList>
+              }
+              showAddButton={false}
+              showBulkDelete={false}
+            />
           )}
         </TabsContent>
-
-        {/* 分页控制 */}
-        <div className="flex items-center justify-between px-2 py-4">
-          {/* 选中行信息 */}
-          <div className="flex-1 text-sm text-muted-foreground">
-            {currentTable.getFilteredSelectedRowModel().rows.length} of{" "}
-            {activeTab === "vulnerabilities" 
-              ? (vulnQuery.data?.pagination?.total ?? 0) 
-              : (scanQuery.data?.total ?? 0)} row(s) selected
-          </div>
-
-          {/* 分页控制器 */}
-          <div className="flex items-center space-x-6 lg:space-x-8">
-            {/* 每页显示数量选择 */}
-            <div className="flex items-center space-x-2">
-              <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                Rows per page
-              </Label>
-              <Select
-                value={`${pagination.pageSize}`}
-                onValueChange={(value) => {
-                  setPagination(prev => ({ ...prev, pageIndex: 0, pageSize: Number(value) }))
-                }}
-              >
-                <SelectTrigger className="h-8 w-[90px]" id="rows-per-page">
-                  <SelectValue placeholder={pagination.pageSize} />
-                </SelectTrigger>
-                <SelectContent side="top">
-                  {[10, 20, 50, 100].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                      {pageSize}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* 页码信息 */}
-            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-              Page {pagination.pageIndex + 1} of {totalPages}
-            </div>
-
-            {/* 分页按钮 */}
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => setPagination(prev => ({ ...prev, pageIndex: 0 }))}
-                disabled={pagination.pageIndex === 0}
-              >
-                <span className="sr-only">Go to first page</span>
-                <IconChevronsLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                className="h-8 w-8 p-0"
-                onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.max(0, prev.pageIndex - 1) }))}
-                disabled={pagination.pageIndex === 0}
-              >
-                <span className="sr-only">Go to previous page</span>
-                <IconChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                className="h-8 w-8 p-0"
-                onClick={() => setPagination(prev => ({ ...prev, pageIndex: prev.pageIndex + 1 }))}
-                disabled={pagination.pageIndex >= totalPages - 1}
-              >
-                <span className="sr-only">Go to next page</span>
-                <IconChevronRight className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => setPagination(prev => ({ ...prev, pageIndex: totalPages - 1 }))}
-                disabled={pagination.pageIndex >= totalPages - 1}
-              >
-                <span className="sr-only">Go to last page</span>
-                <IconChevronsRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
       </Tabs>
     </>
   )

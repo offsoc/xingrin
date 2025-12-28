@@ -67,15 +67,6 @@ export function TargetsDataTable({
     }
   }
 
-  // 列标签映射
-  const columnLabels: Record<string, string> = {
-    id: "ID",
-    name: "目标名称",
-    type: "类型",
-    createdAt: "创建时间",
-    updatedAt: "更新时间",
-  }
-
   // 自定义添加按钮（支持 onAddHover）
   const addButton = onAddNew ? (
     <Button onClick={onAddNew} onMouseEnter={onAddHover} size="sm">
@@ -98,8 +89,6 @@ export function TargetsDataTable({
       // 批量操作
       showBulkDelete={false}
       showAddButton={false}
-      // 列控制
-      columnLabels={columnLabels}
       // 空状态
       emptyMessage="暂无数据"
       // 自定义工具栏

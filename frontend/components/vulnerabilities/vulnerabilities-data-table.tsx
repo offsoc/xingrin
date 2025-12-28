@@ -60,17 +60,6 @@ export function VulnerabilitiesDataTable({
     onFilterChange?.(rawQuery)
   }
 
-  // 列标签映射
-  const columnLabels: Record<string, string> = {
-    select: "Select",
-    title: "Title",
-    severity: "Severity",
-    status: "Status",
-    url: "URL",
-    createdAt: "Created At",
-    actions: "Actions",
-  }
-
   // 下载选项
   const downloadOptions: DownloadOption[] = []
   if (onDownloadAll) {
@@ -113,8 +102,6 @@ export function VulnerabilitiesDataTable({
       showAddButton={false}
       // 下载
       downloadOptions={downloadOptions.length > 0 ? downloadOptions : undefined}
-      // 列控制
-      columnLabels={columnLabels}
       // 工具栏
       hideToolbar={hideToolbar}
       // 空状态

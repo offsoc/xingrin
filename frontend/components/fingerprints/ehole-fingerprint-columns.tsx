@@ -3,6 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import type { EholeFingerprint } from "@/types/fingerprint.types"
 
 interface ColumnOptions {
@@ -44,7 +45,10 @@ export function createEholeFingerprintColumns({
     // CMS 名称
     {
       accessorKey: "cms",
-      header: "CMS",
+      meta: { title: "CMS" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="CMS" />
+      ),
       cell: ({ row }) => (
         <div className="font-medium">{row.getValue("cms")}</div>
       ),
@@ -54,7 +58,10 @@ export function createEholeFingerprintColumns({
     // 匹配方式
     {
       accessorKey: "method",
-      header: "Method",
+      meta: { title: "Method" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Method" />
+      ),
       cell: ({ row }) => {
         const method = row.getValue("method") as string
         return (
@@ -69,7 +76,10 @@ export function createEholeFingerprintColumns({
     // 匹配位置
     {
       accessorKey: "location",
-      header: "Location",
+      meta: { title: "Location" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Location" />
+      ),
       cell: ({ row }) => {
         const location = row.getValue("location") as string
         return (
@@ -84,7 +94,10 @@ export function createEholeFingerprintColumns({
     // 关键词
     {
       accessorKey: "keyword",
-      header: "Keyword",
+      meta: { title: "Keyword" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Keyword" />
+      ),
       cell: ({ row }) => {
         const keywords = row.getValue("keyword") as string[]
         if (!keywords || keywords.length === 0) return "-"
@@ -102,7 +115,10 @@ export function createEholeFingerprintColumns({
     // 类型
     {
       accessorKey: "type",
-      header: "Type",
+      meta: { title: "Type" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Type" />
+      ),
       cell: ({ row }) => {
         const type = row.getValue("type") as string
         if (!type || type === "-") return "-"
@@ -114,7 +130,10 @@ export function createEholeFingerprintColumns({
     // 重点资产
     {
       accessorKey: "isImportant",
-      header: "Important",
+      meta: { title: "Important" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Important" />
+      ),
       cell: ({ row }) => {
         const isImportant = row.getValue("isImportant") as boolean
         return isImportant ? (
@@ -127,7 +146,10 @@ export function createEholeFingerprintColumns({
     // 创建时间
     {
       accessorKey: "createdAt",
-      header: "Created",
+      meta: { title: "Created" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Created" />
+      ),
       cell: ({ row }) => {
         const date = row.getValue("createdAt") as string
         return (

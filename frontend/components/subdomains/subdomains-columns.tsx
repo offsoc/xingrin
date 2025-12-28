@@ -3,51 +3,12 @@
 import React from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Button } from "@/components/ui/button"
-
-import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react"
-
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import type { Subdomain } from "@/types/subdomain.types"
-
-
 
 // 列创建函数的参数类型
 interface CreateColumnsProps {
   formatDate: (dateString: string) => string
-}
-
-/**
- * 数据表格列头组件
- */
-function DataTableColumnHeader({
-  column,
-  title,
-}: {
-  column: { getCanSort: () => boolean; getIsSorted: () => false | "asc" | "desc"; toggleSorting: (desc?: boolean) => void }
-  title: string
-}) {
-  if (!column.getCanSort()) {
-    return <div className="-ml-3 font-medium">{title}</div>
-  }
-
-  const isSorted = column.getIsSorted()
-
-  return (
-    <Button
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-muted"
-    >
-      {title}
-      {isSorted === "asc" ? (
-        <ChevronUp />
-      ) : isSorted === "desc" ? (
-        <ChevronDown />
-      ) : (
-        <ChevronsUpDown />
-      )}
-    </Button>
-  )
 }
 
 /**
@@ -89,6 +50,7 @@ export const createSubdomainColumns = ({
     accessorKey: "name",
     size: 350,
     minSize: 250,
+    meta: { title: "Subdomain" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Subdomain" />
     ),
@@ -110,6 +72,7 @@ export const createSubdomainColumns = ({
     size: 150,
     minSize: 120,
     maxSize: 200,
+    meta: { title: "Created At" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created At" />
     ),

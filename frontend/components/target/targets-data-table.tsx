@@ -93,16 +93,6 @@ export function TargetsDataTable({
     pageSize: pagination.pageSize,
   } : undefined
 
-  // 列标签映射
-  const columnLabels: Record<string, string> = {
-    id: "ID",
-    name: "目标名称",
-    type: "类型",
-    organizations: "所属组织",
-    domainCount: "域名数",
-    endpointCount: "URL 数",
-  }
-
   // 自定义添加按钮（支持 onAddHover）
   const addButton = onAddNew ? (
     <Button onClick={onAddNew} onMouseEnter={onAddHover} size="sm">
@@ -126,8 +116,6 @@ export function TargetsDataTable({
       onBulkDelete={onBulkDelete}
       bulkDeleteLabel="删除"
       showAddButton={false}
-      // 列控制
-      columnLabels={columnLabels}
       // 空状态
       emptyMessage="暂无数据"
       // 自定义工具栏

@@ -11,7 +11,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Eye, Trash2, ChevronsUpDown, ChevronUp, ChevronDown, Copy, Check } from "lucide-react"
+import { Eye, Trash2, Copy, Check } from "lucide-react"
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import type { Target } from "@/types/target.types"
 import { toast } from "sonner"
 
@@ -128,40 +129,6 @@ function TargetNameCell({
 }
 
 /**
- * 数据表格列头组件
- */
-function DataTableColumnHeader({
-  column,
-  title,
-}: {
-  column: { getCanSort: () => boolean; getIsSorted: () => false | "asc" | "desc"; toggleSorting: (desc?: boolean) => void }
-  title: string
-}) {
-  if (!column.getCanSort()) {
-    return <div className="-ml-3 font-medium">{title}</div>
-  }
-
-  const isSorted = column.getIsSorted()
-
-  return (
-    <Button
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-muted"
-    >
-      {title}
-      {isSorted === "asc" ? (
-        <ChevronUp />
-      ) : isSorted === "desc" ? (
-        <ChevronDown />
-      ) : (
-        <ChevronsUpDown />
-      )}
-    </Button>
-  )
-}
-
-/**
  * 创建目标表格列定义
  */
 export const createTargetColumns = ({
@@ -202,6 +169,7 @@ export const createTargetColumns = ({
     accessorKey: "name",
     size: 350,
     minSize: 250,
+    meta: { title: "Target Name" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Target Name" />
     ),
@@ -219,6 +187,7 @@ export const createTargetColumns = ({
     accessorKey: "type",
     size: 100,
     minSize: 80,
+    meta: { title: "Type" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Type" />
     ),

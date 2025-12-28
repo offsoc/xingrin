@@ -17,9 +17,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { MoreHorizontal, Eye, Trash2, ChevronsUpDown, ChevronUp, ChevronDown, Play, Calendar, Copy, Check } from "lucide-react"
+import { MoreHorizontal, Eye, Trash2, Play, Calendar, Copy, Check } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import type { Target } from "@/types/target.types"
 
 /**
@@ -210,40 +211,6 @@ function TargetRowActions({
 }
 
 /**
- * 数据表格列头组件
- */
-function DataTableColumnHeader({
-  column,
-  title,
-}: {
-  column: { getCanSort: () => boolean; getIsSorted: () => false | "asc" | "desc"; toggleSorting: (desc?: boolean) => void }
-  title: string
-}) {
-  if (!column.getCanSort()) {
-    return <div className="-ml-3 font-medium">{title}</div>
-  }
-
-  const isSorted = column.getIsSorted()
-
-  return (
-    <Button
-      variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      className="-ml-3 h-8 data-[state=open]:bg-accent hover:bg-muted"
-    >
-      {title}
-      {isSorted === "asc" ? (
-        <ChevronUp />
-      ) : isSorted === "desc" ? (
-        <ChevronDown />
-      ) : (
-        <ChevronsUpDown />
-      )}
-    </Button>
-  )
-}
-
-/**
  * 创建所有目标表格列定义
  */
 export const createAllTargetsColumns = ({
@@ -286,6 +253,7 @@ export const createAllTargetsColumns = ({
     accessorKey: "name",
     size: 350,
     minSize: 250,
+    meta: { title: "Target" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Target" />
     ),
@@ -304,6 +272,7 @@ export const createAllTargetsColumns = ({
     size: 200,
     minSize: 150,
     maxSize: 350,
+    meta: { title: "Organization" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Organization" />
     ),
@@ -368,6 +337,7 @@ export const createAllTargetsColumns = ({
     size: 150,
     minSize: 120,
     maxSize: 200,
+    meta: { title: "Added On" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Added On" />
     ),
@@ -387,6 +357,7 @@ export const createAllTargetsColumns = ({
     size: 150,
     minSize: 120,
     maxSize: 200,
+    meta: { title: "Last Scanned" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Last Scanned" />
     ),

@@ -1,5 +1,16 @@
-import type { ColumnDef, SortingState, VisibilityState, Table, Header, Column } from "@tanstack/react-table"
+import type { ColumnDef, SortingState, VisibilityState, Table, Header, Column, RowData } from "@tanstack/react-table"
 import type { ReactNode } from "react"
+
+/**
+ * 扩展 TanStack Table 的 ColumnMeta 类型
+ * 用于存储列的元数据，如标题
+ */
+declare module '@tanstack/react-table' {
+  interface ColumnMeta<TData extends RowData, TValue> {
+    /** 列标题，用于列头和列显示控制 */
+    title?: string
+  }
+}
 
 /**
  * 分页状态
@@ -103,7 +114,6 @@ export interface UnifiedDataTableProps<TData> {
   // 列控制
   columnVisibility?: VisibilityState
   onColumnVisibilityChange?: (visibility: VisibilityState) => void
-  columnLabels?: Record<string, string>
   
   // 排序
   sorting?: SortingState

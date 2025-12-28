@@ -4,6 +4,7 @@ import React from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
+import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import type { GobyFingerprint } from "@/types/fingerprint.types"
 
 interface ColumnOptions {
@@ -81,7 +82,10 @@ export function createGobyFingerprintColumns({
     // 产品名称
     {
       accessorKey: "name",
-      header: "Name",
+      meta: { title: "Name" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Name" />
+      ),
       cell: ({ row }) => (
         <div className="font-medium">{row.getValue("name")}</div>
       ),
@@ -91,7 +95,10 @@ export function createGobyFingerprintColumns({
     // 逻辑表达式
     {
       accessorKey: "logic",
-      header: "Logic",
+      meta: { title: "Logic" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Logic" />
+      ),
       cell: ({ row }) => {
         const logic = row.getValue("logic") as string
         return (
@@ -106,7 +113,10 @@ export function createGobyFingerprintColumns({
     // 规则数量
     {
       accessorKey: "rule",
-      header: "Rules",
+      meta: { title: "Rules" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Rules" />
+      ),
       cell: ({ row }) => {
         const rules = row.getValue("rule") as any[]
         return (
@@ -121,7 +131,10 @@ export function createGobyFingerprintColumns({
     // 规则详情
     {
       id: "ruleDetails",
-      header: "Rule Details",
+      meta: { title: "Rule Details" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Rule Details" />
+      ),
       cell: ({ row }) => <RuleDetailsCell rules={row.original.rule || []} />,
       enableResizing: true,
       size: 300,
@@ -129,7 +142,10 @@ export function createGobyFingerprintColumns({
     // 创建时间
     {
       accessorKey: "createdAt",
-      header: "Created",
+      meta: { title: "Created" },
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Created" />
+      ),
       cell: ({ row }) => {
         const date = row.getValue("createdAt") as string
         return (
