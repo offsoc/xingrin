@@ -44,6 +44,7 @@ class GobyFingerprintViewSet(BaseFingerprintViewSet):
     # Goby 过滤字段映射
     FILTER_FIELD_MAPPING = {
         'name': 'name',
+        'logic': 'logic',
     }
     
     def parse_import_data(self, json_data) -> list:

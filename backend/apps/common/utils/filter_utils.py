@@ -132,7 +132,8 @@ class QueryBuilder:
         cls,
         queryset: QuerySet,
         filter_groups: List[FilterGroup],
-        field_mapping: Dict[str, str]
+        field_mapping: Dict[str, str],
+        json_array_fields: List[str] = None
     ) -> QuerySet:
         """构建 Django ORM 查询
         
@@ -140,12 +141,15 @@ class QueryBuilder:
             queryset: Django QuerySet
             filter_groups: 解析后的过滤条件组列表
             field_mapping: 字段映射
+            json_array_fields: JSON 数组字段列表（使用 __contains 查询）
         
         Returns:
             过滤后的 QuerySet
         """
         if not filter_groups:
             return queryset
+        
+        json_array_fields = json_array_fields or []
         
         # 构建 Q 对象
         combined_q = None
@@ -159,8 +163,11 @@ class QueryBuilder:
                 logger.debug(f"忽略未知字段: {f.field}")
                 continue
             
+            # 判断是否为 JSON 数组字段
+            is_json_array = db_field in json_array_fields
+            
             # 构建单个条件的 Q 对象
-            q = cls._build_single_q(db_field, f.operator, f.value)
+            q = cls._build_single_q(db_field, f.operator, f.value, is_json_array)
             if q is None:
                 continue
             
@@ -177,8 +184,12 @@ class QueryBuilder:
         return queryset
     
     @classmethod
-    def _build_single_q(cls, field: str, operator: str, value: str) -> Optional[Q]:
+    def _build_single_q(cls, field: str, operator: str, value: str, is_json_array: bool = False) -> Optional[Q]:
         """构建单个条件的 Q 对象"""
+        if is_json_array:
+            # JSON 数组字段使用 __contains 查询
+            return Q(**{f'{field}__contains': [value]})
+        
         if operator == '!=':
             return cls._build_not_equal_q(field, value)
         elif operator == '==':
@@ -219,7 +230,8 @@ class QueryBuilder:
 def apply_filters(
     queryset: QuerySet,
     query_string: str,
-    field_mapping: Dict[str, str]
+    field_mapping: Dict[str, str],
+    json_array_fields: List[str] = None
 ) -> QuerySet:
     """应用过滤条件到 QuerySet
     
@@ -227,6 +239,7 @@ def apply_filters(
         queryset: Django QuerySet
         query_string: 查询语法字符串
         field_mapping: 字段映射
+        json_array_fields: JSON 数组字段列表（使用 __contains 查询）
     
     Returns:
         过滤后的 QuerySet
@@ -242,6 +255,9 @@ def apply_filters(
         
         # 混合查询
         apply_filters(qs, 'type="xss" || type="sqli" && severity="high"', mapping)
+        
+        # JSON 数组字段查询
+        apply_filters(qs, 'implies="PHP"', mapping, json_array_fields=['implies'])
     """
     if not query_string or not query_string.strip():
         return queryset
@@ -253,7 +269,12 @@ def apply_filters(
             return queryset
         
         logger.debug(f"解析过滤条件: {filter_groups}")
-        return QueryBuilder.build_query(queryset, filter_groups, field_mapping)
+        return QueryBuilder.build_query(
+            queryset, 
+            filter_groups, 
+            field_mapping,
+            json_array_fields=json_array_fields
+        )
     
     except Exception as e:
         logger.warning(f"过滤解析错误: {e}, query: {query_string}")

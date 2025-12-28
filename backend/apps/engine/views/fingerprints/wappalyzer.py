@@ -42,9 +42,17 @@ class WappalyzerFingerprintViewSet(BaseFingerprintViewSet):
     ordering = ['-created_at']
     
     # Wappalyzer 过滤字段映射
+    # 注意：implies 是 JSON 数组字段，使用 __contains 查询
     FILTER_FIELD_MAPPING = {
         'name': 'name',
+        'description': 'description',
+        'website': 'website',
+        'cpe': 'cpe',
+        'implies': 'implies',  # JSON 数组字段
     }
+    
+    # JSON 数组字段列表（使用 __contains 查询）
+    JSON_ARRAY_FIELDS = ['implies']
     
     def parse_import_data(self, json_data: dict) -> list:
         """

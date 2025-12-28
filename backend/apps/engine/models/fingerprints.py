@@ -26,6 +26,7 @@ class GobyFingerprint(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['name']),
+            models.Index(fields=['logic']),
             models.Index(fields=['-created_at']),
         ]
     
@@ -55,6 +56,7 @@ class EholeFingerprint(models.Model):
             models.Index(fields=['method']),
             models.Index(fields=['location']),
             models.Index(fields=['type']),
+            models.Index(fields=['is_important']),
             # 排序字段索引
             models.Index(fields=['-created_at']),
         ]
@@ -97,6 +99,8 @@ class WappalyzerFingerprint(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['name']),
+            models.Index(fields=['website']),
+            models.Index(fields=['cpe']),
             models.Index(fields=['-created_at']),
         ]
     

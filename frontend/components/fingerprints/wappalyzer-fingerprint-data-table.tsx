@@ -36,11 +36,17 @@ import type { PaginationInfo } from "@/types/common.types"
 // Wappalyzer 过滤字段配置
 const WAPPALYZER_FILTER_FIELDS: FilterField[] = [
   { key: "name", label: "Name", description: "应用名称" },
+  { key: "description", label: "Description", description: "应用描述" },
+  { key: "website", label: "Website", description: "官网地址" },
+  { key: "cpe", label: "CPE", description: "CPE 标识符" },
+  { key: "implies", label: "Implies", description: "依赖项 (如 PHP, MySQL)" },
 ]
 
 const WAPPALYZER_FILTER_EXAMPLES = [
   'name="WordPress"',
   'name=="React"',
+  'description="CMS"',
+  'implies="PHP"',
 ]
 
 interface WappalyzerFingerprintDataTableProps {

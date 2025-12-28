@@ -50,6 +50,7 @@ class EholeFingerprintViewSet(BaseFingerprintViewSet):
         'method': 'method',
         'location': 'location',
         'type': 'type',
+        'isImportant': 'is_important',
     }
     
     def parse_import_data(self, json_data: dict) -> list:

@@ -59,12 +59,20 @@ class BaseFingerprintViewSet(viewsets.ModelViewSet):
     # 智能过滤字段映射，子类必须覆盖
     FILTER_FIELD_MAPPING = {}
     
+    # JSON 数组字段列表（使用 __contains 查询），子类可覆盖
+    JSON_ARRAY_FIELDS = []
+    
     def get_queryset(self):
         """支持智能过滤语法"""
         queryset = super().get_queryset()
         filter_query = self.request.query_params.get('filter', None)
         if filter_query:
-            queryset = apply_filters(queryset, filter_query, self.FILTER_FIELD_MAPPING)
+            queryset = apply_filters(
+                queryset, 
+                filter_query, 
+                self.FILTER_FIELD_MAPPING,
+                json_array_fields=getattr(self, 'JSON_ARRAY_FIELDS', [])
+            )
         return queryset
     
     def get_service(self):

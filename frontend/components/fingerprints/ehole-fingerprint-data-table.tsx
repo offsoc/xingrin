@@ -39,13 +39,14 @@ const EHOLE_FILTER_FIELDS: FilterField[] = [
   { key: "method", label: "Method", description: "匹配方式 (keyword, faviconhash...)" },
   { key: "location", label: "Location", description: "匹配位置 (body, header, title)" },
   { key: "type", label: "Type", description: "分类" },
+  { key: "isImportant", label: "Important", description: "是否重点资产 (true/false)" },
 ]
 
 const EHOLE_FILTER_EXAMPLES = [
   'cms="WordPress"',
   'type=="CMS"',
   'method="keyword" location="body"',
-  'type="Server" || type="CMS"',
+  'isImportant="true"',
 ]
 
 interface EholeFingerprintDataTableProps {

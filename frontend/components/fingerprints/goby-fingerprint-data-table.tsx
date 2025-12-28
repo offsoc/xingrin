@@ -36,14 +36,13 @@ import type { PaginationInfo } from "@/types/common.types"
 // Goby 过滤字段配置
 const GOBY_FILTER_FIELDS: FilterField[] = [
   { key: "name", label: "Name", description: "产品名称" },
-  { key: "company", label: "Company", description: "厂商名称" },
-  { key: "level", label: "Level", description: "级别 (1-5)" },
+  { key: "logic", label: "Logic", description: "逻辑表达式" },
 ]
 
 const GOBY_FILTER_EXAMPLES = [
   'name="Apache"',
-  'company=="Microsoft"',
-  'level="3"',
+  'name=="Nginx"',
+  'logic="a||b"',
 ]
 
 interface GobyFingerprintDataTableProps {
