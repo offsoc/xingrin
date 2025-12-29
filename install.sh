@@ -317,7 +317,6 @@ show_summary() {
         echo -e "   ./start.sh              # 启动所有服务"
         echo -e "   ./start.sh --no-frontend # 只启动后端"
         echo -e "   ./stop.sh               # 停止所有服务"
-        echo -e "   ./update.sh             # 更新系统"
         echo
     fi
     
