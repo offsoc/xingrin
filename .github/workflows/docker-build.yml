@@ -112,31 +112,48 @@ jobs:
           sbom: false
 
   # 所有镜像构建成功后，更新 VERSION 文件
-  # 正式版本（不含 -dev, -alpha, -beta, -rc）更新 main 分支
-  # dev 版本（含 -dev）更新 dev 分支
+  # 根据 tag 所在的分支更新对应分支的 VERSION 文件
   update-version:
     runs-on: ubuntu-latest
     needs: build
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
-      - name: Determine target branch
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史，用于判断 tag 所在分支
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine source branch and version
         id: branch
         run: |
           VERSION="${GITHUB_REF#refs/tags/}"
-          if [[ "$VERSION" == *-dev ]]; then
-            echo "BRANCH=dev" >> $GITHUB_OUTPUT
-            echo "IS_DEV=true" >> $GITHUB_OUTPUT
+          
+          # 查找包含此 tag 的分支
+          BRANCHES=$(git branch -r --contains ${{ github.ref_name }})
+          echo "Branches containing tag: $BRANCHES"
+          
+          # 判断 tag 来自哪个分支
+          if echo "$BRANCHES" | grep -q "origin/main"; then
+            TARGET_BRANCH="main"
+            UPDATE_LATEST="true"
+          elif echo "$BRANCHES" | grep -q "origin/dev"; then
+            TARGET_BRANCH="dev"
+            UPDATE_LATEST="false"
           else
-            echo "BRANCH=main" >> $GITHUB_OUTPUT
-            echo "IS_DEV=false" >> $GITHUB_OUTPUT
+            echo "Warning: Tag not found in main or dev branch, defaulting to main"
+            TARGET_BRANCH="main"
+            UPDATE_LATEST="false"
           fi
+          
+          echo "BRANCH=$TARGET_BRANCH" >> $GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "UPDATE_LATEST=$UPDATE_LATEST" >> $GITHUB_OUTPUT
+          echo "Will update VERSION on branch: $TARGET_BRANCH"
 
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.branch.outputs.BRANCH }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout target branch
+        run: |
+          git checkout ${{ steps.branch.outputs.BRANCH }}
 
       - name: Update VERSION file
         run: |
@@ -150,4 +167,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add VERSION
           git diff --staged --quiet || git commit -m "chore: bump version to ${{ steps.branch.outputs.VERSION }}"
-          git push
+          git push origin ${{ steps.branch.outputs.BRANCH }}
