@@ -355,18 +355,20 @@ if command -v docker >/dev/null 2>&1; then
 else
     info "正在安装 Docker..."
     
-    # 根据是否启用 Xget 加速选择下载方式
+    # 根据是否启用加速选择下载方式
     if [ -n "$XGET_MIRROR" ]; then
-        # 通过 Xget 代理下载 Docker 安装脚本
-        DOCKER_INSTALL_URL="${XGET_MIRROR}/gh/https://get.docker.com"
-        info "使用 Xget 加速下载 Docker 安装脚本..."
-        if curl -fsSL "$DOCKER_INSTALL_URL" | sh; then
-            success "Docker 安装完成（通过 Xget 加速）"
+        # 使用阿里云 Docker 安装脚本（国内加速）
+        info "使用国内镜像安装 Docker..."
+        if curl -fsSL https://get.docker.com | sh -s -- --mirror Aliyun; then
+            success "Docker 安装完成（使用阿里云镜像）"
         else
-            error "通过 Xget 加速下载 Docker 安装脚本失败"
-            error "请检查 Xget 镜像地址是否正确: $XGET_MIRROR"
-            error "或尝试不使用 --mirror 参数重新安装"
-            exit 1
+            warn "阿里云镜像安装失败，尝试官方源..."
+            if curl -fsSL https://get.docker.com | sh; then
+                success "Docker 安装完成"
+            else
+                error "Docker 安装失败"
+                exit 1
+            fi
         fi
     else
         # 默认从官方源下载
@@ -389,8 +391,8 @@ fi
 
 # 如果 Docker 已安装但启用了 --mirror，也配置镜像加速
 if [ -n "$XGET_MIRROR" ] && command -v docker &>/dev/null; then
-    # 检查是否已配置镜像加速
-    if [ ! -f "/etc/docker/daemon.json" ] || ! grep -q "registry-mirrors" /etc/docker/daemon.json 2>/dev/null; then
+    # 检查是否已配置正确的镜像加速（不是 xget）
+    if [ ! -f "/etc/docker/daemon.json" ] || grep -q "xget" /etc/docker/daemon.json 2>/dev/null || ! grep -q "registry-mirrors" /etc/docker/daemon.json 2>/dev/null; then
         configure_docker_mirror
     fi
 fi
