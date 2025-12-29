@@ -150,7 +150,7 @@ export function OpensourceToolsList() {
           <AlertDialogHeader>
             <AlertDialogTitle>{tConfirm("deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {tConfirm("deleteToolMessage", { name: toolToDelete?.name })}
+              {tConfirm("deleteToolMessage", { name: toolToDelete?.name ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

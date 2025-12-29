@@ -240,7 +240,7 @@ export default function ScheduledScanPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>{tConfirm("deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {tConfirm("deleteScheduledScanMessage", { name: deletingScheduledScan?.name })}
+              {tConfirm("deleteScheduledScanMessage", { name: deletingScheduledScan?.name ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

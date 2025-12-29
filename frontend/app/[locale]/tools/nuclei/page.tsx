@@ -235,7 +235,7 @@ export default function NucleiReposPage() {
                     </div>
                     <div className="text-xs text-muted-foreground mt-0.5 truncate">
                       {repo.lastSyncedAt
-                        ? `${t("syncedAt")} ${formatDateTime(repo.lastSyncedAt)}`
+                        ? `${t("syncedAt")} ${formatDateTime(repo.lastSyncedAt, locale)}`
                         : t("notSyncedYet")}
                     </div>
                   </button>

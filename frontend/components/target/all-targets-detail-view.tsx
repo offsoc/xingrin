@@ -227,7 +227,7 @@ export function AllTargetsDetailView() {
           <AlertDialogHeader>
             <AlertDialogTitle>{tConfirm("deleteTargetTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {tConfirm("deleteTargetMessage", { name: targetToDelete?.name })}
+              {tConfirm("deleteTargetMessage", { name: targetToDelete?.name ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

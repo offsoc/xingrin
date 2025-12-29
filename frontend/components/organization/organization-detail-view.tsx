@@ -334,7 +334,7 @@ export function OrganizationDetailView({
           <AlertDialogHeader>
             <AlertDialogTitle>{tConfirm("unlinkTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {tConfirm("unlinkTargetMessage", { name: targetToDelete?.name })}
+              {tConfirm("unlinkTargetMessage", { name: targetToDelete?.name ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

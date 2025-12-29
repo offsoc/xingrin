@@ -243,7 +243,7 @@ url_fetch:
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <DialogTitle className="flex items-center gap-2">
               <FileCode className="h-5 w-5" />
-              {t("title", { name: engine?.name })}
+              {t("title", { name: engine?.name ?? "" })}
             </DialogTitle>
             <DialogDescription>
               {t("desc")}

@@ -366,7 +366,7 @@ export function WorkerList() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("confirmDelete")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("confirmDeleteDesc", { name: workerToDelete?.name })}</AlertDialogDescription>
+            <AlertDialogDescription>{t("confirmDeleteDesc", { name: workerToDelete?.name ?? "" })}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>

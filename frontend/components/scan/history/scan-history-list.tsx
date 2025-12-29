@@ -337,7 +337,7 @@ export function ScanHistoryList({ hideToolbar = false }: ScanHistoryListProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>{tConfirm("deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {tConfirm("deleteScanMessage", { name: scanToDelete?.targetName })}
+              {tConfirm("deleteScanMessage", { name: scanToDelete?.targetName ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -390,7 +390,7 @@ export function ScanHistoryList({ hideToolbar = false }: ScanHistoryListProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>{tConfirm("stopScanTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {tConfirm("stopScanMessage", { name: scanToStop?.targetName })}
+              {tConfirm("stopScanMessage", { name: scanToStop?.targetName ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

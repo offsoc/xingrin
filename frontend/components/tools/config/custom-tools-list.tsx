@@ -200,7 +200,7 @@ export function CustomToolsList() {
           <AlertDialogHeader>
             <AlertDialogTitle>{tConfirm("deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {tConfirm("deleteCustomToolMessage", { name: toolToDelete?.name })}
+              {tConfirm("deleteCustomToolMessage", { name: toolToDelete?.name ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

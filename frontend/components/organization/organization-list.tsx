@@ -289,7 +289,7 @@ export function OrganizationList() {
           <AlertDialogHeader>
             <AlertDialogTitle>{tConfirm("deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {tConfirm("deleteOrgMessage", { name: organizationToDelete?.name })}
+              {tConfirm("deleteOrgMessage", { name: organizationToDelete?.name ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

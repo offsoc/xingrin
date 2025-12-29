@@ -260,7 +260,7 @@ export function VulnerabilitiesDetailView({
           <AlertDialogHeader>
             <AlertDialogTitle>{tConfirm("deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {tConfirm("deleteVulnMessage", { name: vulnerabilityToDelete?.vulnType })}
+              {tConfirm("deleteVulnMessage", { name: vulnerabilityToDelete?.vulnType ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

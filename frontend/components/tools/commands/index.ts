@@ -2,4 +2,5 @@
  * Tool Commands Components - 统一导出
  */
 export { CommandsDataTable } from './commands-data-table'
-export { commandColumns } from './commands-columns'
+export { createCommandColumns } from './commands-columns'
+export type { CommandTranslations } from './commands-columns'
