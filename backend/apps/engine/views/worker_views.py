@@ -390,8 +390,8 @@ class WorkerNodeViewSet(viewsets.ModelViewSet):
             },
             'redisUrl': worker_redis_url,
             'paths': {
-                'results': getattr(settings, 'CONTAINER_RESULTS_MOUNT', '/app/backend/results'),
-                'logs': getattr(settings, 'CONTAINER_LOGS_MOUNT', '/app/backend/logs'),
+                'results': getattr(settings, 'CONTAINER_RESULTS_MOUNT', '/opt/xingrin/results'),
+                'logs': getattr(settings, 'CONTAINER_LOGS_MOUNT', '/opt/xingrin/logs'),
             },
             'logging': {
                 'level': os.getenv('LOG_LEVEL', 'INFO'),

@@ -21,8 +21,8 @@ class SystemLogService:
     """
     
     def __init__(self):
-        # 日志文件路径（容器内路径，通过 volume 挂载到宿主机 /opt/xingrin/logs）
-        self.log_file = "/app/backend/logs/xingrin.log"
+        # 日志文件路径（统一使用 /opt/xingrin/logs）
+        self.log_file = "/opt/xingrin/logs/xingrin.log"
         self.default_lines = 200        # 默认返回行数
         self.max_lines = 10000          # 最大返回行数限制
         self.timeout_seconds = 3        # tail 命令超时时间

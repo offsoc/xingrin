@@ -449,9 +449,9 @@ step "[3/3] 初始化配置"
 
 # 创建数据目录
 info "创建数据目录..."
-mkdir -p /opt/xingrin/{results,logs,fingerprints,wordlists}
+mkdir -p /opt/xingrin/{results,logs,fingerprints,wordlists,nuclei-repos}
 chmod -R 777 /opt/xingrin
-success "数据目录已创建: /opt/xingrin/{results,logs,fingerprints,wordlists}"
+success "数据目录已创建: /opt/xingrin/"
 
 DOCKER_DIR="$ROOT_DIR/docker"
 if [ ! -d "$DOCKER_DIR" ]; then
@@ -633,6 +633,36 @@ else
         fi
         echo
         exit 1
+    fi
+fi
+
+# ==============================================================================
+# 预下载 Nuclei 模板仓库（在容器外执行，支持 xget 加速）
+# ==============================================================================
+step "预下载 Nuclei 模板仓库..."
+NUCLEI_TEMPLATES_DIR="/opt/xingrin/nuclei-repos/nuclei-templates"
+NUCLEI_TEMPLATES_REPO="https://github.com/projectdiscovery/nuclei-templates.git"
+
+# 确保目录存在
+mkdir -p /opt/xingrin/nuclei-repos
+
+if [ -d "$NUCLEI_TEMPLATES_DIR/.git" ]; then
+    info "Nuclei 模板仓库已存在，跳过下载"
+else
+    # 构建 clone URL（如果启用了 xget 加速）
+    if [ -n "$XGET_MIRROR" ]; then
+        CLONE_URL="${XGET_MIRROR}/gh/${NUCLEI_TEMPLATES_REPO}"
+        info "使用 Xget 加速下载: $CLONE_URL"
+    else
+        CLONE_URL="$NUCLEI_TEMPLATES_REPO"
+    fi
+    
+    # 执行 git clone
+    if git clone --depth 1 "$CLONE_URL" "$NUCLEI_TEMPLATES_DIR"; then
+        success "Nuclei 模板仓库下载完成"
+    else
+        warn "Nuclei 模板仓库下载失败，将在服务启动后重试"
+        warn "您也可以稍后在 Web 界面「Nuclei 模板」中手动同步"
     fi
 fi
 

@@ -3,12 +3,17 @@
 项目安装后执行此命令，自动创建官方模板仓库记录。
 
 使用方式：
-    python manage.py init_nuclei_templates           # 只创建记录
+    python manage.py init_nuclei_templates           # 只创建记录（检测本地已有仓库）
     python manage.py init_nuclei_templates --sync    # 创建并同步（git clone）
 """
 
 import logging
+import subprocess
+from pathlib import Path
+
+from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 from apps.engine.models import NucleiTemplateRepo
 from apps.engine.services import NucleiTemplateRepoService
@@ -24,6 +29,20 @@ DEFAULT_REPOS = [
         "description": "Nuclei 官方模板仓库，包含数千个漏洞检测模板",
     },
 ]
+
+
+def get_local_commit_hash(local_path: Path) -> str:
+    """获取本地 Git 仓库的 commit hash"""
+    if not (local_path / ".git").is_dir():
+        return ""
+    result = subprocess.run(
+        ["git", "-C", str(local_path), "rev-parse", "HEAD"],
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    return result.stdout.strip() if result.returncode == 0 else ""
 
 
 class Command(BaseCommand):
@@ -46,6 +65,8 @@ class Command(BaseCommand):
         force = options.get("force", False)
 
         service = NucleiTemplateRepoService()
+        base_dir = Path(getattr(settings, "NUCLEI_TEMPLATES_REPOS_BASE_DIR", "/opt/xingrin/nuclei-repos"))
+        
         created = 0
         skipped = 0
         synced = 0
@@ -87,20 +108,30 @@ class Command(BaseCommand):
 
             # 创建新仓库记录
             try:
+                # 检查本地是否已有仓库（由 install.sh 预下载）
+                local_path = base_dir / name
+                local_commit = get_local_commit_hash(local_path)
+                
                 repo = NucleiTemplateRepo.objects.create(
                     name=name,
                     repo_url=repo_url,
+                    local_path=str(local_path) if local_commit else "",
+                    commit_hash=local_commit,
+                    last_synced_at=timezone.now() if local_commit else None,
                 )
-                self.stdout.write(self.style.SUCCESS(
-                    f"[{name}] 创建成功: id={repo.id}"
-                ))
+                
+                if local_commit:
+                    self.stdout.write(self.style.SUCCESS(
+                        f"[{name}] 创建成功（检测到本地仓库）: commit={local_commit[:8]}"
+                    ))
+                else:
+                    self.stdout.write(self.style.SUCCESS(
+                        f"[{name}] 创建成功: id={repo.id}"
+                    ))
                 created += 1
 
-                # 初始化本地路径
-                service.ensure_local_path(repo)
-
-                # 如果需要同步
-                if do_sync:
+                # 如果本地没有仓库且需要同步
+                if not local_commit and do_sync:
                     try:
                         self.stdout.write(self.style.WARNING(
                             f"[{name}] 正在同步（首次可能需要几分钟）..."

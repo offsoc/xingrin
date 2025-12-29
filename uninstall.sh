@@ -64,7 +64,7 @@ fi
 # ==============================================================================
 # 1. 停止并删除全部容器/网络
 # ==============================================================================
-step "[1/6] 是否停止并删除全部容器/网络？(Y/n)"
+step "[1/5] 是否停止并删除全部容器/网络？(Y/n)"
 read -r ans_stop
 ans_stop=${ans_stop:-Y}
 
@@ -96,48 +96,30 @@ else
 fi
 
 # ==============================================================================
-# 2. 删除扫描日志和结果目录
+# 2. 删除 /opt/xingrin 数据目录
 # ==============================================================================
 
-OPT_LOGS_DIR="/opt/xingrin/logs"
-OPT_RESULTS_DIR="/opt/xingrin/results"
+OPT_XINGRIN_DIR="/opt/xingrin"
 
-step "[2/6] 是否删除扫描日志和结果目录 ($OPT_LOGS_DIR, $OPT_RESULTS_DIR)？(Y/n)"
-read -r ans_logs
-ans_logs=${ans_logs:-Y}
+step "[2/5] 是否删除数据目录 ($OPT_XINGRIN_DIR)？(Y/n)"
+echo -e "   ${YELLOW}包含：扫描结果、日志、指纹库、字典、Nuclei 模板等${RESET}"
+read -r ans_data
+ans_data=${ans_data:-Y}
 
-if [[ $ans_logs =~ ^[Yy]$ ]]; then
-    info "正在删除日志和结果目录..."
-    rm -rf "$OPT_LOGS_DIR" "$OPT_RESULTS_DIR"
-    success "已删除日志和结果目录。"
+if [[ $ans_data =~ ^[Yy]$ ]]; then
+    info "正在删除数据目录..."
+    rm -rf "$OPT_XINGRIN_DIR"
+    success "已删除 $OPT_XINGRIN_DIR"
 else
-    warn "已保留日志和结果目录。"
+    warn "已保留数据目录。"
 fi
 
 # ==============================================================================
-# 3. 删除 /opt/xingrin/tools 和 /opt/xingrin/wordlists
-# ==============================================================================
-TOOLS_DIR="/opt/xingrin/tools"
-WORDLISTS_DIR="/opt/xingrin/wordlists"
-
-step "[3/6] 是否删除工具目录和字典目录 ($TOOLS_DIR, $WORDLISTS_DIR)？(Y/n)"
-read -r ans_tools
-ans_tools=${ans_tools:-Y}
-
-if [[ $ans_tools =~ ^[Yy]$ ]]; then
-    info "正在删除工具和字典目录..."
-    rm -rf "$TOOLS_DIR" "$WORDLISTS_DIR"
-    success "已删除 /opt/xingrin/tools 和 /opt/xingrin/wordlists。"
-else
-    warn "已保留 /opt/xingrin/tools 和 /opt/xingrin/wordlists。"
-fi
-
-# ==============================================================================
-# 4. 删除 docker/.env 配置文件
+# 3. 删除 docker/.env 配置文件
 # ==============================================================================
 ENV_FILE="$DOCKER_DIR/.env"
 
-step "[4/6] 是否删除配置文件 ($ENV_FILE)？(Y/n)"
+step "[3/5] 是否删除配置文件 ($ENV_FILE)？(Y/n)"
 echo -e "   ${YELLOW}注意：删除后下次安装将生成新的随机密码。${RESET}"
 read -r ans_env
 ans_env=${ans_env:-Y}
@@ -151,9 +133,9 @@ else
 fi
 
 # ==============================================================================
-# 5. 删除本地 Postgres 容器及数据卷（如果使用本地 DB）
+# 4. 删除本地 Postgres 容器及数据卷（如果使用本地 DB）
 # ==============================================================================
-step "[5/6] 若使用本地 PostgreSQL 容器：是否删除数据库容器和 volume？(Y/n)"
+step "[4/5] 若使用本地 PostgreSQL 容器：是否删除数据库容器和 volume？(Y/n)"
 read -r ans_db
 ans_db=${ans_db:-Y}
 
@@ -178,7 +160,7 @@ else
     warn "已保留本地 Postgres 容器和 volume。"
 fi
 
-step "[6/6] 是否删除与 XingRin 相关的 Docker 镜像？(Y/n)"
+step "[5/5] 是否删除与 XingRin 相关的 Docker 镜像？(Y/n)"
 read -r ans_images
 ans_images=${ans_images:-Y}
 

@@ -76,8 +76,8 @@ class TaskDistributor:
         self.docker_image = settings.TASK_EXECUTOR_IMAGE
         if not self.docker_image:
             raise ValueError("TASK_EXECUTOR_IMAGE 未配置，请确保 IMAGE_TAG 环境变量已设置")
-        self.results_mount = getattr(settings, 'CONTAINER_RESULTS_MOUNT', '/app/backend/results')
-        self.logs_mount = getattr(settings, 'CONTAINER_LOGS_MOUNT', '/app/backend/logs')
+        # 统一使用 /opt/xingrin 下的路径
+        self.logs_mount = "/opt/xingrin/logs"
         self.submit_interval = getattr(settings, 'TASK_SUBMIT_INTERVAL', 5)
     
     def get_online_workers(self) -> list[WorkerNode]:
@@ -274,11 +274,8 @@ class TaskDistributor:
             network_arg = ""
             server_url = f"https://{settings.PUBLIC_HOST}:{settings.PUBLIC_PORT}"
         
-        # 挂载路径（所有节点统一使用固定路径）
-        host_results_dir = settings.HOST_RESULTS_DIR  # /opt/xingrin/results
-        host_logs_dir = settings.HOST_LOGS_DIR  # /opt/xingrin/logs
-        host_fingerprints_dir = settings.HOST_FINGERPRINTS_DIR  # /opt/xingrin/fingerprints
-        host_wordlists_dir = settings.HOST_WORDLISTS_DIR  # /opt/xingrin/wordlists
+        # 挂载路径（统一挂载 /opt/xingrin）
+        host_xingrin_dir = "/opt/xingrin"
         
         # 环境变量：SERVER_URL + IS_LOCAL，其他配置容器启动时从配置中心获取
         # IS_LOCAL 用于 Worker 向配置中心声明身份，决定返回的数据库地址
@@ -294,12 +291,9 @@ class TaskDistributor:
             "-e PREFECT_LOGGING_LEVEL=WARNING",  # 日志级别（减少 DEBUG 噪音）
         ]
         
-        # 挂载卷
+        # 挂载卷（统一挂载整个 /opt/xingrin 目录）
         volumes = [
-            f"-v {host_results_dir}:{self.results_mount}",
-            f"-v {host_logs_dir}:{self.logs_mount}",
-            f"-v {host_fingerprints_dir}:{host_fingerprints_dir}",
-            f"-v {host_wordlists_dir}:{host_wordlists_dir}",
+            f"-v {host_xingrin_dir}:{host_xingrin_dir}",
         ]
         
         # 构建命令行参数
@@ -560,7 +554,7 @@ class TaskDistributor:
             try:
                 # 构建 docker run 命令（清理过期扫描结果目录）
                 script_args = {
-                    'results_dir': '/app/backend/results',
+                    'results_dir': '/opt/xingrin/results',
                     'retention_days': retention_days,
                 }
                 

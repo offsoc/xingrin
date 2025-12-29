@@ -275,13 +275,22 @@ LOGGING = get_logging_config(debug=DEBUG)
 # 命令执行日志开关（供 apps.scan.utils.command_executor 使用）
 ENABLE_COMMAND_LOGGING = get_bool_env('ENABLE_COMMAND_LOGGING', True)
 
-# 扫描工具基础路径（后端和 Worker 统一使用该路径前缀存放三方工具等文件）
+# ==================== 数据目录配置（统一使用 /opt/xingrin） ====================
+# 所有数据目录统一挂载到 /opt/xingrin，便于管理和备份
+
+# 扫描工具基础路径
 SCAN_TOOLS_BASE_PATH = os.getenv('SCAN_TOOLS_PATH', '/opt/xingrin/tools')
 
-# 字典文件基础路径（后端和 Worker 统一使用该路径前缀存放字典文件）
+# 字典文件基础路径
 WORDLISTS_BASE_PATH = os.getenv('WORDLISTS_PATH', '/opt/xingrin/wordlists')
 
-# Nuclei 模板基础路径（custom / public 两类模板目录）
+# 指纹库基础路径
+FINGERPRINTS_BASE_PATH = os.getenv('FINGERPRINTS_PATH', '/opt/xingrin/fingerprints')
+
+# Nuclei 模板仓库根目录（存放 git clone 的仓库）
+NUCLEI_TEMPLATES_REPOS_BASE_DIR = os.getenv('NUCLEI_TEMPLATES_REPOS_DIR', '/opt/xingrin/nuclei-repos')
+
+# Nuclei 模板基础路径（custom / public 两类模板目录，已废弃，保留兼容）
 NUCLEI_CUSTOM_TEMPLATES_DIR = os.getenv('NUCLEI_CUSTOM_TEMPLATES_DIR', '/opt/xingrin/nuclei-templates/custom')
 NUCLEI_PUBLIC_TEMPLATES_DIR = os.getenv('NUCLEI_PUBLIC_TEMPLATES_DIR', '/opt/xingrin/nuclei-templates/public')
 
@@ -336,7 +345,7 @@ TASK_SUBMIT_INTERVAL = int(os.getenv('TASK_SUBMIT_INTERVAL', '6'))
 DOCKER_NETWORK_NAME = os.getenv('DOCKER_NETWORK_NAME', 'xingrin_network')
 
 # 宿主机挂载源路径（所有节点统一使用固定路径）
-# 部署前需创建：mkdir -p /opt/xingrin/{results,logs,fingerprints,wordlists}
+# 部署前需创建：mkdir -p /opt/xingrin
 HOST_RESULTS_DIR = '/opt/xingrin/results'
 HOST_LOGS_DIR = '/opt/xingrin/logs'
 HOST_FINGERPRINTS_DIR = '/opt/xingrin/fingerprints'
@@ -364,6 +373,6 @@ WORKER_REDIS_URL = os.getenv(
     'redis://redis:6379/0' if _is_internal_public else f'redis://{PUBLIC_HOST}:6379/0'
 )
 
-# 容器内挂载目标路径（固定值，不需要修改）
-CONTAINER_RESULTS_MOUNT = '/app/backend/results'
-CONTAINER_LOGS_MOUNT = '/app/backend/logs'
+# 容器内挂载目标路径（统一使用 /opt/xingrin）
+CONTAINER_RESULTS_MOUNT = '/opt/xingrin/results'
+CONTAINER_LOGS_MOUNT = '/opt/xingrin/logs'

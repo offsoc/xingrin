@@ -1,7 +1,8 @@
 """初始化所有内置字典 Wordlist 记录
 
-- 目录扫描默认字典: dir_default.txt -> /app/backend/wordlist/dir_default.txt
-- 子域名爆破默认字典: subdomains-top1million-110000.txt -> /app/backend/wordlist/subdomains-top1million-110000.txt
+内置字典从镜像内 /app/backend/wordlist/ 复制到运行时目录 /opt/xingrin/wordlists/：
+- 目录扫描默认字典: dir_default.txt
+- 子域名爆破默认字典: subdomains-top1million-110000.txt
 
 可重复执行：如果已存在同名记录且文件有效则跳过，只在缺失或文件丢失时创建/修复。
 """

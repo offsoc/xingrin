@@ -83,7 +83,7 @@ def cleanup_results(results_dir: str, retention_days: int) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="清理任务")
-    parser.add_argument("--results_dir", type=str, default="/app/backend/results", help="扫描结果目录")
+    parser.add_argument("--results_dir", type=str, default="/opt/xingrin/results", help="扫描结果目录")
     parser.add_argument("--retention_days", type=int, default=7, help="保留天数")
     
     args = parser.parse_args()
