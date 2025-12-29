@@ -18,7 +18,7 @@ import { ExpandableCell } from "@/components/ui/data-table/expandable-cell"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 
-// 翻译类型定义
+// Translation type definitions
 export interface CommandTranslations {
   columns: {
     name: string
@@ -47,7 +47,7 @@ interface CreateColumnsProps {
 }
 
 /**
- * 创建命令表格列定义
+ * Create command table column definitions
  */
 export function createCommandColumns({
   formatDate,

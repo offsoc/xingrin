@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import type { GobyFingerprint } from "@/types/fingerprint.types"
 
-// 翻译类型定义
+// Translation type definitions
 export interface GobyFingerprintTranslations {
   columns: {
     name: string
@@ -29,7 +29,7 @@ interface ColumnOptions {
 }
 
 /**
- * 规则详情单元格组件 - 显示原始 JSON 数据
+ * Rule details cell component - displays raw JSON data
  */
 function RuleDetailsCell({ rules, t }: { rules: any[]; t: GobyFingerprintTranslations }) {
   const [expanded, setExpanded] = React.useState(false)
@@ -61,7 +61,7 @@ function RuleDetailsCell({ rules, t }: { rules: any[]; t: GobyFingerprintTransla
 }
 
 /**
- * 创建 Goby 指纹表格列定义
+ * Create Goby fingerprint table column definitions
  */
 export function createGobyFingerprintColumns({
   formatDate,

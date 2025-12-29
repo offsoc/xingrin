@@ -7,7 +7,7 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import { ExpandableCell } from "@/components/ui/data-table/expandable-cell"
 import type { WappalyzerFingerprint } from "@/types/fingerprint.types"
 
-// 翻译类型定义
+// Translation type definitions
 export interface WappalyzerFingerprintTranslations {
   columns: {
     name: string
@@ -38,7 +38,7 @@ interface RuleItem {
 }
 
 /**
- * 提取指纹的所有规则（保持原始格式）
+ * Extract all rules from fingerprint (keeping original format)
  */
 function extractRules(fp: WappalyzerFingerprint): RuleItem[] {
   const rules: RuleItem[] = []
@@ -55,7 +55,7 @@ function extractRules(fp: WappalyzerFingerprint): RuleItem[] {
 }
 
 /**
- * 规则列表单元格 - 显示原始 JSON 格式
+ * Rules list cell - displays raw JSON format
  */
 function RulesCell({ fp, t }: { fp: WappalyzerFingerprint; t: WappalyzerFingerprintTranslations }) {
   const [expanded, setExpanded] = React.useState(false)
@@ -90,7 +90,7 @@ function RulesCell({ fp, t }: { fp: WappalyzerFingerprint; t: WappalyzerFingerpr
 }
 
 /**
- * 创建 Wappalyzer 指纹表格列定义
+ * Create Wappalyzer fingerprint table column definitions
  */
 export function createWappalyzerFingerprintColumns({
   formatDate,

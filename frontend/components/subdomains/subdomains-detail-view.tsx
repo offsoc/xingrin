@@ -18,10 +18,10 @@ import { getDateLocale } from "@/lib/date-utils"
 import type { Subdomain } from "@/types/subdomain.types"
 
 /**
- * 子域名详情视图组件
- * 支持两种模式：
- * 1. targetId: 显示目标下的所有子域名
- * 2. scanId: 显示扫描历史中的子域名
+ * Subdomain detail view component
+ * Supports two modes:
+ * 1. targetId: Display all subdomains under a target
+ * 2. scanId: Display subdomains from scan history
  */
 export function SubdomainsDetailView({
   targetId,
@@ -32,13 +32,13 @@ export function SubdomainsDetailView({
 }) {
   const [selectedSubdomains, setSelectedSubdomains] = useState<Subdomain[]>([])
 
-  // 国际化
+  // Internationalization
   const tColumns = useTranslations("columns")
   const tCommon = useTranslations("common")
   const tSubdomains = useTranslations("subdomains")
   const locale = useLocale()
 
-  // 构建翻译对象
+  // Build translation object
   const translations = useMemo(() => ({
     columns: {
       subdomain: tColumns("subdomain.subdomain"),
@@ -50,16 +50,16 @@ export function SubdomainsDetailView({
     },
   }), [tColumns, tCommon])
 
-  // 批量添加弹窗状态
+  // Bulk add dialog state
   const [bulkAddOpen, setBulkAddOpen] = useState(false)
 
-  // 分页状态
+  // Pagination state
   const [pagination, setPagination] = useState({
     pageIndex: 0,  // 0-based for react-table
     pageSize: 10,
   })
 
-  // 过滤状态（智能过滤语法）
+  // Filter state (smart filter syntax)
   const [filterQuery, setFilterQuery] = useState("")
   const [isSearching, setIsSearching] = useState(false)
 
@@ -69,7 +69,7 @@ export function SubdomainsDetailView({
     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
   }
 
-  // 根据 targetId 或 scanId 获取子域名数据（传入分页和过滤参数）
+  // Fetch subdomain data based on targetId or scanId (with pagination and filter params)
   const targetSubdomainsQuery = useTargetSubdomains(
     targetId || 0,
     {
@@ -89,21 +89,21 @@ export function SubdomainsDetailView({
     { enabled: !!scanId }
   )
 
-  // 选择当前使用的查询结果
+  // Select the active query result
   const activeQuery = targetId ? targetSubdomainsQuery : scanSubdomainsQuery
   const { data: subdomainsData, isLoading, isFetching, error, refetch } = activeQuery
 
-  // 当请求完成时重置搜索状态
+  // Reset search state when request completes
   React.useEffect(() => {
     if (!isFetching && isSearching) {
       setIsSearching(false)
     }
   }, [isFetching, isSearching])
 
-  // 获取目标信息（仅在 targetId 模式下）
+  // Get target info (only in targetId mode)
   const { data: targetData } = useTarget(targetId || 0)
 
-  // 辅助函数 - 格式化日期
+  // Helper function - format date
   const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleString(getDateLocale(locale), {
       year: "numeric",
@@ -116,13 +116,13 @@ export function SubdomainsDetailView({
     })
   }
 
-  // 导航函数
+  // Navigation function
   const router = useRouter()
   const navigate = (path: string) => {
     router.push(path)
   }
 
-  // 处理分页变化
+  // Handle pagination change
   const handlePaginationChange = (newPagination: { pageIndex: number; pageSize: number }) => {
     setPagination(newPagination)
   }

@@ -26,14 +26,14 @@ export function WappalyzerFingerprintView() {
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
 
-  // 国际化
+  // Internationalization
   const tColumns = useTranslations("columns")
   const tCommon = useTranslations("common")
   const tTooltips = useTranslations("tooltips")
   const tFingerprints = useTranslations("tools.fingerprints")
   const locale = useLocale()
 
-  // 构建翻译对象
+  // Build translation object
   const translations = useMemo(() => ({
     columns: {
       name: tColumns("common.name"),
@@ -53,7 +53,7 @@ export function WappalyzerFingerprintView() {
     },
   }), [tColumns, tCommon, tTooltips])
 
-  // 查询数据
+  // Query data
   const { data, isLoading, isFetching, error, refetch } = useWappalyzerFingerprints({
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
@@ -64,7 +64,7 @@ export function WappalyzerFingerprintView() {
   const bulkDeleteMutation = useBulkDeleteWappalyzerFingerprints()
   const deleteAllMutation = useDeleteAllWappalyzerFingerprints()
 
-  // 搜索状态
+  // Search state
   React.useEffect(() => {
     if (!isFetching && isSearching) {
       setIsSearching(false)
@@ -77,7 +77,7 @@ export function WappalyzerFingerprintView() {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
   }
 
-  // 格式化日期
+  // Format date
   const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleString(getDateLocale(locale), {
       year: "numeric",
@@ -89,7 +89,7 @@ export function WappalyzerFingerprintView() {
     })
   }
 
-  // 导出
+  // Export
   const handleExport = async () => {
     try {
       const blob = await FingerprintService.exportWappalyzerFingerprints()
@@ -107,7 +107,7 @@ export function WappalyzerFingerprintView() {
     }
   }
 
-  // 批量删除
+  // Bulk delete
   const handleBulkDelete = async () => {
     if (selectedFingerprints.length === 0) return
 
@@ -121,7 +121,7 @@ export function WappalyzerFingerprintView() {
     }
   }
 
-  // 删除所有
+  // Delete all
   const handleDeleteAll = async () => {
     try {
       const result = await deleteAllMutation.mutateAsync()
@@ -131,19 +131,19 @@ export function WappalyzerFingerprintView() {
     }
   }
 
-  // 列定义
+  // Column definitions
   const columns = useMemo(
     () => createWappalyzerFingerprintColumns({ formatDate, t: translations }),
     [translations]
   )
 
-  // 转换数据
+  // Transform data
   const fingerprints: WappalyzerFingerprint[] = useMemo(() => {
     if (!data?.results) return []
     return data.results
   }, [data])
 
-  // 稳定 paginationInfo 引用，避免不必要的重新渲染
+  // Stabilize paginationInfo reference to avoid unnecessary re-renders
   const total = data?.total ?? 0
   const page = data?.page ?? 1
   const serverPageSize = data?.pageSize ?? 10
@@ -156,7 +156,7 @@ export function WappalyzerFingerprintView() {
     totalPages,
   }), [total, page, serverPageSize, totalPages])
 
-  // 错误状态
+  // Error state
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -177,7 +177,7 @@ export function WappalyzerFingerprintView() {
     )
   }
 
-  // 加载状态
+  // Loading state
   if (isLoading && !data) {
     return <DataTableSkeleton toolbarButtonCount={3} rows={6} columns={7} />
   }
@@ -202,14 +202,14 @@ export function WappalyzerFingerprintView() {
         onPaginationChange={setPagination}
       />
 
-      {/* 添加指纹对话框 */}
+      {/* Add fingerprint dialog */}
       <WappalyzerFingerprintDialog
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         onSuccess={() => refetch()}
       />
 
-      {/* 导入指纹对话框 */}
+      {/* Import fingerprint dialog */}
       <ImportFingerprintDialog
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}

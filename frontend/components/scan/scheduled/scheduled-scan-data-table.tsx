@@ -19,7 +19,7 @@ interface ScheduledScanDataTableProps {
   onSearch?: (value: string) => void
   isSearching?: boolean
   addButtonText?: string
-  // 服务端分页相关
+  // Server-side pagination related
   page?: number
   pageSize?: number
   total?: number
@@ -29,8 +29,8 @@ interface ScheduledScanDataTableProps {
 }
 
 /**
- * 定时扫描数据表格组件
- * 使用 UnifiedDataTable 统一组件
+ * Scheduled scan data table component
+ * Uses UnifiedDataTable unified component
  */
 export function ScheduledScanDataTable({
   data = [],
@@ -51,7 +51,7 @@ export function ScheduledScanDataTable({
   const t = useTranslations("common.status")
   const tScan = useTranslations("scan.scheduled")
   
-  // 搜索本地状态
+  // Search local state
   const [localSearchValue, setLocalSearchValue] = React.useState(searchValue || "")
 
   React.useEffect(() => {
@@ -70,7 +70,7 @@ export function ScheduledScanDataTable({
     }
   }
 
-  // 转换为 UnifiedDataTable 需要的分页格式
+  // Convert to pagination format required by UnifiedDataTable
   const pagination = { pageIndex: page - 1, pageSize }
   const paginationInfo: PaginationInfo = {
     total,
@@ -93,19 +93,19 @@ export function ScheduledScanDataTable({
       data={data}
       columns={columns}
       getRowId={(row) => String(row.id)}
-      // 分页
+      // Pagination
       pagination={pagination}
       paginationInfo={paginationInfo}
       onPaginationChange={handlePaginationChange}
-      // 选择
+      // Selection
       enableRowSelection={false}
-      // 批量操作
+      // Bulk operations
       showBulkDelete={false}
       onAddNew={onAddNew}
       addButtonLabel={addButtonText || tScan("createTitle")}
-      // 空状态
+      // Empty state
       emptyMessage={t("noData")}
-      // 自定义搜索框
+      // Custom search box
       toolbarLeft={
         <div className="flex items-center space-x-2">
           <Input

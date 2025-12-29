@@ -5,7 +5,7 @@ import { Plus, Target as TargetIcon, Building2, Loader2, Check, ChevronsUpDown }
 import { IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight } from "@tabler/icons-react"
 import { useTranslations } from "next-intl"
 
-// 导入 UI 组件
+// Import UI components
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -38,29 +38,29 @@ import { cn } from "@/lib/utils"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { TargetValidator } from "@/lib/target-validator"
 
-// 导入 React Query Hooks
+// Import React Query Hooks
 import { useOrganizations } from "@/hooks/use-organizations"
 import { useBatchCreateTargets } from "@/hooks/use-targets"
 import { toast } from "sonner"
 import type { BatchCreateTargetsRequest } from "@/types/target.types"
 
-// 组件属性类型定义
+// Component props type definition
 interface AddTargetDialogProps {
-  onAdd?: () => void                                             // 添加成功回调
-  open?: boolean                                                 // 外部控制对话框开关状态
-  onOpenChange?: (open: boolean) => void                         // 外部控制对话框开关回调
-  prefetchEnabled?: boolean                                      // 是否提前预取组织列表
+  onAdd?: () => void                                             // Success callback after adding
+  open?: boolean                                                 // External control for dialog open state
+  onOpenChange?: (open: boolean) => void                         // External control for dialog open callback
+  prefetchEnabled?: boolean                                      // Whether to prefetch organization list
 }
 
 /**
- * 添加目标对话框组件（支持选择组织）
+ * Add target dialog component (supports organization selection)
  * 
- * 功能特性：
- * 1. 批量输入目标
- * 2. 可选择所属组织
- * 3. 自动创建不存在的目标
- * 4. 自动管理提交状态
- * 5. 自动错误处理和成功提示
+ * Features:
+ * 1. Batch input targets
+ * 2. Optional organization selection
+ * 3. Auto-create non-existent targets
+ * 4. Auto-manage submission state
+ * 5. Auto error handling and success notifications
  */
 export function AddTargetDialog({ 
   onAdd,
@@ -72,45 +72,45 @@ export function AddTargetDialog({
   const tCommon = useTranslations("common.actions")
   const tPagination = useTranslations("common.pagination")
   
-  // 对话框开关状态 - 支持外部控制
+  // Dialog open state - supports external control
   const [internalOpen, setInternalOpen] = useState(false)
   const open = externalOpen !== undefined ? externalOpen : internalOpen
   const setOpen = externalOnOpenChange || setInternalOpen
   const [orgPickerOpen, setOrgPickerOpen] = useState(false)
   
-  // 表单数据状态
+  // Form data state
   const [formData, setFormData] = useState({
-    targets: "",  // 目标列表，每行一个
-    organizationId: "",  // 选择的组织ID
+    targets: "",  // Target list, one per line
+    organizationId: "",  // Selected organization ID
   })
   
-  // 组织选择器状态
+  // Organization picker state
   const [orgSearchQuery, setOrgSearchQuery] = useState("")
   const [orgPage, setOrgPage] = useState(1)
-  const [orgPageSize, setOrgPageSize] = useState(20)  // 默认每页20条
+  const [orgPageSize, setOrgPageSize] = useState(20)  // Default 20 items per page
   const pageSizeOptions = [20, 50, 200, 500, 1000]
   
-  // 验证错误状态
+  // Validation error state
   const [invalidTargets, setInvalidTargets] = useState<Array<{ index: number; originalTarget: string; error: string; type?: string }>>([])
   
-  // 使用批量创建目标 mutation
+  // Use batch create targets mutation
   const batchCreateTargets = useBatchCreateTargets()
   
-  // 行号列和输入框的 ref（用于同步滚动）
+  // Refs for line numbers and textarea (for synchronized scrolling)
   const lineNumbersRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   
-  // 获取组织列表（支持分页）
+  // Get organization list (supports pagination)
   const shouldEnableOrgsQuery = Boolean(prefetchEnabled || orgPickerOpen)
   const { data: organizationsData, isLoading: isLoadingOrganizations } = useOrganizations(
     {
       page: orgPage,
-      pageSize: orgPageSize,  // 动态每页数量
+      pageSize: orgPageSize,  // Dynamic page size
     },
     { enabled: shouldEnableOrgsQuery }
   )
 
-  // 处理输入框变化
+  // Handle input change
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -136,17 +136,17 @@ export function AddTargetDialog({
     }
   }
   
-  // 计算目标数量
+  // Calculate target count
   const targetCount = formData.targets
     .split("\n")
     .map(line => line.trim())
     .filter(line => line.length > 0).length
 
-  // 处理表单提交
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // 表单验证
+    // Form validation
     if (!formData.targets.trim()) {
       return
     }
@@ -155,7 +155,7 @@ export function AddTargetDialog({
       return
     }
 
-    // 解析目标列表（每行一个目标）
+    // Parse target list (one target per line)
     const targetList = formData.targets
       .split("\n")
       .map(line => line.trim())
@@ -168,7 +168,7 @@ export function AddTargetDialog({
       return
     }
 
-    // 组装请求数据（组织为可选字段）
+    // Assemble request data (organization is optional)
     const payload: BatchCreateTargetsRequest = {
       targets: targetList,
     }
@@ -177,12 +177,12 @@ export function AddTargetDialog({
       payload.organizationId = parseInt(formData.organizationId, 10)
     }
 
-    // 调用批量创建 API
+    // Call batch create API
     batchCreateTargets.mutate(
       payload,
       {
         onSuccess: (batchCreateResult) => {
-          // 重置表单
+          // Reset form
           setFormData({
             targets: "",
             organizationId: "",
@@ -192,10 +192,10 @@ export function AddTargetDialog({
           setOrgPage(1)
           setOrgPageSize(20)
           
-          // 关闭对话框
+          // Close dialog
           setOpen(false)
           
-          // 调用外部回调（如果提供）
+          // Call external callback (if provided)
           if (onAdd) {
             onAdd()
           }
@@ -204,12 +204,12 @@ export function AddTargetDialog({
     )
   }
 
-  // 处理对话框关闭
+  // Handle dialog close
   const handleOpenChange = (newOpen: boolean) => {
     if (!batchCreateTargets.isPending) {
       setOpen(newOpen)
       if (!newOpen) {
-        // 关闭时重置表单
+        // Reset form when closing
         setFormData({
           targets: "",
           organizationId: "",
@@ -217,35 +217,35 @@ export function AddTargetDialog({
         setInvalidTargets([])
         setOrgSearchQuery("")
         setOrgPage(1)
-        setOrgPageSize(20)  // 重置为默认值
+        setOrgPageSize(20)  // Reset to default value
       }
     }
   }
 
-  // 表单验证
+  // Form validation
   const isFormValid = formData.targets.trim().length > 0 && invalidTargets.length === 0
   
-  // 同步输入框和行号列的滚动
+  // Synchronize textarea and line numbers scrolling
   const handleTextareaScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
     if (lineNumbersRef.current) {
       lineNumbersRef.current.scrollTop = e.currentTarget.scrollTop
     }
   }
 
-  // 获取选中的组织名称
+  // Get selected organization name
   const [selectedOrgName, setSelectedOrgName] = useState("")
   const selectedOrganization = organizationsData?.organizations.find(
     org => org.id.toString() === formData.organizationId
   )
   
-  // 更新选中组织的名称
+  // Update selected organization name
   React.useEffect(() => {
     if (selectedOrganization) {
       setSelectedOrgName(selectedOrganization.name)
     }
   }, [selectedOrganization])
   
-  // 过滤组织列表
+  // Filter organization list
   const filteredOrganizations = React.useMemo(() => {
     if (!organizationsData?.organizations) return []
     if (!orgSearchQuery) return organizationsData.organizations
@@ -254,19 +254,19 @@ export function AddTargetDialog({
     )
   }, [organizationsData?.organizations, orgSearchQuery])
   
-  // 处理组织选择
+  // Handle organization selection
   const handleSelectOrganization = (orgId: string, orgName: string) => {
     handleInputChange("organizationId", orgId)
     setSelectedOrgName(orgName)
     setOrgPickerOpen(false)
     setOrgSearchQuery("")
     setOrgPage(1)
-    setOrgPageSize(20)  // 重置为默认值
+    setOrgPageSize(20)  // Reset to default value
   }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      {/* 触发按钮 - 仅在非外部控制时显示 */}
+      {/* Trigger button - only shown when not externally controlled */}
       {externalOpen === undefined && (
         <DialogTrigger asChild>
           <Button size="sm">
@@ -276,7 +276,7 @@ export function AddTargetDialog({
         </DialogTrigger>
       )}
       
-      {/* 对话框内容 */}
+      {/* Dialog content */}
       <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
@@ -288,16 +288,16 @@ export function AddTargetDialog({
           </DialogDescription>
         </DialogHeader>
         
-        {/* 表单 */}
+        {/* Form */}
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            {/* 目标输入框（支持多行） */}
+            {/* Target input (supports multiple lines) */}
             <div className="grid gap-2">
               <Label htmlFor="targets">
                 {t("targetList")} <span className="text-destructive">*</span>
               </Label>
               <div className="flex border rounded-md overflow-hidden h-[180px]">
-                {/* 行号列 - 固定宽度 */}
+                {/* Line numbers column - fixed width */}
                 <div className="flex-shrink-0 w-12 border-r bg-muted/50">
                   <div 
                     ref={lineNumbersRef}
@@ -310,9 +310,9 @@ export function AddTargetDialog({
                     ))}
                   </div>
                 </div>
-                {/* 输入框区域 - 占据剩余空间 */}
+                {/* Input area - takes remaining space */}
                 <div className="flex-1 overflow-hidden">
-                  {/* 输入框 - 固定高度显示8行 */}
+                  {/* Input - fixed height showing 8 lines */}
                   <Textarea
                     ref={textareaRef}
                     id="targets"
@@ -341,7 +341,7 @@ export function AddTargetDialog({
               )}
             </div>
 
-            {/* 所属组织（可选择、可搜索、分页） */}
+            {/* Organization (optional, searchable, paginated) */}
             <div className="grid gap-2">
               <Label htmlFor="organization">
                 {t("linkOrganization")}
@@ -490,7 +490,7 @@ export function AddTargetDialog({
             </div>
           </div>
           
-          {/* 对话框底部按钮 */}
+          {/* Dialog footer buttons */}
           <DialogFooter>
             <Button 
               type="button" 

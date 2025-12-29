@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import type { EholeFingerprint } from "@/types/fingerprint.types"
 
-// 翻译类型定义
+// Translation type definitions
 export interface EholeFingerprintTranslations {
   columns: {
     cms: string
@@ -32,7 +32,7 @@ interface ColumnOptions {
 }
 
 /**
- * 关键词列表单元格 - 默认显示3个，超出可展开
+ * Keyword list cell - displays 3 by default, expandable for more
  */
 function KeywordListCell({ keywords, t }: { keywords: string[]; t: EholeFingerprintTranslations }) {
   const [expanded, setExpanded] = React.useState(false)
@@ -64,7 +64,7 @@ function KeywordListCell({ keywords, t }: { keywords: string[]; t: EholeFingerpr
 }
 
 /**
- * 创建 EHole 指纹表格列定义
+ * Create EHole fingerprint table column definitions
  */
 export function createEholeFingerprintColumns({
   formatDate,

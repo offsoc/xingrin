@@ -152,7 +152,7 @@ export function GobyFingerprintDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* 产品名称 & 逻辑表达式 */}
+          {/* Product name & Logic expression */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">{tColumns("name") || "Name"} *</Label>
@@ -179,7 +179,7 @@ export function GobyFingerprintDialog({
             </div>
           </div>
 
-          {/* 规则列表 */}
+          {/* Rule list */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>{tColumns("rules")} *</Label>

@@ -1,5 +1,5 @@
 /**
- * Tool Config Components - 统一导出
+ * Tool Config Components - Unified exports
  */
 export { ToolCard } from './tool-card'
 export { OpensourceToolsList } from './opensource-tools-list'

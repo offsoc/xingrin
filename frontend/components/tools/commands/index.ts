@@ -1,5 +1,5 @@
 /**
- * Tool Commands Components - 统一导出
+ * Tool Commands Components - Unified exports
  */
 export { CommandsDataTable } from './commands-data-table'
 export { createCommandColumns } from './commands-columns'

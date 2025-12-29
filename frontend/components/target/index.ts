@@ -1,5 +1,5 @@
 /**
- * Target Components - 统一导出
+ * Target Components - Unified exports
  */
 export { TargetsDataTable } from './targets-data-table'
 export { createAllTargetsColumns } from './all-targets-columns'

@@ -22,7 +22,7 @@ interface TargetsDataTableProps {
   onSearch?: (value: string) => void
   isSearching?: boolean
   addButtonText?: string
-  // 分页相关属性
+  // Pagination related props
   pagination?: { pageIndex: number, pageSize: number }
   onPaginationChange?: (pagination: { pageIndex: number, pageSize: number }) => void
   totalCount?: number
@@ -30,8 +30,8 @@ interface TargetsDataTableProps {
 }
 
 /**
- * 目标数据表格组件 (target 版本)
- * 使用 UnifiedDataTable 统一组件
+ * Targets data table component (target version)
+ * Uses UnifiedDataTable unified component
  */
 export function TargetsDataTable({
   data = [],
@@ -54,13 +54,13 @@ export function TargetsDataTable({
   const tActions = useTranslations("common.actions")
   const tTarget = useTranslations("target")
   
-  // 内部分页状态
+  // Internal pagination state
   const [internalPagination, setInternalPagination] = React.useState<{ pageIndex: number, pageSize: number }>({
     pageIndex: 0,
     pageSize: 10,
   })
 
-  // 本地搜索输入状态
+  // Local search input state
   const [localSearchValue, setLocalSearchValue] = React.useState(searchValue ?? "")
   
   React.useEffect(() => {
@@ -81,7 +81,7 @@ export function TargetsDataTable({
 
   const pagination = externalPagination || internalPagination
 
-  // 处理分页状态变化
+  // Handle pagination state change
   const handlePaginationChange = (newPagination: { pageIndex: number, pageSize: number }) => {
     if (onPaginationChange) {
       onPaginationChange(newPagination)
@@ -90,7 +90,7 @@ export function TargetsDataTable({
     }
   }
 
-  // 构建 paginationInfo
+  // Build paginationInfo
   const paginationInfo: PaginationInfo | undefined = manualPagination && totalCount ? {
     total: totalCount,
     totalPages: Math.ceil(totalCount / pagination.pageSize),
@@ -103,24 +103,24 @@ export function TargetsDataTable({
       data={data}
       columns={columns}
       getRowId={(row) => String(row.id)}
-      // 分页
+      // Pagination
       pagination={pagination}
       setPagination={onPaginationChange ? undefined : setInternalPagination}
       paginationInfo={paginationInfo}
       onPaginationChange={handlePaginationChange}
-      // 选择
+      // Selection
       onSelectionChange={onSelectionChange}
-      // 批量操作
+      // Bulk operations
       onBulkDelete={onBulkDelete}
       bulkDeleteLabel={tActions("delete")}
-      // 添加按钮
+      // Add button
       onAddNew={onAddNew}
       onAddHover={onAddHover}
       addButtonLabel={addButtonText || tTarget("createTarget")}
       showAddButton={!!onAddNew}
-      // 空状态
+      // Empty state
       emptyMessage={t("noData")}
-      // 自定义工具栏
+      // Custom toolbar
       toolbarLeft={
         <div className="flex items-center space-x-2">
           <Input

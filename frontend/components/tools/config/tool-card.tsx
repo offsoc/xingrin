@@ -12,32 +12,32 @@ import { useTranslations } from "next-intl"
 interface ToolCardProps {
   tool: Tool
   onCheckUpdate?: (toolId: number) => void | Promise<void>
-  onEdit?: (tool: Tool) => void  // 编辑工具回调
-  onDelete?: (toolId: number) => void  // 删除工具回调
-  isChecking?: boolean  // 是否正在检查更新
+  onEdit?: (tool: Tool) => void  // Edit tool callback
+  onDelete?: (toolId: number) => void  // Delete tool callback
+  isChecking?: boolean  // Whether checking for updates
 }
 
 /**
- * 高亮描述文本组件
- * 简单显示描述文本，保持简洁
+ * Highlighted description text component
+ * Simply display description text, keep it concise
  */
 function HighlightedDescription({ description }: { description: string }) {
   return <p className="line-clamp-4">{description}</p>
 }
 
 /**
- * 工具卡片组件
- * 显示单个扫描工具的信息
+ * Tool card component
+ * Display information for a single scan tool
  */
 export function ToolCard({ tool, onCheckUpdate, onEdit, onDelete, isChecking = false }: ToolCardProps) {
   const t = useTranslations("tools.config")
-  // 从 name 生成首字母大写的 displayName
+  // Generate capitalized displayName from name
   const displayName = tool.name.charAt(0).toUpperCase() + tool.name.slice(1)
   
   return (
     <Card className="flex flex-col h-full hover:shadow-lg transition-shadow">
       <CardHeader className=" space-y-2">
-        {/* 工具名称 */}
+        {/* Tool name */}
         <CardTitle 
           className="text-center text-2xl font-bold truncate px-2" 
           title={displayName}
@@ -45,7 +45,7 @@ export function ToolCard({ tool, onCheckUpdate, onEdit, onDelete, isChecking = f
           {displayName}
         </CardTitle>
 
-        {/* GitHub/仓库链接 */}
+        {/* GitHub/repository link */}
         <div className="flex items-center justify-center">
           {tool.repoUrl && (
             <Link 
@@ -60,12 +60,12 @@ export function ToolCard({ tool, onCheckUpdate, onEdit, onDelete, isChecking = f
           )}
         </div>
 
-        {/* 分类标签（居中显示，最多3个）*/}
+        {/* Category tags (centered, max 3) */}
         <div className="flex items-center justify-center pt-1">
           {tool.categoryNames && tool.categoryNames.length > 0 ? (
             <div 
               className="flex flex-wrap gap-1 justify-center max-w-full"
-              title={tool.categoryNames.map(c => CategoryNameMap[c] || c).join('、')}
+              title={tool.categoryNames.map(c => CategoryNameMap[c] || c).join(', ')}
             >
               {tool.categoryNames.slice(0, 3).map((categoryName: string) => (
                 <Badge key={categoryName} variant="secondary" className="text-xs whitespace-nowrap">
@@ -87,7 +87,7 @@ export function ToolCard({ tool, onCheckUpdate, onEdit, onDelete, isChecking = f
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col">
-        {/* 当前安装版本 */}
+        {/* Current installed version */}
         <div className="mb-2">
           <div className="text-xs text-muted-foreground text-center mb-1">
             {t("currentVersion")}
@@ -97,7 +97,7 @@ export function ToolCard({ tool, onCheckUpdate, onEdit, onDelete, isChecking = f
           </div>
         </div>
 
-        {/* 工具描述 */}
+        {/* Tool description */}
         <CardDescription 
           className="flex-1 text-center line-clamp-3 text-sm leading-snug"
           title={tool.description || t("noDescription")}

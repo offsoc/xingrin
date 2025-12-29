@@ -20,8 +20,8 @@ import { LoadingSpinner } from "@/components/loading-spinner"
 import { CardGridSkeleton } from "@/components/ui/card-grid-skeleton"
 
 /**
- * 开源工具列表组件
- * 展示和管理开源扫描工具
+ * Open source tools list component
+ * Display and manage open source scan tools
  */
 export function OpensourceToolsList() {
   const [checkingToolId, setCheckingToolId] = useState<number | null>(null)
@@ -29,48 +29,48 @@ export function OpensourceToolsList() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [toolToDelete, setToolToDelete] = useState<Tool | null>(null)
   
-  // 国际化
+  // Internationalization
   const tCommon = useTranslations("common")
   const tConfirm = useTranslations("common.confirm")
   const tConfig = useTranslations("tools.config")
   
-  // 获取工具列表（只获取开源工具）
+  // Get tool list (only open source tools)
   const { data, isLoading, error } = useTools({
     page: 1,
     pageSize: 100,
   })
 
-  // 过滤出开源工具
+  // Filter out open source tools
   const tools = (data?.tools || []).filter((tool: Tool) => tool.type === 'opensource')
   
-  // 删除工具 mutation
+  // Delete tool mutation
   const deleteTool = useDeleteTool()
 
-  // 处理检查更新
+  // Handle check update
   const handleCheckUpdate = async (toolId: number) => {
     try {
       setCheckingToolId(toolId)
-      console.log("检查工具更新:", toolId)
+      console.log("Checking tool update:", toolId)
       
-      // TODO: 调用后端 API 检查更新
-      // 模拟异步操作
+      // TODO: Call backend API to check update
+      // Simulate async operation
       await new Promise(resolve => setTimeout(resolve, 2000))
       
-      console.log("检查完成:", toolId)
+      console.log("Check complete:", toolId)
     } catch (error) {
-      console.error("检查更新失败:", error)
+      console.error("Check update failed:", error)
     } finally {
       setCheckingToolId(null)
     }
   }
 
-  // 处理编辑工具
+  // Handle edit tool
   const handleEditTool = (tool: Tool) => {
     setEditingTool(tool)
     setIsEditDialogOpen(true)
   }
 
-  // 编辑对话框关闭回调
+  // Edit dialog close callback
   const handleEditDialogClose = (open: boolean) => {
     setIsEditDialogOpen(open)
     if (!open) {
@@ -78,32 +78,32 @@ export function OpensourceToolsList() {
     }
   }
 
-  // 处理删除工具
+  // Handle delete tool
   const handleDeleteTool = (toolId: number) => {
     const tool = tools.find((t: Tool) => t.id === toolId)
     if (!tool) return
     setToolToDelete(tool)
   }
 
-  // 确认删除工具
+  // Confirm delete tool
   const confirmDelete = async () => {
     if (!toolToDelete) return
     
     try {
       await deleteTool.mutateAsync(toolToDelete.id)
-      // 删除成功后关闭对话框
+      // Close dialog after successful deletion
       setToolToDelete(null)
     } catch (error) {
-      // 错误已在 hook 中处理
+      // Error already handled in hook
     }
   }
 
-  // 加载状态
+  // Loading state
   if (isLoading) {
     return <CardGridSkeleton cards={4} />
   }
 
-  // 错误状态
+  // Error state
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -116,7 +116,7 @@ export function OpensourceToolsList() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 工具列表 */}
+      {/* Tool list */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {tools.map((tool: Tool) => (
           <ToolCard 
@@ -130,21 +130,21 @@ export function OpensourceToolsList() {
         ))}
       </div>
       
-      {/* 空状态 */}
+      {/* Empty state */}
       {tools.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">{tConfig("noTools")}</p>
         </div>
       )}
 
-      {/* 编辑工具对话框 */}
+      {/* Edit tool dialog */}
       <AddToolDialog 
         tool={editingTool || undefined}
         open={isEditDialogOpen}
         onOpenChange={handleEditDialogClose}
       />
 
-      {/* 删除确认对话框 */}
+      {/* Delete confirmation dialog */}
       <AlertDialog open={!!toolToDelete} onOpenChange={(open) => !open && setToolToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

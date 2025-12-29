@@ -47,7 +47,7 @@ export function ImportFingerprintDialog({
   const gobyImportMutation = useImportGobyFingerprints()
   const wappalyzerImportMutation = useImportWappalyzerFingerprints()
 
-  // 指纹类型配置
+  // Fingerprint type configuration
   const FINGERPRINT_CONFIG: Record<FingerprintType, {
     title: string
     description: string
@@ -80,7 +80,7 @@ export function ImportFingerprintDialog({
       description: t("import.gobyDesc"),
       formatHint: t("import.gobyFormatHint"),
       validate: (json) => {
-        // 支持数组和对象两种格式
+        // Support both array and object formats
         if (Array.isArray(json)) {
           if (json.length === 0) {
             return { valid: false, error: t("import.emptyData") }
@@ -104,14 +104,14 @@ export function ImportFingerprintDialog({
       description: t("import.wappalyzerDesc"),
       formatHint: t("import.wappalyzerFormatHint"),
       validate: (json) => {
-        // 支持数组格式
+        // Support array format
         if (Array.isArray(json)) {
           if (json.length === 0) {
             return { valid: false, error: t("import.emptyData") }
           }
           return { valid: true }
         }
-        // 支持对象格式 (apps 或 technologies)
+        // Support object format (apps or technologies)
         const apps = json.apps || json.technologies
         if (apps) {
           if (typeof apps !== "object" || Array.isArray(apps)) {
@@ -122,7 +122,7 @@ export function ImportFingerprintDialog({
           }
           return { valid: true }
         }
-        // 直接是对象格式
+        // Direct object format
         if (typeof json === "object" && json !== null) {
           if (Object.keys(json).length === 0) {
             return { valid: false, error: t("import.emptyData") }
@@ -154,7 +154,7 @@ export function ImportFingerprintDialog({
 
     const file = files[0]
 
-    // 前端基础校验
+    // Frontend basic validation
     try {
       const text = await file.text()
       const json = JSON.parse(text)
@@ -169,7 +169,7 @@ export function ImportFingerprintDialog({
       return
     }
 
-    // 校验通过，提交到后端
+    // Validation passed, submit to backend
     try {
       const result = await importMutation.mutateAsync(file)
       toast.success(t("import.importSuccessDetail", { created: result.created, failed: result.failed }))

@@ -22,7 +22,7 @@ import {
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import type { ScheduledScan } from "@/types/scheduled-scan.types"
 
-// 翻译类型定义
+// Translation type definitions
 export interface ScheduledScanTranslations {
   columns: {
     taskName: string
@@ -64,7 +64,7 @@ interface CreateColumnsProps {
 }
 
 /**
- * 解析 Cron 表达式为人类可读格式
+ * Parse Cron expression to human-readable format
  */
 function parseCronExpression(cron: string, t: ScheduledScanTranslations): string {
   if (!cron) return '-'
@@ -107,7 +107,7 @@ function parseCronExpression(cron: string, t: ScheduledScanTranslations): string
 }
 
 /**
- * 定时扫描行操作组件
+ * Scheduled scan row actions component
  */
 function ScheduledScanRowActions({
   onEdit,
@@ -148,7 +148,7 @@ function ScheduledScanRowActions({
 }
 
 /**
- * 创建定时扫描表格列定义
+ * Create scheduled scan table column definitions
  */
 export const createScheduledScanColumns = ({
   formatDate,

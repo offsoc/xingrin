@@ -9,18 +9,18 @@ import type { Subdomain } from "@/types/subdomain.types"
 import type { PaginationInfo } from "@/types/common.types"
 import type { DownloadOption } from "@/types/data-table.types"
 
-// 子域名页面的过滤字段配置
+// Subdomain page filter field configuration
 const SUBDOMAIN_FILTER_FIELDS: FilterField[] = [
   { key: "name", label: "Name", description: "Subdomain name" },
 ]
 
-// 子域名页面的示例
+// Subdomain page filter examples
 const SUBDOMAIN_FILTER_EXAMPLES = [
   'name="api.example.com"',
   'name="*.test.com"',
 ]
 
-// 组件属性类型定义
+// Component props type definition
 interface SubdomainsDataTableProps {
   data: Subdomain[]
   columns: ColumnDef<Subdomain>[]
@@ -46,8 +46,8 @@ interface SubdomainsDataTableProps {
 }
 
 /**
- * 子域名数据表格组件
- * 使用 UnifiedDataTable 统一组件
+ * Subdomain data table component
+ * Uses UnifiedDataTable unified component
  */
 export function SubdomainsDataTable({
   data = [],
@@ -72,14 +72,14 @@ export function SubdomainsDataTable({
   const tActions = useTranslations("common.actions")
   const tDownload = useTranslations("common.download")
   
-  // 处理智能过滤搜索
+  // Handle smart filter search
   const handleSmartSearch = (rawQuery: string) => {
     if (onFilterChange) {
       onFilterChange(rawQuery)
     }
   }
 
-  // 下载选项
+  // Download options
   const downloadOptions: DownloadOption[] = []
   if (onDownloadAll) {
     downloadOptions.push({

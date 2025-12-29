@@ -11,7 +11,7 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 
 import type { Vulnerability, VulnerabilitySeverity } from "@/types/vulnerability.types"
 
-// 翻译类型定义
+// Translation type definitions
 export interface VulnerabilityTranslations {
   columns: {
     severity: string
@@ -48,7 +48,7 @@ export function createVulnerabilityColumns({
   handleViewDetail,
   t,
 }: ColumnActions): ColumnDef<Vulnerability>[] {
-  // 统一的漏洞严重程度颜色配置
+  // Unified vulnerability severity color configuration
   const severityConfig: Record<VulnerabilitySeverity, { label: string; className: string }> = {
     critical: { label: t.severity.critical, className: "bg-[#da3633]/10 text-[#da3633] border border-[#da3633]/20 dark:text-[#f85149]" },
     high: { label: t.severity.high, className: "bg-[#d29922]/10 text-[#d29922] border border-[#d29922]/20" },

@@ -46,7 +46,7 @@ import { WorkerDialog } from "./worker-dialog"
 import { DeployTerminalDialog } from "./deploy-terminal-dialog"
 import { Rocket } from "lucide-react"
 
-// 后端状态 -> shadcn 状态映射
+// Backend status -> shadcn status mapping
 const STATUS_MAP: Record<WorkerStatus, 'online' | 'offline' | 'maintenance' | 'degraded'> = {
   online: 'online',
   offline: 'offline',
@@ -56,7 +56,7 @@ const STATUS_MAP: Record<WorkerStatus, 'online' | 'offline' | 'maintenance' | 'd
   outdated: 'offline',
 }
 
-// 统计卡片组件
+// Stats cards component
 function StatsCards({ workers, t }: { workers: WorkerNode[], t: ReturnType<typeof useTranslations> }) {
   const total = workers.length
   const online = workers.filter(w => w.status === 'online').length
@@ -89,7 +89,7 @@ function StatsCards({ workers, t }: { workers: WorkerNode[], t: ReturnType<typeo
   )
 }
 
-// 快速开始引导横幅
+// Quick start guide banner
 function QuickStartBanner({ t }: { t: ReturnType<typeof useTranslations> }) {
   const [helpOpen, setHelpOpen] = useState(false)
 
@@ -150,7 +150,7 @@ function QuickStartBanner({ t }: { t: ReturnType<typeof useTranslations> }) {
   )
 }
 
-// Worker 卡片视图组件
+// Worker card view component
 function WorkerCardView({ 
   workers, 
   onEdit, 
@@ -187,7 +187,7 @@ function WorkerCardView({
                     </Status>
                   </div>
               </div>
-              {/* 本地节点不显示编辑和删除按钮 */}
+              {/* Local node doesn't show edit and delete buttons */}
               {!worker.isLocal && (
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(worker)} title={t("edit")}>
@@ -201,7 +201,7 @@ function WorkerCardView({
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* 所有节点都显示 CPU 和内存 */}
+            {/* All nodes show CPU and memory */}
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="text-center p-2 rounded-lg bg-muted">
                 <p className="text-xs text-muted-foreground">CPU</p>
@@ -217,7 +217,7 @@ function WorkerCardView({
               </div>
             </div>
             
-            {/* 远程节点：额外显示连接信息和管理按钮 */}
+            {/* Remote nodes: additionally show connection info and manage button */}
             {!worker.isLocal && (
               <>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -239,7 +239,7 @@ function WorkerCardView({
   )
 }
 
-// 空状态组件
+// Empty state component
 function EmptyState({ onAdd, t }: { onAdd: () => void, t: ReturnType<typeof useTranslations> }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -306,13 +306,13 @@ export function WorkerList() {
 
   return (
     <div className="space-y-4">
-      {/* 快速开始引导横幅 */}
+      {/* Quick start guide banner */}
       <QuickStartBanner t={t} />
 
-      {/* 统计卡片 - 只在有 Worker 时显示 */}
+      {/* Stats cards - only show when there are Workers */}
       {hasWorkers && <StatsCards workers={workers} t={t} />}
 
-      {/* 主内容卡片 */}
+      {/* Main content card */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -349,7 +349,7 @@ export function WorkerList() {
         </CardContent>
       </Card>
 
-      {/* 弹窗 */}
+      {/* Dialogs */}
       <WorkerDialog 
         open={workerDialogOpen} 
         onOpenChange={setWorkerDialogOpen} 

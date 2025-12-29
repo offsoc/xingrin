@@ -22,11 +22,11 @@ export function CommandsDataTable<TData extends { id: number }>({
   const t = useTranslations("tools.commands")
   const tCommon = useTranslations("common")
   
-  // 本地搜索状态
+  // Local search state
   const [searchValue, setSearchValue] = React.useState("")
   const [selectedRows, setSelectedRows] = React.useState<TData[]>([])
 
-  // 过滤数据（本地过滤）
+  // Filter data (local filtering)
   const filteredData = React.useMemo(() => {
     if (!searchValue) return data
     return data.filter((item) => {
@@ -35,7 +35,7 @@ export function CommandsDataTable<TData extends { id: number }>({
     })
   }, [data, searchValue])
 
-  // 处理批量删除
+  // Handle bulk delete
   const handleBulkDelete = () => {
     if (onBulkDelete && selectedRows.length > 0) {
       const selectedIds = selectedRows.map((row) => row.id)

@@ -1,5 +1,5 @@
 /**
- * Scan History Components - 统一导出
+ * Scan History Components - Unified exports
  */
 export { ScanHistoryList } from './scan-history-list'
 export { ScanHistoryDataTable } from './scan-history-data-table'

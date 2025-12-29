@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useTranslations } from "next-intl"
 
-// 导入 UI 组件
+// Import UI components
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -34,23 +34,23 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 
-// 导入 React Query Hook
+// Import React Query Hook
 import { useCreateTool, useUpdateTool } from "@/hooks/use-tools"
 
-// 导入类型定义
+// Import type definitions
 import type { Tool } from "@/types/tool.types"
 import { CategoryNameMap } from "@/types/tool.types"
 
-// 组件属性类型定义
+// Component props type definition
 interface AddToolDialogProps {
-  tool?: Tool                   // 要编辑的工具数据（可选，有值时为编辑模式）
-  onAdd?: (tool: Tool) => void  // 添加成功回调函数（可选）
-  open?: boolean                // 外部控制对话框开关状态
-  onOpenChange?: (open: boolean) => void  // 外部控制对话框开关回调
+  tool?: Tool                   // Tool data to edit (optional, edit mode when provided)
+  onAdd?: (tool: Tool) => void  // Callback function on successful add (optional)
+  open?: boolean                // External control for dialog open state
+  onOpenChange?: (open: boolean) => void  // External control callback for dialog open state
 }
 
 /**
- * 根据工具名称和安装命令自动生成版本查询命令
+ * Auto-generate version query command based on tool name and install command
  */
 function generateVersionCommand(toolName: string, installCommand: string): string {
   if (!toolName) return ""
@@ -58,22 +58,22 @@ function generateVersionCommand(toolName: string, installCommand: string): strin
   const lowerName = toolName.toLowerCase().trim()
   const lowerInstall = installCommand.toLowerCase()
 
-  // Python 工具
+  // Python tools
   if (lowerInstall.includes("python") || lowerInstall.includes(".py")) {
     return `python ${lowerName}.py -v`
   }
 
-  // Go 工具
+  // Go tools
   if (lowerInstall.includes("go install") || lowerInstall.includes("go get")) {
     return `${lowerName} -version`
   }
 
-  // 默认尝试常见的版本命令
+  // Default: try common version commands
   return `${lowerName} --version`
 }
 
 /**
- * 添加工具对话框组件（使用 React Query）
+ * Add tool dialog component (using React Query)
  */
 export function AddToolDialog({
   tool,
@@ -83,22 +83,22 @@ export function AddToolDialog({
 }: AddToolDialogProps) {
   const t = useTranslations("tools.config")
   
-  // 判断是编辑模式还是添加模式
+  // Determine if in edit mode or add mode
   const isEditMode = !!tool
 
-  // 对话框开关状态 - 支持外部控制
+  // Dialog open state - supports external control
   const [internalOpen, setInternalOpen] = useState(false)
   const open = externalOpen !== undefined ? externalOpen : internalOpen
   const setOpen = externalOnOpenChange || setInternalOpen
 
-  // 使用预定义的分类列表
+  // Use predefined category list
   const availableCategories = Object.keys(CategoryNameMap)
 
-  // 使用 React Query 的创建和更新工具 mutation
+  // Use React Query create and update tool mutations
   const createTool = useCreateTool()
   const updateTool = useUpdateTool()
 
-  // 表单验证 Schema
+  // Form validation Schema
   const formSchema = z.object({
     name: z.string()
       .min(2, { message: t("toolNameMin") })
@@ -114,7 +114,7 @@ export function AddToolDialog({
 
   type FormValues = z.infer<typeof formSchema>
 
-  // 初始化表单
+  // Initialize form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -129,7 +129,7 @@ export function AddToolDialog({
     },
   })
 
-  // 当 tool 变化时重置表单
+  // Reset form when tool changes
   useEffect(() => {
     if (tool) {
       form.reset({
@@ -145,13 +145,13 @@ export function AddToolDialog({
     }
   }, [tool, form])
 
-  // 监听表单值变化
+  // Watch form value changes
   const watchName = form.watch("name")
   const watchInstallCommand = form.watch("installCommand")
   const watchVersionCommand = form.watch("versionCommand")
   const watchCategoryNames = form.watch("categoryNames")
 
-  // 自动生成版本命令
+  // Auto-generate version command
   useEffect(() => {
     if (watchName && watchInstallCommand && !watchVersionCommand) {
       const generatedCmd = generateVersionCommand(watchName, watchInstallCommand)
@@ -159,7 +159,7 @@ export function AddToolDialog({
     }
   }, [watchName, watchInstallCommand, watchVersionCommand, form])
 
-  // 处理表单提交
+  // Handle form submission
   const onSubmit = (values: FormValues) => {
     const toolData = {
       name: values.name.trim(),
@@ -191,7 +191,7 @@ export function AddToolDialog({
     }
   }
 
-  // 处理分类标签点击
+  // Handle category tag click
   const handleCategoryToggle = (categoryName: string) => {
     const current = form.getValues("categoryNames")
     const isSelected = current.includes(categoryName)
@@ -203,13 +203,13 @@ export function AddToolDialog({
     )
   }
 
-  // 移除分类标签
+  // Remove category tag
   const handleCategoryRemove = (categoryName: string) => {
     const current = form.getValues("categoryNames")
     form.setValue("categoryNames", current.filter(c => c !== categoryName))
   }
 
-  // 处理对话框关闭
+  // Handle dialog close
   const handleOpenChange = (newOpen: boolean) => {
     if (!createTool.isPending && !updateTool.isPending) {
       setOpen(newOpen)

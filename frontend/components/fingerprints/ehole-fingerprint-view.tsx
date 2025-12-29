@@ -25,7 +25,7 @@ export function EholeFingerprintView() {
   const tFingerprints = useTranslations("tools.fingerprints")
   const locale = useLocale()
   
-  // 构建翻译对象
+  // Build translation object
   const translations: EholeFingerprintTranslations = {
     columns: {
       cms: tColumns("fingerprint.cms"),
@@ -50,7 +50,7 @@ export function EholeFingerprintView() {
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
 
-  // 查询数据
+  // Query data
   const { data, isLoading, isFetching, error, refetch } = useEholeFingerprints({
     page: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
@@ -61,7 +61,7 @@ export function EholeFingerprintView() {
   const bulkDeleteMutation = useBulkDeleteEholeFingerprints()
   const deleteAllMutation = useDeleteAllEholeFingerprints()
 
-  // 搜索状态
+  // Search state
   React.useEffect(() => {
     if (!isFetching && isSearching) {
       setIsSearching(false)
@@ -74,7 +74,7 @@ export function EholeFingerprintView() {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
   }
 
-  // 格式化日期
+  // Format date
   const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleString(getDateLocale(locale), {
       year: "numeric",
@@ -86,7 +86,7 @@ export function EholeFingerprintView() {
     })
   }
 
-  // 导出
+  // Export
   const handleExport = async () => {
     try {
       const blob = await FingerprintService.exportEholeFingerprints()
@@ -104,7 +104,7 @@ export function EholeFingerprintView() {
     }
   }
 
-  // 批量删除
+  // Bulk delete
   const handleBulkDelete = async () => {
     if (selectedFingerprints.length === 0) return
 
@@ -118,7 +118,7 @@ export function EholeFingerprintView() {
     }
   }
 
-  // 删除所有
+  // Delete all
   const handleDeleteAll = async () => {
     try {
       const result = await deleteAllMutation.mutateAsync()
@@ -128,19 +128,19 @@ export function EholeFingerprintView() {
     }
   }
 
-  // 列定义
+  // Column definitions
   const columns = useMemo(
     () => createEholeFingerprintColumns({ formatDate, t: translations }),
     [translations]
   )
 
-  // 转换数据
+  // Transform data
   const fingerprints: EholeFingerprint[] = useMemo(() => {
     if (!data?.results) return []
     return data.results
   }, [data])
 
-  // 稳定 paginationInfo 引用，避免不必要的重新渲染
+  // Stabilize paginationInfo reference to avoid unnecessary re-renders
   const total = data?.total ?? 0
   const page = data?.page ?? 1
   const serverPageSize = data?.pageSize ?? 10
@@ -153,7 +153,7 @@ export function EholeFingerprintView() {
     totalPages,
   }), [total, page, serverPageSize, totalPages])
 
-  // 错误状态
+  // Error state
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -174,7 +174,7 @@ export function EholeFingerprintView() {
     )
   }
 
-  // 加载状态
+  // Loading state
   if (isLoading && !data) {
     return <DataTableSkeleton toolbarButtonCount={3} rows={6} columns={7} />
   }
@@ -199,14 +199,14 @@ export function EholeFingerprintView() {
         onPaginationChange={setPagination}
       />
 
-      {/* 添加指纹对话框 */}
+      {/* Add fingerprint dialog */}
       <EholeFingerprintDialog
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         onSuccess={() => refetch()}
       />
 
-      {/* 导入指纹对话框 */}
+      {/* Import fingerprint dialog */}
       <ImportFingerprintDialog
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}

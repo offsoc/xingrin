@@ -24,31 +24,31 @@ import { useTools, useDeleteTool } from "@/hooks/use-tools"
 import { getDateLocale } from "@/lib/date-utils"
 
 /**
- * 自定义工具列表组件
- * 展示和管理自定义扫描脚本和工具
+ * Custom tools list component
+ * Display and manage custom scan scripts and tools
  */
 export function CustomToolsList() {
   const [editingTool, setEditingTool] = useState<Tool | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [toolToDelete, setToolToDelete] = useState<Tool | null>(null)
   
-  // 国际化
+  // Internationalization
   const tCommon = useTranslations("common")
   const tConfirm = useTranslations("common.confirm")
   const tConfig = useTranslations("tools.config")
   const tColumns = useTranslations("columns")
   const locale = useLocale()
   
-  // 获取工具列表（只获取自定义工具）
+  // Get tool list (only custom tools)
   const { data, isLoading, error } = useTools({
     page: 1,
     pageSize: 100,
   })
 
-  // 过滤出自定义工具
+  // Filter out custom tools
   const customTools = (data?.tools || []).filter((tool: Tool) => tool.type === 'custom')
   
-  // 删除工具 mutation
+  // Delete tool mutation
   const deleteTool = useDeleteTool()
 
   const handleEditTool = (tool: Tool) => {
@@ -74,19 +74,19 @@ export function CustomToolsList() {
     
     try {
       await deleteTool.mutateAsync(toolToDelete.id)
-      // 删除成功后关闭对话框
+      // Close dialog after successful deletion
       setToolToDelete(null)
     } catch (error) {
-      // 错误已在 hook 中处理
+      // Error already handled in hook
     }
   }
 
-  // 加载状态
+  // Loading state
   if (isLoading) {
     return <CardGridSkeleton cards={4} />
   }
 
-  // 错误状态
+  // Error state
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -99,7 +99,7 @@ export function CustomToolsList() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 工具列表 */}
+      {/* Tool list */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {customTools.map((tool: Tool) => (
           <Card key={tool.id} className="flex flex-col h-full hover:shadow-lg transition-shadow">
@@ -109,12 +109,12 @@ export function CustomToolsList() {
                 {tool.description || tCommon("status.noData")}
               </CardDescription>
               
-              {/* 分类标签 */}
+              {/* Category tags */}
               <div className="flex flex-wrap gap-1 mt-2">
                 {tool.categoryNames && tool.categoryNames.length > 0 ? (
                   <div 
                     className="flex flex-wrap gap-1"
-                    title={tool.categoryNames.map(c => CategoryNameMap[c] || c).join('、')}
+                    title={tool.categoryNames.map(c => CategoryNameMap[c] || c).join(', ')}
                   >
                     {tool.categoryNames.slice(0, 3).map((category: string) => (
                       <Badge key={category} variant="secondary" className="text-xs whitespace-nowrap">
@@ -136,7 +136,7 @@ export function CustomToolsList() {
             </CardHeader>
             <CardContent className="flex-1">
               <div className="space-y-4">
-                {/* 工具目录 */}
+                {/* Tool directory */}
                 <div className="bg-muted rounded-md p-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                     <IconFolder className="h-4 w-4" />
@@ -150,7 +150,7 @@ export function CustomToolsList() {
                   </code>
                 </div>
 
-                {/* 最后更新时间 */}
+                {/* Last updated time */}
                 <div className="text-sm text-muted-foreground">
                   {tColumns("common.updatedAt")}: {new Date(tool.updatedAt).toLocaleDateString(getDateLocale(locale))}
                 </div>
@@ -178,7 +178,7 @@ export function CustomToolsList() {
         ))}
       </div>
 
-      {/* 空状态 */}
+      {/* Empty state */}
       {customTools.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">{tConfig("noCustomTools")}</p>
@@ -187,14 +187,14 @@ export function CustomToolsList() {
 
      
 
-      {/* 编辑工具对话框 */}
+      {/* Edit tool dialog */}
       <AddCustomToolDialog 
         tool={editingTool || undefined}
         open={isEditDialogOpen}
         onOpenChange={handleEditDialogClose}
       />
 
-      {/* 删除确认对话框 */}
+      {/* Delete confirmation dialog */}
       <AlertDialog open={!!toolToDelete} onOpenChange={(open) => !open && setToolToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

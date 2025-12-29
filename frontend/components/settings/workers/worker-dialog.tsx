@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button"
 import { useCreateWorker, useUpdateWorker } from "@/hooks/use-workers"
 import type { WorkerNode } from "@/types/worker.types"
 
-// 显式定义表单类型以解决类型推断问题
+// Explicitly define form type to resolve type inference issues
 type FormValues = {
   name: string
   ipAddress: string
@@ -49,7 +49,7 @@ export function WorkerDialog({ open, onOpenChange, worker }: WorkerDialogProps) 
   const updateWorker = useUpdateWorker()
   const isEditing = !!worker
 
-  // 表单验证 Schema - 使用翻译
+  // Form validation Schema - using translations
   const formSchema = z.object({
     name: z.string().min(1, t("form.nameRequired")).max(100, t("form.nameTooLong")),
     ipAddress: z.string()
@@ -64,7 +64,7 @@ export function WorkerDialog({ open, onOpenChange, worker }: WorkerDialogProps) 
   })
   
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any, // 绕过类型检查问题
+    resolver: zodResolver(formSchema) as any, // Bypass type checking issue
     defaultValues: {
       name: "",
       ipAddress: "",
@@ -74,7 +74,7 @@ export function WorkerDialog({ open, onOpenChange, worker }: WorkerDialogProps) 
     },
   })
 
-  // 填充表单数据
+  // Populate form data
   useEffect(() => {
     if (open && worker) {
       form.reset({
@@ -82,7 +82,7 @@ export function WorkerDialog({ open, onOpenChange, worker }: WorkerDialogProps) 
         ipAddress: worker.ipAddress,
         sshPort: worker.sshPort,
         username: worker.username,
-        password: "", // 编辑时不回显密码
+        password: "", // Don't show password when editing
       })
     } else if (open && !worker) {
       form.reset({
@@ -104,7 +104,7 @@ export function WorkerDialog({ open, onOpenChange, worker }: WorkerDialogProps) 
             name: values.name,
             sshPort: values.sshPort,
             username: values.username,
-            password: values.password || undefined, // 如果为空则不传
+            password: values.password || undefined, // Don't send if empty
           }
         })
       } else {
@@ -123,7 +123,7 @@ export function WorkerDialog({ open, onOpenChange, worker }: WorkerDialogProps) 
       form.reset()
       onOpenChange(false)
     } catch (error) {
-      // 错误已在 hook 中处理
+      // Error already handled in hook
     }
   }
 

@@ -171,7 +171,7 @@ export function WappalyzerFingerprintDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* 基本信息 */}
+          {/* Basic information */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">{t("form.appNamePlaceholder").split("：")[0]} *</Label>
@@ -225,7 +225,7 @@ export function WappalyzerFingerprintDialog({
             />
           </div>
 
-          {/* 检测规则 */}
+          {/* Detection rules */}
           <div className="space-y-1">
             <Label className="text-sm font-medium">{t("form.detectionRules")}</Label>
             <p className="text-xs text-muted-foreground">{t("form.detectionRulesHint")}</p>

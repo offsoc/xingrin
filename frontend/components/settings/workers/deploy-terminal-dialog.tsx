@@ -27,16 +27,16 @@ interface DeployTerminalDialogProps {
   onDeployComplete?: () => void
 }
 
-// 自动根据当前页面 URL 生成 WebSocket URL
+// Auto-generate WebSocket URL based on current page URL
 const getWsBaseUrl = () => {
   if (typeof window === 'undefined') return 'ws://localhost:8888'
   
-  // 优先使用环境变量
+  // Prefer environment variable
   if (process.env.NEXT_PUBLIC_WS_URL) {
     return process.env.NEXT_PUBLIC_WS_URL
   }
   
-  // 根据当前页面协议和域名自动生成
+  // Auto-generate based on current page protocol and domain
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
   const host = window.location.host
   return `${protocol}//${host}`
@@ -53,18 +53,18 @@ export function DeployTerminalDialog({
   const tTerminal = useTranslations("settings.workers.terminal")
   const [isConnected, setIsConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // 本地 worker 状态，用于实时更新按钮显示
+  // Local worker state for real-time button display updates
   const [localStatus, setLocalStatus] = useState<string | null>(null)
   const [uninstallDialogOpen, setUninstallDialogOpen] = useState(false)
   
-  // 使用本地状态或传入的 worker 状态
+  // Use local state or passed worker state
   const currentStatus = localStatus || worker?.status
   const terminalRef = useRef<HTMLDivElement>(null)
   const terminalInstanceRef = useRef<any>(null)
   const fitAddonRef = useRef<any>(null)
   const wsRef = useRef<WebSocket | null>(null)
 
-  // 初始化 xterm
+  // Initialize xterm
   const initTerminal = useCallback(async () => {
     if (!terminalRef.current || terminalInstanceRef.current) return
     
@@ -74,7 +74,7 @@ export function DeployTerminalDialog({
     
     const terminal = new Terminal({
       cursorBlink: true,
-      fontSize: 12, // 减小字体
+      fontSize: 12, // Reduced font size
       fontFamily: 'Menlo, Monaco, "Courier New", monospace',
       theme: {
         background: '#1a1b26',
@@ -101,14 +101,14 @@ export function DeployTerminalDialog({
     terminalInstanceRef.current = terminal
     fitAddonRef.current = fitAddon
     
-    // 显示连接提示
+    // Show connection prompt
     terminal.writeln(`\x1b[90m${tTerminal("connecting")}\x1b[0m`)
     
-    // 监听窗口大小变化
+    // Listen for window resize
     const handleResize = () => fitAddon.fit()
     window.addEventListener('resize', handleResize)
     
-    // 自动连接 WebSocket
+    // Auto-connect WebSocket
     connectWs()
     
     return () => {
@@ -116,12 +116,12 @@ export function DeployTerminalDialog({
     }
   }, [worker])
 
-  // 连接 WebSocket
+  // Connect WebSocket
   const connectWs = useCallback(() => {
     if (!worker || !terminalInstanceRef.current) return
     
     const terminal = terminalInstanceRef.current
-    // 如果已有连接先关闭
+    // Close existing connection first
     if (wsRef.current) {
         wsRef.current.close()
     }
@@ -132,28 +132,28 @@ export function DeployTerminalDialog({
     
     ws.onopen = () => {
       terminal.writeln(`\x1b[32m✓ ${tTerminal("wsConnected")}\x1b[0m`)
-      // 后端会自动开始 SSH 连接
+      // Backend will auto-start SSH connection
     }
     
     ws.onmessage = (event) => {
       if (event.data instanceof ArrayBuffer) {
-        // 二进制数据 - 终端输出
+        // Binary data - terminal output
         const decoder = new TextDecoder()
         terminal.write(decoder.decode(event.data))
       } else {
-        // JSON 消息
+        // JSON message
         try {
           const data = JSON.parse(event.data)
           if (data.type === 'connected') {
             setIsConnected(true)
             setError(null)
-            // 绑定终端输入
+            // Bind terminal input
             terminal.onData((data: string) => {
               if (ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ type: 'input', data }))
               }
             })
-            // 发送终端大小
+            // Send terminal size
             ws.send(JSON.stringify({
                 type: 'resize',
                 cols: terminal.cols,
@@ -163,13 +163,13 @@ export function DeployTerminalDialog({
             terminal.writeln(`\x1b[31m✗ ${data.message}\x1b[0m`)
             setError(data.message)
           } else if (data.type === 'status') {
-            // 更新本地状态以实时显示正确的按钮
+            // Update local state to show correct buttons in real-time
             setLocalStatus(data.status)
-            // 任何状态变化都刷新父组件列表
+            // Refresh parent component list on any status change
             onDeployComplete?.()
           }
         } catch {
-          // 忽略解析错误
+          // Ignore parse errors
         }
       }
     }
@@ -186,7 +186,7 @@ export function DeployTerminalDialog({
     }
   }, [worker, onDeployComplete])
 
-  // 发送终端大小变化
+  // Send terminal size change
   useEffect(() => {
     if (!isConnected || !wsRef.current || !terminalInstanceRef.current) return
     
@@ -204,16 +204,16 @@ export function DeployTerminalDialog({
     terminal.onResize?.(handleResize)
   }, [isConnected])
 
-  // 打开时初始化
+  // Initialize when opened
   useEffect(() => {
     if (open && worker) {
-      // 延迟初始化，确保 DOM 已渲染
+      // Delay initialization to ensure DOM is rendered
       const timer = setTimeout(initTerminal, 100)
       return () => clearTimeout(timer)
     }
   }, [open, worker, initTerminal])
 
-  // 关闭时清理
+  // Cleanup when closed
   const handleClose = () => {
     if (wsRef.current) {
       wsRef.current.close()
@@ -226,33 +226,33 @@ export function DeployTerminalDialog({
     fitAddonRef.current = null
     setIsConnected(false)
     setError(null)
-    setLocalStatus(null) // 重置本地状态
-    // 关闭时刷新父组件列表，确保状态同步
+    setLocalStatus(null) // Reset local state
+    // Refresh parent component list when closing to ensure state sync
     onDeployComplete?.()
     onOpenChange(false)
   }
 
-  // 执行部署脚本（后台运行）
+  // Execute deploy script (runs in background)
   const handleDeploy = () => {
     if (!wsRef.current || !isConnected) return
-    setLocalStatus('deploying') // 立即更新为部署中状态
-    onDeployComplete?.() // 刷新父组件列表
+    setLocalStatus('deploying') // Immediately update to deploying state
+    onDeployComplete?.() // Refresh parent component list
     wsRef.current.send(JSON.stringify({ type: 'deploy' }))
   }
 
-  // 查看部署进度（attach 到 tmux 会话）
+  // View deploy progress (attach to tmux session)
   const handleAttach = () => {
     if (!wsRef.current || !isConnected) return
     wsRef.current.send(JSON.stringify({ type: 'attach' }))
   }
 
-  // 卸载 Agent（打开确认弹窗）
+  // Uninstall Agent (open confirmation dialog)
   const handleUninstallClick = () => {
     if (!wsRef.current || !isConnected) return
     setUninstallDialogOpen(true)
   }
 
-  // 确认卸载
+  // Confirm uninstall
   const handleUninstallConfirm = () => {
     if (!wsRef.current || !isConnected) return
     setUninstallDialogOpen(false)
@@ -262,10 +262,10 @@ export function DeployTerminalDialog({
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="w-[50vw] max-w-[50vw] h-[80vh] flex flex-col p-0 gap-0 overflow-hidden [&>button]:hidden">
-        {/* 终端标题栏 - macOS 风格 */}
+        {/* Terminal title bar - macOS style */}
         <div className="flex items-center justify-between px-4 py-3 bg-[#1a1b26] border-b border-[#32344a]">
           <div className="flex items-center gap-3">
-            {/* 红黄绿按钮 */}
+            {/* Red, yellow, green buttons */}
             <div className="flex items-center gap-1.5">
               <button 
                 onClick={handleClose}
@@ -275,7 +275,7 @@ export function DeployTerminalDialog({
               <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
               <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
             </div>
-            {/* 标题 */}
+            {/* Title */}
             <span className="text-sm text-[#a9b1d6] font-medium">
               {worker?.username}@{worker?.ipAddress}
             </span>
@@ -286,15 +286,15 @@ export function DeployTerminalDialog({
           </div>
         </div>
 
-        {/* xterm 终端容器 */}
+        {/* xterm terminal container */}
         <div 
           ref={terminalRef} 
           className="flex-1 overflow-hidden bg-[#1a1b26]"
         />
 
-        {/* 底部操作栏 - 根据状态显示不同按钮 */}
+        {/* Bottom action bar - show different buttons based on status */}
         <div className="flex items-center justify-between px-4 py-3 bg-[#1a1b26] border-t border-[#32344a]">
-          {/* 左侧：状态提示 */}
+          {/* Left: Status hint */}
           <div className="text-xs text-[#565f89]">
             {!isConnected && tTerminal("waitingConnection")}
             {isConnected && currentStatus === 'pending' && tTerminal("pendingHint")}
@@ -305,7 +305,7 @@ export function DeployTerminalDialog({
             {isConnected && currentStatus === 'outdated' && tTerminal("outdatedHint")}
           </div>
           
-          {/* 右侧：操作按钮 */}
+          {/* Right: Action buttons */}
           <div className="flex items-center gap-2">
             {!isConnected && (
               <button 
@@ -318,7 +318,7 @@ export function DeployTerminalDialog({
             )}
             {isConnected && worker && (
               <>
-                {/* 未部署 -> 显示"开始部署" */}
+                {/* Not deployed -> Show "Start Deploy" */}
                 {currentStatus === 'pending' && (
                   <button 
                     onClick={handleDeploy}
@@ -329,7 +329,7 @@ export function DeployTerminalDialog({
                   </button>
                 )}
                 
-                {/* 部署中 -> 显示"查看进度" */}
+                {/* Deploying -> Show "View Progress" */}
                 {currentStatus === 'deploying' && (
                   <button 
                     onClick={handleAttach}
@@ -340,7 +340,7 @@ export function DeployTerminalDialog({
                   </button>
                 )}
                 
-                {/* 更新中 -> 显示"查看进度" */}
+                {/* Updating -> Show "View Progress" */}
                 {currentStatus === 'updating' && (
                   <button 
                     onClick={handleAttach}
@@ -351,7 +351,7 @@ export function DeployTerminalDialog({
                   </button>
                 )}
                 
-                {/* 版本过低 -> 显示"重新部署" */}
+                {/* Version outdated -> Show "Redeploy" */}
                 {currentStatus === 'outdated' && (
                   <button 
                     onClick={handleDeploy}
@@ -362,7 +362,7 @@ export function DeployTerminalDialog({
                   </button>
                 )}
                 
-                {/* 已部署(online/offline) -> 显示"重新部署"和"卸载" */}
+                {/* Deployed (online/offline) -> Show "Redeploy" and "Uninstall" */}
                 {(currentStatus === 'online' || currentStatus === 'offline') && (
                   <>
                     <button 
@@ -387,7 +387,7 @@ export function DeployTerminalDialog({
         </div>
       </DialogContent>
 
-      {/* 卸载确认弹窗 */}
+      {/* Uninstall confirmation dialog */}
       <AlertDialog open={uninstallDialogOpen} onOpenChange={setUninstallDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -83,7 +83,7 @@ export function EholeFingerprintDataTable({
   const t = useTranslations("tools.fingerprints")
   const tCommon = useTranslations("common.actions")
 
-  // EHole 过滤字段配置（使用翻译）
+  // EHole filter field configuration (using translations)
   const eholeFilterFields: FilterField[] = React.useMemo(() => [
     { key: "cms", label: "CMS", description: t("filter.ehole.cms") },
     { key: "method", label: "Method", description: t("filter.ehole.method") },
@@ -103,10 +103,10 @@ export function EholeFingerprintDataTable({
     onSelectionChange?.(rows)
   }
 
-  // 自定义工具栏右侧按钮
+  // Custom toolbar right-side buttons
   const toolbarRightContent = (
     <>
-      {/* 操作菜单 */}
+      {/* Operations menu */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm">
@@ -145,7 +145,7 @@ export function EholeFingerprintDataTable({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* 添加指纹 */}
+      {/* Add fingerprint */}
       {(onAddSingle || onAddImport) && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -180,29 +180,29 @@ export function EholeFingerprintDataTable({
         data={data}
         columns={columns}
         getRowId={(row) => String(row.id)}
-        // 分页
+        // Pagination
         pagination={externalPagination}
         paginationInfo={paginationInfo}
         onPaginationChange={onPaginationChange}
-        // 智能过滤
+        // Smart filter
         searchMode="smart"
         searchValue={filterValue}
         onSearch={handleSmartSearch}
         isSearching={isSearching}
         filterFields={eholeFilterFields}
         filterExamples={EHOLE_FILTER_EXAMPLES}
-        // 选择
+        // Selection
         onSelectionChange={handleSelectionChange}
-        // 批量操作 - 使用自定义按钮
+        // Bulk operations - use custom buttons
         showBulkDelete={false}
         showAddButton={false}
-        // 空状态
+        // Empty state
         emptyMessage="No results"
-        // 自定义工具栏按钮
+        // Custom toolbar buttons
         toolbarRight={toolbarRightContent}
       />
 
-      {/* 导出确认对话框 */}
+      {/* Export confirmation dialog */}
       <AlertDialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -220,7 +220,7 @@ export function EholeFingerprintDataTable({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 删除选中确认对话框 */}
+      {/* Delete selected confirmation dialog */}
       <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -241,7 +241,7 @@ export function EholeFingerprintDataTable({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 删除所有确认对话框 */}
+      {/* Delete all confirmation dialog */}
       <AlertDialog open={deleteAllDialogOpen} onOpenChange={setDeleteAllDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

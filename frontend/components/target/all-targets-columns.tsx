@@ -23,7 +23,7 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import { ExpandableBadgeList } from "@/components/ui/data-table/expandable-cell"
 import type { Target } from "@/types/target.types"
 
-// 翻译类型定义
+// Translation type definitions
 export interface AllTargetsTranslations {
   columns: {
     target: string
@@ -47,7 +47,7 @@ export interface AllTargetsTranslations {
 }
 
 /**
- * 复制到剪贴板（兼容 HTTP 环境）
+ * Copy to clipboard (compatible with HTTP environment)
  */
 async function copyToClipboard(text: string): Promise<boolean> {
   try {
@@ -81,7 +81,7 @@ interface CreateColumnsProps {
 }
 
 /**
- * 目标名称单元格组件
+ * Target name cell component
  */
 function TargetNameCell({ 
   name, 
@@ -147,7 +147,7 @@ function TargetNameCell({
 }
 
 /**
- * 目标行操作组件
+ * Target row actions component
  */
 function TargetRowActions({
   target,
@@ -231,7 +231,7 @@ function TargetRowActions({
 }
 
 /**
- * 创建所有目标表格列定义
+ * Create all targets table column definitions
  */
 export const createAllTargetsColumns = ({
   formatDate,

@@ -9,7 +9,7 @@ import type { Vulnerability } from "@/types/vulnerability.types"
 import type { PaginationInfo } from "@/types/common.types"
 import type { DownloadOption } from "@/types/data-table.types"
 
-// 漏洞页面的过滤字段
+// Vulnerability page filter fields
 const VULNERABILITY_FILTER_FIELDS: FilterField[] = [
   { key: "type", label: "Type", description: "Vulnerability type" },
   PREDEFINED_FIELDS.severity,
@@ -17,7 +17,7 @@ const VULNERABILITY_FILTER_FIELDS: FilterField[] = [
   PREDEFINED_FIELDS.url,
 ]
 
-// 漏洞页面的示例
+// Vulnerability page examples
 const VULNERABILITY_FILTER_EXAMPLES = [
   'type="xss" || type="sqli"',
   'severity="critical" || severity="high"',
@@ -59,12 +59,12 @@ export function VulnerabilitiesDataTable({
   const t = useTranslations("common.status")
   const tDownload = useTranslations("common.download")
   
-  // 处理智能过滤搜索
+  // Handle smart filter search
   const handleFilterSearch = (rawQuery: string) => {
     onFilterChange?.(rawQuery)
   }
 
-  // 下载选项
+  // Download options
   const downloadOptions: DownloadOption[] = []
   if (onDownloadAll) {
     downloadOptions.push({
@@ -87,28 +87,28 @@ export function VulnerabilitiesDataTable({
       data={data}
       columns={columns}
       getRowId={(row) => String(row.id)}
-      // 分页
+      // Pagination
       pagination={pagination}
       setPagination={setPagination}
       paginationInfo={paginationInfo}
       onPaginationChange={onPaginationChange}
-      // 智能过滤
+      // Smart filter
       searchMode="smart"
       searchValue={filterValue}
       onSearch={handleFilterSearch}
       filterFields={VULNERABILITY_FILTER_FIELDS}
       filterExamples={VULNERABILITY_FILTER_EXAMPLES}
-      // 选择
+      // Selection
       onSelectionChange={onSelectionChange}
-      // 批量操作
+      // Bulk operations
       onBulkDelete={onBulkDelete}
       bulkDeleteLabel="Delete"
       showAddButton={false}
-      // 下载
+      // Download
       downloadOptions={downloadOptions.length > 0 ? downloadOptions : undefined}
-      // 工具栏
+      // Toolbar
       hideToolbar={hideToolbar}
-      // 空状态
+      // Empty state
       emptyMessage={t("noData")}
     />
   )

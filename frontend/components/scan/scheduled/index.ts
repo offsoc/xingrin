@@ -1,5 +1,5 @@
 /**
- * Scheduled Scan Components - 统一导出
+ * Scheduled Scan Components - Unified exports
  */
 export { ScheduledScanDataTable } from './scheduled-scan-data-table'
 export { createScheduledScanColumns } from './scheduled-scan-columns'

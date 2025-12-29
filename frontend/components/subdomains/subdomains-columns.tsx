@@ -6,7 +6,7 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import { ExpandableCell } from "@/components/ui/data-table/expandable-cell"
 import type { Subdomain } from "@/types/subdomain.types"
 
-// 翻译类型定义
+// Translation type definitions
 export interface SubdomainTranslations {
   columns: {
     subdomain: string
@@ -24,7 +24,7 @@ interface CreateColumnsProps {
 }
 
 /**
- * 创建子域名表格列定义
+ * Create subdomain table column definitions
  */
 export const createSubdomainColumns = ({
   formatDate,

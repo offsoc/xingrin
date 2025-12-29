@@ -21,11 +21,11 @@ import type { Vulnerability } from "@/types/vulnerability.types"
 import { useScanVulnerabilities, useTargetVulnerabilities, useAllVulnerabilities } from "@/hooks/use-vulnerabilities"
 
 interface VulnerabilitiesDetailViewProps {
-  /** 扫描历史页面使用：按 scan 维度查看漏洞 */
+  /** Used in scan history page: view vulnerabilities by scan dimension */
   scanId?: number
-  /** 目标详情页面使用：按 target 维度查看漏洞 */
+  /** Used in target detail page: view vulnerabilities by target dimension */
   targetId?: number
-  /** 隐藏工具栏（搜索、列控制等） */
+  /** Hide toolbar (search, column controls, etc.) */
   hideToolbar?: boolean
 }
 
@@ -47,7 +47,7 @@ export function VulnerabilitiesDetailView({
     pageSize: 10,
   })
 
-  // 国际化
+  // Internationalization
   const tColumns = useTranslations("columns")
   const tCommon = useTranslations("common")
   const tTooltips = useTranslations("tooltips")
@@ -55,7 +55,7 @@ export function VulnerabilitiesDetailView({
   const tConfirm = useTranslations("common.confirm")
   const locale = useLocale()
 
-  // 构建翻译对象
+  // Build translation object
   const translations = useMemo(() => ({
     columns: {
       severity: tColumns("vulnerability.severity"),
@@ -81,7 +81,7 @@ export function VulnerabilitiesDetailView({
     },
   }), [tColumns, tCommon, tTooltips, tSeverity])
 
-  // 智能过滤查询
+  // Smart filter query
   const [filterQuery, setFilterQuery] = useState("")
 
   const handleFilterChange = (value: string) => {
@@ -94,7 +94,7 @@ export function VulnerabilitiesDetailView({
     pageSize: pagination.pageSize,
   }
 
-  // 按 scan 维度加载（扫描历史页面）
+  // Load by scan dimension (scan history page)
   const scanQuery = useScanVulnerabilities(
     scanId ?? 0,
     paginationParams,
@@ -102,7 +102,7 @@ export function VulnerabilitiesDetailView({
     filterQuery || undefined,
   )
 
-  // 按 target 维度加载（目标详情页面）
+  // Load by target dimension (target detail page)
   const targetQuery = useTargetVulnerabilities(
     targetId ?? 0,
     paginationParams,
@@ -110,14 +110,14 @@ export function VulnerabilitiesDetailView({
     filterQuery || undefined,
   )
 
-  // 获取所有漏洞（全局漏洞页面）
+  // Get all vulnerabilities (global vulnerabilities page)
   const allQuery = useAllVulnerabilities(
     paginationParams,
     { enabled: !scanId && !targetId },
     filterQuery || undefined,
   )
 
-  // 根据参数选择使用哪个 query
+  // Select which query to use based on parameters
   const activeQuery = scanId ? scanQuery : targetId ? targetQuery : allQuery
   const isQueryLoading = activeQuery.isLoading
 
@@ -142,7 +142,7 @@ export function VulnerabilitiesDetailView({
   }
 
   const navigate = (path: string) => {
-    console.log("导航到:", path)
+    console.log("Navigate to:", path)
   }
 
   const handleViewDetail = (vulnerability: Vulnerability) => {
@@ -162,7 +162,7 @@ export function VulnerabilitiesDetailView({
     setIsLoading(true)
 
     setTimeout(() => {
-      console.log("删除漏洞:", vulnerabilityToDelete.id)
+      console.log("Delete vulnerability:", vulnerabilityToDelete.id)
       setVulnerabilityToDelete(null)
       setIsLoading(false)
     }, 1000)
@@ -184,7 +184,7 @@ export function VulnerabilitiesDetailView({
     setIsLoading(true)
 
     setTimeout(() => {
-      console.log("批量删除漏洞:", deletedIds)
+      console.log("Bulk delete vulnerabilities:", deletedIds)
       setSelectedVulnerabilities([])
       setIsLoading(false)
     }, 1000)
@@ -194,16 +194,16 @@ export function VulnerabilitiesDetailView({
     setPagination(newPagination)
   }
 
-  // 处理下载所有漏洞
+  // Handle download all vulnerabilities
   const handleDownloadAll = () => {
-    // TODO: 实现下载所有漏洞功能
-    console.log('下载所有漏洞')
+    // TODO: Implement download all vulnerabilities functionality
+    console.log('Download all vulnerabilities')
   }
 
-  // 处理下载选中的漏洞
+  // Handle download selected vulnerabilities
   const handleDownloadSelected = () => {
-    // TODO: 实现下载选中的漏洞功能
-    console.log('下载选中的漏洞:', selectedVulnerabilities)
+    // TODO: Implement download selected vulnerabilities functionality
+    console.log('Download selected vulnerabilities:', selectedVulnerabilities)
     if (selectedVulnerabilities.length === 0) {
       return
     }

@@ -29,10 +29,10 @@ interface BulkAddSubdomainsDialogProps {
 }
 
 /**
- * 批量添加子域名弹窗组件
+ * Bulk add subdomains dialog component
  * 
- * 参考 AddTargetDialog 的设计模式，提供带行号的文本输入框，
- * 支持实时验证和错误提示。
+ * Following the design pattern of AddTargetDialog, provides a text input with line numbers,
+ * supporting real-time validation and error prompts.
  */
 export function BulkAddSubdomainsDialog({
   targetId,
@@ -44,15 +44,15 @@ export function BulkAddSubdomainsDialog({
   const t = useTranslations("bulkAdd.subdomain")
   const tCommon = useTranslations("common.actions")
   
-  // 对话框开关状态
+  // Dialog open/close state
   const [internalOpen, setInternalOpen] = useState(false)
   const open = externalOpen !== undefined ? externalOpen : internalOpen
   const setOpen = externalOnOpenChange || setInternalOpen
 
-  // 表单数据状态
+  // Form data state
   const [inputText, setInputText] = useState("")
 
-  // 验证结果状态
+  // Validation result state
   const [validationResult, setValidationResult] = useState<{
     validCount: number
     invalidCount: number
@@ -60,18 +60,18 @@ export function BulkAddSubdomainsDialog({
     firstError?: { index: number; subdomain: string; error: string }
   } | null>(null)
 
-  // 行号列和输入框的 ref（用于同步滚动）
+  // Refs for line numbers column and textarea (for synchronized scrolling)
   const lineNumbersRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
 
-  // 使用批量创建 mutation
+  // Use bulk create mutation
   const bulkCreateSubdomains = useBulkCreateSubdomains()
 
-  // 处理输入变化
+  // Handle input change
   const handleInputChange = (value: string) => {
     setInputText(value)
 
-    // 解析并验证
+    // Parse and validate
     const parsed = SubdomainValidator.parse(value)
     if (parsed.length === 0) {
       setValidationResult(null)
@@ -93,14 +93,14 @@ export function BulkAddSubdomainsDialog({
     })
   }
 
-  // 处理表单提交
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!inputText.trim()) return
     if (!validationResult || validationResult.validCount === 0) return
 
-    // 解析有效的子域名
+    // Parse valid subdomains
     const parsed = SubdomainValidator.parse(inputText)
     const result = SubdomainValidator.validateBatch(parsed)
 
@@ -108,19 +108,19 @@ export function BulkAddSubdomainsDialog({
       { targetId, subdomains: result.subdomains },
       {
         onSuccess: () => {
-          // 重置表单
+          // Reset form
           setInputText("")
           setValidationResult(null)
-          // 关闭对话框
+          // Close dialog
           setOpen(false)
-          // 调用外部回调
+          // Call external callback
           onSuccess?.()
         },
       }
     )
   }
 
-  // 处理对话框关闭
+  // Handle dialog close
   const handleOpenChange = (newOpen: boolean) => {
     if (!bulkCreateSubdomains.isPending) {
       setOpen(newOpen)
@@ -131,17 +131,17 @@ export function BulkAddSubdomainsDialog({
     }
   }
 
-  // 同步滚动
+  // Synchronized scrolling
   const handleTextareaScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
     if (lineNumbersRef.current) {
       lineNumbersRef.current.scrollTop = e.currentTarget.scrollTop
     }
   }
 
-  // 计算行数
+  // Calculate line count
   const lineCount = Math.max(inputText.split("\n").length, 8)
 
-  // 表单验证
+  // Form validation
   const isFormValid =
     inputText.trim().length > 0 &&
     validationResult !== null &&
@@ -181,7 +181,7 @@ export function BulkAddSubdomainsDialog({
                 {t("label")} <span className="text-destructive">*</span>
               </Label>
               <div className="flex border rounded-md overflow-hidden h-[220px]">
-                {/* 行号列 */}
+                {/* Line numbers column */}
                 <div className="flex-shrink-0 w-12 border-r bg-muted/50">
                   <div
                     ref={lineNumbersRef}
@@ -194,7 +194,7 @@ export function BulkAddSubdomainsDialog({
                     ))}
                   </div>
                 </div>
-                {/* 输入框 */}
+                {/* Input textarea */}
                 <div className="flex-1 overflow-hidden">
                   <Textarea
                     ref={textareaRef}
@@ -210,7 +210,7 @@ export function BulkAddSubdomainsDialog({
                 </div>
               </div>
 
-              {/* 验证摘要 */}
+              {/* Validation summary */}
               {validationResult && (
                 <div className="text-xs space-y-1">
                   <div className="text-muted-foreground">

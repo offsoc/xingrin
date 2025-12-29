@@ -5,7 +5,7 @@ import { Wrench } from "lucide-react"
 import { IconPlus } from "@tabler/icons-react"
 import { useTranslations } from "next-intl"
 
-// 导入 UI 组件
+// Import UI components
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -25,16 +25,16 @@ import { IconX } from "@tabler/icons-react"
 import { CategoryNameMap, type Tool } from "@/types/tool.types"
 import { useCreateTool, useUpdateTool } from "@/hooks/use-tools"
 
-// 组件属性类型定义
+// Component props type definition
 interface AddCustomToolDialogProps {
-  tool?: Tool                    // 要编辑的工具数据（可选，有值时为编辑模式）
-  onAdd?: (tool: Tool) => void   // 添加成功回调函数（可选）
-  open?: boolean                 // 外部控制对话框开关状态
-  onOpenChange?: (open: boolean) => void  // 外部控制对话框开关回调
+  tool?: Tool                    // Tool data to edit (optional, edit mode when provided)
+  onAdd?: (tool: Tool) => void   // Callback function on successful add (optional)
+  open?: boolean                 // External control for dialog open state
+  onOpenChange?: (open: boolean) => void  // External control callback for dialog open state
 }
 
 /**
- * 添加/编辑自定义工具对话框组件
+ * Add/Edit custom tool dialog component
  */
 export function AddCustomToolDialog({ 
   tool,
@@ -44,15 +44,15 @@ export function AddCustomToolDialog({
 }: AddCustomToolDialogProps) {
   const t = useTranslations("tools.config")
   
-  // 判断是编辑模式还是添加模式
+  // Determine if in edit mode or add mode
   const isEditMode = !!tool
   
-  // 对话框开关状态 - 支持外部控制
+  // Dialog open state - supports external control
   const [internalOpen, setInternalOpen] = useState(false)
   const open = externalOpen !== undefined ? externalOpen : internalOpen
   const setOpen = externalOnOpenChange || setInternalOpen
   
-  // 表单数据状态 - 如果是编辑模式，使用工具数据初始化
+  // Form data state - initialize with tool data if in edit mode
   const [formData, setFormData] = useState({
     name: tool?.name || "",
     description: tool?.description || "",
@@ -60,14 +60,14 @@ export function AddCustomToolDialog({
     categoryNames: tool?.categoryNames || [] as string[],
   })
 
-  // 使用预定义的分类列表
+  // Use predefined category list
   const availableCategories = Object.keys(CategoryNameMap)
 
-  // 使用 React Query 的创建和更新工具 mutation
+  // Use React Query create and update tool mutations
   const createTool = useCreateTool()
   const updateTool = useUpdateTool()
 
-  // 当 tool 变化时更新表单数据
+  // Update form data when tool changes
   React.useEffect(() => {
     if (tool) {
       setFormData({
@@ -79,25 +79,25 @@ export function AddCustomToolDialog({
     }
   }, [tool])
 
-  // 处理表单提交
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // 表单验证
+    // Form validation
     if (!formData.name.trim() || !formData.directory.trim()) {
       return
     }
 
     const toolData = {
       name: formData.name.trim(),
-      type: 'custom' as const, // 自定义工具
+      type: 'custom' as const, // Custom tool
       description: formData.description.trim() || undefined,
       directory: formData.directory.trim(),
       categoryNames: formData.categoryNames.length > 0 ? formData.categoryNames : undefined,
     }
 
     const onSuccessCallback = (response: { tool?: Tool }) => {
-      // 重置表单
+      // Reset form
       setFormData({
         name: "",
         description: "",
@@ -105,35 +105,35 @@ export function AddCustomToolDialog({
         categoryNames: [],
       })
       
-      // 关闭对话框
+      // Close dialog
       setOpen(false)
       
-      // 调用外部回调（如果提供）
+      // Call external callback (if provided)
       if (onAdd && response?.tool) {
         onAdd(response.tool)
       }
     }
 
-    // 根据模式选择创建或更新
+    // Choose create or update based on mode
     if (isEditMode && tool?.id) {
-      // 编辑模式：调用更新 API
+      // Edit mode: call update API
       updateTool.mutate(
         { id: tool.id, data: toolData },
         { onSuccess: onSuccessCallback }
       )
     } else {
-      // 创建模式：调用创建 API
+      // Create mode: call create API
       createTool.mutate(toolData, { onSuccess: onSuccessCallback })
     }
   }
 
-  // 处理对话框关闭 - 重置表单
+  // Handle dialog close - reset form
   const handleOpenChange = (newOpen: boolean) => {
-    // 正在提交时不允许关闭
+    // Don't allow closing while submitting
     if (!createTool.isPending && !updateTool.isPending) {
       setOpen(newOpen)
       if (!newOpen) {
-        // 对话框关闭时重置表单
+        // Reset form when dialog closes
         setFormData({
           name: "",
           description: "",
@@ -144,7 +144,7 @@ export function AddCustomToolDialog({
     }
   }
 
-  // 处理分类标签点击切换
+  // Handle category tag toggle
   const handleCategoryToggle = (categoryName: string) => {
     setFormData((prev) => {
       const isSelected = prev.categoryNames.includes(categoryName)
@@ -157,7 +157,7 @@ export function AddCustomToolDialog({
     })
   }
 
-  // 移除分类标签
+  // Remove category tag
   const handleCategoryRemove = (categoryName: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -165,14 +165,14 @@ export function AddCustomToolDialog({
     }))
   }
 
-  // 表单验证 - 检查必填字段
+  // Form validation - check required fields
   const isFormValid = 
     formData.name.trim().length > 0 &&
     formData.directory.trim().length > 0
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      {/* 触发按钮 - 仅在非外部控制时显示 */}
+      {/* Trigger button - only show when not externally controlled */}
       {externalOpen === undefined && (
         <DialogTrigger asChild>
           <Button>
@@ -182,7 +182,7 @@ export function AddCustomToolDialog({
         </DialogTrigger>
       )}
       
-      {/* 对话框内容 */}
+      {/* Dialog content */}
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
@@ -194,10 +194,10 @@ export function AddCustomToolDialog({
           </DialogDescription>
         </DialogHeader>
         
-        {/* 表单 */}
+        {/* Form */}
         <form onSubmit={handleSubmit}>
           <div className="grid gap-6 py-4">
-            {/* 工具名称 */}
+            {/* Tool name */}
             <div className="grid gap-2">
               <Label htmlFor="name">
                 {t("toolName")} <span className="text-red-500">*</span>
@@ -212,7 +212,7 @@ export function AddCustomToolDialog({
               />
             </div>
 
-            {/* 工具描述 */}
+            {/* Tool description */}
             <div className="grid gap-2">
               <Label htmlFor="description">{t("toolDesc")}</Label>
               <Textarea
@@ -225,7 +225,7 @@ export function AddCustomToolDialog({
               />
             </div>
 
-            {/* 工具路径 */}
+            {/* Tool path */}
             <div className="grid gap-2">
               <Label htmlFor="directory">
                 {t("toolPath")} <span className="text-red-500">*</span>
@@ -243,11 +243,11 @@ export function AddCustomToolDialog({
               </p>
             </div>
 
-            {/* 分类标签 */}
+            {/* Category tags */}
             <div className="grid gap-2">
               <Label>{t("categoryTags")}</Label>
               
-              {/* 已选择的标签 */}
+              {/* Selected tags */}
               {formData.categoryNames.length > 0 && (
                 <div className="flex flex-wrap gap-2 p-3 border rounded-md bg-muted/50">
                   {formData.categoryNames.map((categoryName) => (
@@ -270,7 +270,7 @@ export function AddCustomToolDialog({
                 </div>
               )}
 
-              {/* 可选择的标签 */}
+              {/* Available tags */}
               <div className="flex flex-wrap gap-2 p-3 border rounded-md">
                 {availableCategories.length > 0 ? (
                   availableCategories.map((categoryName) => {

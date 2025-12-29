@@ -26,8 +26,8 @@ import type { Target } from "@/types/target.types"
 import type { Organization } from "@/types/organization.types"
 
 /**
- * 所有目标详情视图组件
- * 显示系统中所有目标的列表，支持搜索、分页、删除等操作
+ * All targets detail view component
+ * Displays a list of all targets in the system, supports search, pagination, delete operations
  */
 export function AllTargetsDetailView() {
   const router = useRouter()
@@ -36,7 +36,7 @@ export function AllTargetsDetailView() {
   const tCommon = useTranslations("common")
   const tConfirm = useTranslations("common.confirm")
   
-  // 构建翻译对象
+  // Build translation object
   const translations: AllTargetsTranslations = {
     columns: {
       target: tColumns("target.target"),
@@ -71,7 +71,7 @@ export function AllTargetsDetailView() {
   const [targetToScan, setTargetToScan] = useState<Target | null>(null)
   const [targetToSchedule, setTargetToSchedule] = useState<Target | null>(null)
 
-  // 处理分页状态变化
+  // Handle pagination state change
   const handlePaginationChange = React.useCallback((newPagination: { pageIndex: number, pageSize: number }) => {
     setPagination(newPagination)
   }, [])
@@ -84,7 +84,7 @@ export function AllTargetsDetailView() {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
   }
 
-  // 使用 API hooks
+  // Use API hooks
   const { data, isLoading, isFetching, error } = useTargets(pagination.pageIndex + 1, pagination.pageSize, undefined, searchQuery || undefined)
   const deleteTargetMutation = useDeleteTarget()
   const batchDeleteMutation = useBatchDeleteTargets()
@@ -98,18 +98,18 @@ export function AllTargetsDetailView() {
     }
   }, [isFetching, isSearching])
 
-  // 处理添加目标
+  // Handle add target
   const handleAddTarget = useCallback(() => {
     setIsAddDialogOpen(true)
   }, [])
 
-  // 处理删除单个目标
+  // Handle delete single target
   const handleDeleteTarget = useCallback((target: Target) => {
     setTargetToDelete(target)
     setDeleteDialogOpen(true)
   }, [])
 
-  // 确认删除目标
+  // Confirm delete target
   const confirmDelete = async () => {
     if (!targetToDelete) return
 
@@ -118,18 +118,18 @@ export function AllTargetsDetailView() {
       setDeleteDialogOpen(false)
       setTargetToDelete(null)
     } catch (error) {
-      // 错误已在 hook 中处理
-      console.error('删除失败:', error)
+      // Error already handled in hook
+      console.error('Delete failed:', error)
     }
   }
 
-  // 处理批量删除
+  // Handle batch delete
   const handleBatchDelete = useCallback(() => {
     if (selectedTargets.length === 0) return
     setBulkDeleteDialogOpen(true)
   }, [selectedTargets])
 
-  // 确认批量删除
+  // Confirm batch delete
   const confirmBulkDelete = async () => {
     if (selectedTargets.length === 0) return
 
@@ -140,24 +140,24 @@ export function AllTargetsDetailView() {
       setBulkDeleteDialogOpen(false)
       setSelectedTargets([])
     } catch (error) {
-      // 错误已在 hook 中处理
-      console.error('批量删除失败:', error)
+      // Error already handled in hook
+      console.error('Batch delete failed:', error)
     }
   }
 
-  // 处理发起扫描
+  // Handle initiate scan
   const handleInitiateScan = useCallback((target: Target) => {
     setTargetToScan(target)
     setInitiateScanDialogOpen(true)
   }, [])
 
-  // 处理定时扫描
+  // Handle scheduled scan
   const handleScheduleScan = useCallback((target: Target) => {
     setTargetToSchedule(target)
     setScheduleScanDialogOpen(true)
   }, [])
 
-  // 创建表格列
+  // Create table columns
   const columns = createAllTargetsColumns({
     formatDate,
     navigate: (path: string) => router.push(path),
@@ -167,7 +167,7 @@ export function AllTargetsDetailView() {
     t: translations,
   })
 
-  // 加载中
+  // Loading
   if (isLoading) {
     return (
       <DataTableSkeleton
@@ -178,7 +178,7 @@ export function AllTargetsDetailView() {
     )
   }
 
-  // 错误处理
+  // Error handling
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -211,7 +211,7 @@ export function AllTargetsDetailView() {
         manualPagination={true}
       />
 
-      {/* 添加目标对话框 */}
+      {/* Add target dialog */}
       <AddTargetDialog
         onAdd={() => {
           setIsAddDialogOpen(false)
@@ -221,7 +221,7 @@ export function AllTargetsDetailView() {
         prefetchEnabled={shouldPrefetchOrgs}
       />
 
-      {/* 删除确认对话框 */}
+      {/* Delete confirmation dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -250,14 +250,14 @@ export function AllTargetsDetailView() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 发起扫描对话框 */}
+      {/* Initiate scan dialog */}
       <InitiateScanDialog
         organization={
           targetToScan?.organizations && targetToScan.organizations.length > 0
             ? {
                 id: targetToScan.organizations[0].id,
                 name: targetToScan.organizations[0].name,
-                targetCount: 1, // 当前目标
+                targetCount: 1, // Current target
               } as Organization
             : null
         }
@@ -270,7 +270,7 @@ export function AllTargetsDetailView() {
         }}
       />
 
-      {/* 定时扫描对话框 */}
+      {/* Scheduled scan dialog */}
       <CreateScheduledScanDialog
         open={scheduleScanDialogOpen}
         onOpenChange={setScheduleScanDialogOpen}
@@ -281,7 +281,7 @@ export function AllTargetsDetailView() {
         }}
       />
 
-      {/* 批量删除确认对话框 */}
+      {/* Batch delete confirmation dialog */}
       <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -290,7 +290,7 @@ export function AllTargetsDetailView() {
               {tConfirm("bulkDeleteTargetMessage", { count: selectedTargets.length })}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {/* 目标列表容器 - 固定最大高度并支持滚动 */}
+          {/* Target list container - fixed max height with scroll support */}
           <div className="mt-2 p-2 bg-muted rounded-md max-h-96 overflow-y-auto">
             <ul className="text-sm space-y-1">
               {selectedTargets.map((target) => (
