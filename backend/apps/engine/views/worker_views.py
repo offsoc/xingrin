@@ -405,7 +405,5 @@ class WorkerNodeViewSet(viewsets.ModelViewSet):
                     'enableCommandLogging': os.getenv('ENABLE_COMMAND_LOGGING', 'true').lower() == 'true',
                 },
                 'debug': settings.DEBUG,
-                # Git 加速配置（用于 Git clone 加速，如 Nuclei 模板仓库）
-                'gitMirror': settings.GIT_MIRROR,
             }
         )

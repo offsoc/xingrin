@@ -19,7 +19,6 @@ from typing import Optional
 
 from django.conf import settings
 
-from apps.common.utils.git_proxy import get_git_proxy_url
 from apps.engine.models import NucleiTemplateRepo
 
 logger = logging.getLogger(__name__)
@@ -50,7 +49,7 @@ def get_local_commit_hash(local_path: Path) -> Optional[str]:
 
 
 def git_clone(repo_url: str, local_path: Path) -> bool:
-    """Git clone 仓库（支持 Git 加速）
+    """Git clone 仓库
 
     Args:
         repo_url: 仓库 URL
@@ -59,15 +58,9 @@ def git_clone(repo_url: str, local_path: Path) -> bool:
     Returns:
         是否成功
     """
-    # Transform URL for Git acceleration if enabled
-    proxied_url = get_git_proxy_url(repo_url)
-    
-    if proxied_url != repo_url:
-        logger.info("Using Git acceleration: %s -> %s", repo_url, proxied_url)
-    
     logger.info("正在 clone 模板仓库: %s -> %s", repo_url, local_path)
     result = subprocess.run(
-        ["git", "clone", "--depth", "1", proxied_url, str(local_path)],
+        ["git", "clone", "--depth", "1", repo_url, str(local_path)],
         check=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

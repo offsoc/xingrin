@@ -468,10 +468,10 @@ if [ -f "$DOCKER_DIR/.env.example" ]; then
     update_env_var "$DOCKER_DIR/.env" "IMAGE_TAG" "$APP_VERSION"
     success "已锁定版本: IMAGE_TAG=$APP_VERSION"
     
-    # 写入 GIT_MIRROR 环境变量（供后端服务使用）
+    # Git 加速仅用于安装过程，不写入运行时配置
+    # 运行时用户如需加速，可通过代理或其他方式自行配置
     if [ -n "$GIT_MIRROR" ]; then
-        update_env_var "$DOCKER_DIR/.env" "GIT_MIRROR" "$GIT_MIRROR"
-        success "已配置 Git 加速: GIT_MIRROR=$GIT_MIRROR"
+        info "Git 加速已启用（仅用于安装阶段）"
     fi
     
     # 开发模式：开启调试日志
