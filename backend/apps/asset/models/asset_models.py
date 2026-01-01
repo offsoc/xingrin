@@ -1,6 +1,7 @@
 
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 
@@ -131,11 +132,12 @@ class Endpoint(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['-created_at']),
-            models.Index(fields=['target']),       # 优化从target_id快速查找下面的端点（主关联字段）
+            models.Index(fields=['target']),       # 优化从 target_id快速查找下面的端点（主关联字段）
             models.Index(fields=['url']),          # URL索引，优化查询性能
             models.Index(fields=['host']),         # host索引，优化根据主机名查询
             models.Index(fields=['status_code']),  # 状态码索引，优化筛选
             models.Index(fields=['title']),        # title索引，优化智能过滤搜索
+            GinIndex(fields=['tech']),             # GIN索引，优化 tech 数组字段的 __contains 查询
         ]
         constraints = [
             # 普通唯一约束：url + target 组合唯一
@@ -229,9 +231,10 @@ class WebSite(models.Model):
             models.Index(fields=['-created_at']),
             models.Index(fields=['url']),  # URL索引，优化查询性能
             models.Index(fields=['host']),  # host索引，优化根据主机名查询
-            models.Index(fields=['target']),     # 优化从target_id快速查找下面的站点
+            models.Index(fields=['target']),     # 优化从 target_id快速查找下面的站点
             models.Index(fields=['title']),      # title索引，优化智能过滤搜索
             models.Index(fields=['status_code']),  # 状态码索引，优化智能过滤搜索
+            GinIndex(fields=['tech']),  # GIN索引，优化 tech 数组字段的 __contains 查询
         ]
         constraints = [
             # 普通唯一约束：url + target 组合唯一

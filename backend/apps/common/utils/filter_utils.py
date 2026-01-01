@@ -86,9 +86,21 @@ class QueryParser:
         if not query_string or not query_string.strip():
             return []
         
+        # 第一步：提取所有过滤条件并用占位符替换，保护引号内的空格
+        filters_found = []
+        placeholder_pattern = '__FILTER_{}__'
+        
+        def replace_filter(match):
+            idx = len(filters_found)
+            filters_found.append(match.group(0))
+            return placeholder_pattern.format(idx)
+        
+        # 先用正则提取所有 field="value" 形式的条件
+        protected = cls.FILTER_PATTERN.sub(replace_filter, query_string)
+        
         # 标准化逻辑运算符
         # 先处理 || 和 or -> __OR__
-        normalized = cls.OR_PATTERN.sub(' __OR__ ', query_string)
+        normalized = cls.OR_PATTERN.sub(' __OR__ ', protected)
         # 再处理 && 和 and -> __AND__
         normalized = cls.AND_PATTERN.sub(' __AND__ ', normalized)
         
@@ -103,20 +115,26 @@ class QueryParser:
                 pending_op = LogicalOp.OR
             elif token == '__AND__':
                 pending_op = LogicalOp.AND
-            else:
-                # 尝试解析为过滤条件
-                match = cls.FILTER_PATTERN.match(token)
-                if match:
-                    field, operator, value = match.groups()
-                    groups.append(FilterGroup(
-                        filter=ParsedFilter(
-                            field=field.lower(),
-                            operator=operator,
-                            value=value
-                        ),
-                        logical_op=pending_op if groups else LogicalOp.AND  # 第一个条件默认 AND
-                    ))
-                    pending_op = LogicalOp.AND  # 重置为默认 AND
+            elif token.startswith('__FILTER_') and token.endswith('__'):
+                # 还原占位符为原始过滤条件
+                try:
+                    idx = int(token[9:-2])  # 提取索引
+                    original_filter = filters_found[idx]
+                    match = cls.FILTER_PATTERN.match(original_filter)
+                    if match:
+                        field, operator, value = match.groups()
+                        groups.append(FilterGroup(
+                            filter=ParsedFilter(
+                                field=field.lower(),
+                                operator=operator,
+                                value=value
+                            ),
+                            logical_op=pending_op if groups else LogicalOp.AND
+                        ))
+                        pending_op = LogicalOp.AND  # 重置为默认 AND
+                except (ValueError, IndexError):
+                    pass
+            # 其他 token 忽略（无效输入）
         
         return groups
 
