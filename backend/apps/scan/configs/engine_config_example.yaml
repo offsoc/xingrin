@@ -81,7 +81,7 @@ site_scan:
 
 fingerprint_detect:
   # ==================== 指纹识别 ====================
-  # 在 site_scan 后串行执行，识别 WebSite 的技术栈
+  # 在 站点扫描 后串行执行，识别 WebSite 的技术栈
   tools:
     xingfinger:
       enabled: true

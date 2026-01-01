@@ -49,13 +49,13 @@ class DjangoWebSiteRepository:
                     location=item.location or '',
                     title=item.title or '',
                     webserver=item.webserver or '',
-                    body_preview=item.body_preview or '',
+                    response_body=item.response_body or '',
                     content_type=item.content_type or '',
                     tech=item.tech if item.tech else [],
                     status_code=item.status_code,
                     content_length=item.content_length,
                     vhost=item.vhost,
-                    response_headers=item.response_headers if item.response_headers else {}
+                    response_headers=item.response_headers if item.response_headers else ''
                 )
                 for item in unique_items
             ]
@@ -67,7 +67,7 @@ class DjangoWebSiteRepository:
                     unique_fields=['url', 'target'],
                     update_fields=[
                         'host', 'location', 'title', 'webserver',
-                        'body_preview', 'content_type', 'tech',
+                        'response_body', 'content_type', 'tech',
                         'status_code', 'content_length', 'vhost', 'response_headers'
                     ],
                     batch_size=1000
@@ -133,13 +133,13 @@ class DjangoWebSiteRepository:
                     location=item.location or '',
                     title=item.title or '',
                     webserver=item.webserver or '',
-                    body_preview=item.body_preview or '',
+                    response_body=item.response_body or '',
                     content_type=item.content_type or '',
                     tech=item.tech if item.tech else [],
                     status_code=item.status_code,
                     content_length=item.content_length,
                     vhost=item.vhost,
-                    response_headers=item.response_headers if item.response_headers else {}
+                    response_headers=item.response_headers if item.response_headers else ''
                 )
                 for item in unique_items
             ]
@@ -179,7 +179,7 @@ class DjangoWebSiteRepository:
             .values(
                 'url', 'host', 'location', 'title', 'status_code',
                 'content_length', 'content_type', 'webserver', 'tech',
-                'body_preview', 'vhost', 'created_at'
+                'response_body', 'response_headers', 'vhost', 'created_at'
             )
             .order_by('url')
         )

@@ -52,9 +52,9 @@ class DjangoWebsiteSnapshotRepository:
                     web_server=item.web_server,
                     content_type=item.content_type,
                     tech=item.tech if item.tech else [],
-                    body_preview=item.body_preview,
+                    response_body=item.response_body,
                     vhost=item.vhost,
-                    response_headers=item.response_headers if item.response_headers else {}
+                    response_headers=item.response_headers if item.response_headers else ''
                 ))
             
             # 批量创建（忽略冲突，基于唯一约束去重）
@@ -101,7 +101,7 @@ class DjangoWebsiteSnapshotRepository:
             .values(
                 'url', 'host', 'location', 'title', 'status',
                 'content_length', 'content_type', 'web_server', 'tech',
-                'body_preview', 'vhost', 'created_at'
+                'response_body', 'response_headers', 'vhost', 'created_at'
             )
             .order_by('url')
         )
@@ -118,7 +118,8 @@ class DjangoWebsiteSnapshotRepository:
                 'content_type': row['content_type'],
                 'webserver': row['web_server'],
                 'tech': row['tech'],
-                'body_preview': row['body_preview'],
+                'response_body': row['response_body'],
+                'response_headers': row['response_headers'],
                 'vhost': row['vhost'],
                 'created_at': row['created_at'],
             }

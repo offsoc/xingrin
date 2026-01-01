@@ -367,7 +367,7 @@ class WebSiteViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出网站为 CSV 格式
         
-        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, body_preview, vhost, created_at
+        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, response_body, response_headers, vhost, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime, format_list_field
         
@@ -380,7 +380,7 @@ class WebSiteViewSet(viewsets.ModelViewSet):
         headers = [
             'url', 'host', 'location', 'title', 'status_code',
             'content_length', 'content_type', 'webserver', 'tech',
-            'body_preview', 'vhost', 'created_at'
+            'response_body', 'response_headers', 'vhost', 'created_at'
         ]
         formatters = {
             'created_at': format_datetime,
@@ -628,7 +628,7 @@ class EndpointViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出端点为 CSV 格式
         
-        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, body_preview, vhost, matched_gf_patterns, created_at
+        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, response_body, response_headers, vhost, matched_gf_patterns, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime, format_list_field
         
@@ -641,7 +641,7 @@ class EndpointViewSet(viewsets.ModelViewSet):
         headers = [
             'url', 'host', 'location', 'title', 'status_code',
             'content_length', 'content_type', 'webserver', 'tech',
-            'body_preview', 'vhost', 'matched_gf_patterns', 'created_at'
+            'response_body', 'response_headers', 'vhost', 'matched_gf_patterns', 'created_at'
         ]
         formatters = {
             'created_at': format_datetime,
@@ -853,7 +853,7 @@ class WebsiteSnapshotViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出网站快照为 CSV 格式
         
-        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, body_preview, vhost, created_at
+        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, response_body, response_headers, vhost, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime, format_list_field
         
@@ -866,7 +866,7 @@ class WebsiteSnapshotViewSet(viewsets.ModelViewSet):
         headers = [
             'url', 'host', 'location', 'title', 'status_code',
             'content_length', 'content_type', 'webserver', 'tech',
-            'body_preview', 'vhost', 'created_at'
+            'response_body', 'response_headers', 'vhost', 'created_at'
         ]
         formatters = {
             'created_at': format_datetime,
@@ -970,7 +970,7 @@ class EndpointSnapshotViewSet(viewsets.ModelViewSet):
     def export(self, request, **kwargs):
         """导出端点快照为 CSV 格式
         
-        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, body_preview, vhost, matched_gf_patterns, created_at
+        CSV 列：url, host, location, title, status_code, content_length, content_type, webserver, tech, response_body, response_headers, vhost, matched_gf_patterns, created_at
         """
         from apps.common.utils import generate_csv_rows, format_datetime, format_list_field
         
@@ -983,7 +983,7 @@ class EndpointSnapshotViewSet(viewsets.ModelViewSet):
         headers = [
             'url', 'host', 'location', 'title', 'status_code',
             'content_length', 'content_type', 'webserver', 'tech',
-            'body_preview', 'vhost', 'matched_gf_patterns', 'created_at'
+            'response_body', 'response_headers', 'vhost', 'matched_gf_patterns', 'created_at'
         ]
         formatters = {
             'created_at': format_datetime,

@@ -97,9 +97,10 @@ SITE_SCAN_COMMANDS = {
         'base': (
             "'{scan_tools_base}/httpx' -l '{url_file}' "
             '-status-code -content-type -content-length '
-            '-location -title -server -body-preview '
+            '-location -title -server '
             '-tech-detect -cdn -vhost '
-            '-include-response-header '
+            '-include-response '
+            '-rstr 2000 '
             '-random-agent -no-color -json -silent'
         ),
         'optional': {
@@ -170,9 +171,10 @@ URL_FETCH_COMMANDS = {
         'base': (
             "'{scan_tools_base}/httpx' -l '{url_file}' "
             '-status-code -content-type -content-length '
-            '-location -title -server -body-preview '
+            '-location -title -server '
             '-tech-detect -cdn -vhost '
-            '-include-response-header '
+            '-include-response '
+            '-rstr 2000 '
             '-random-agent -no-color -json -silent'
         ),
         'optional': {

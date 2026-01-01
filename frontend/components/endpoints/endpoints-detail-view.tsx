@@ -70,7 +70,7 @@ export function EndpointsDetailView({
       webServer: tColumns("endpoint.webServer"),
       contentType: tColumns("endpoint.contentType"),
       technologies: tColumns("endpoint.technologies"),
-      bodyPreview: tColumns("endpoint.bodyPreview"),
+      responseBody: tColumns("endpoint.responseBody"),
       vhost: tColumns("endpoint.vhost"),
       gfPatterns: tColumns("endpoint.gfPatterns"),
       responseHeaders: tColumns("endpoint.responseHeaders"),
@@ -204,7 +204,7 @@ export function EndpointsDetailView({
     const headers = [
       'url', 'host', 'location', 'title', 'status_code',
       'content_length', 'content_type', 'webserver', 'tech',
-      'body_preview', 'vhost', 'matched_gf_patterns', 'created_at'
+      'response_body', 'vhost', 'matched_gf_patterns', 'created_at'
     ]
     
     const rows = items.map(item => [
@@ -217,7 +217,7 @@ export function EndpointsDetailView({
       escapeCSV(item.contentType),
       escapeCSV(item.webserver),
       escapeCSV(formatArrayForCSV(item.tech)),
-      escapeCSV(item.bodyPreview),
+      escapeCSV(item.responseBody),
       escapeCSV(item.vhost),
       escapeCSV(formatDateForCSV(item.createdAt ?? ''))
     ].join(','))

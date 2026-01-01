@@ -20,7 +20,7 @@ export interface EndpointTranslations {
     webServer: string
     contentType: string
     technologies: string
-    bodyPreview: string
+    responseBody: string
     vhost: string
     gfPatterns: string
     responseHeaders: string
@@ -230,15 +230,15 @@ export function createEndpointColumns({
       },
     },
     {
-      accessorKey: "bodyPreview",
-      meta: { title: t.columns.bodyPreview },
+      accessorKey: "responseBody",
+      meta: { title: t.columns.responseBody },
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t.columns.bodyPreview} />
+        <DataTableColumnHeader column={column} title={t.columns.responseBody} />
       ),
       size: 350,
       minSize: 250,
       cell: ({ row }) => (
-        <ExpandableCell value={row.getValue("bodyPreview")} />
+        <ExpandableCell value={row.getValue("responseBody")} />
       ),
     },
     {
@@ -287,12 +287,9 @@ export function createEndpointColumns({
       minSize: 150,
       maxSize: 400,
       cell: ({ row }) => {
-        const headers = row.getValue("responseHeaders") as Record<string, unknown> | null | undefined
-        if (!headers || Object.keys(headers).length === 0) return <span className="text-muted-foreground text-sm">-</span>
-        const formatted = Object.entries(headers)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join("\n")
-        return <ExpandableCell value={formatted} maxLines={3} variant="mono" />
+        const headers = row.getValue("responseHeaders") as string | null | undefined
+        if (!headers) return <span className="text-muted-foreground text-sm">-</span>
+        return <ExpandableCell value={headers} maxLines={3} variant="mono" />
       },
     },
     {

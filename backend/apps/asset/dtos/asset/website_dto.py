@@ -1,7 +1,7 @@
 """WebSite DTO"""
 
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 
 
 @dataclass
@@ -17,13 +17,11 @@ class WebSiteDTO:
     webserver: str = ''
     content_type: str = ''
     tech: List[str] = None
-    body_preview: str = ''
+    response_body: str = ''
     vhost: Optional[bool] = None
     created_at: str = None
-    response_headers: Dict[str, Any] = None
+    response_headers: str = ''
     
     def __post_init__(self):
         if self.tech is None:
             self.tech = []
-        if self.response_headers is None:
-            self.response_headers = {}

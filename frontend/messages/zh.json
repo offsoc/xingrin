@@ -54,7 +54,7 @@
       "webServer": "Web Server",
       "contentType": "Content Type",
       "technologies": "Technologies",
-      "bodyPreview": "Body Preview",
+      "responseBody": "Response Body",
       "vhost": "VHost",
       "gfPatterns": "GF Patterns",
       "responseHeaders": "Response Headers",

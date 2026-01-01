@@ -1,7 +1,7 @@
 """Endpoint DTO"""
 
 from dataclasses import dataclass
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 
 
 @dataclass
@@ -14,18 +14,16 @@ class EndpointDTO:
     status_code: Optional[int] = None
     content_length: Optional[int] = None
     webserver: Optional[str] = None
-    body_preview: Optional[str] = None
+    response_body: Optional[str] = None
     content_type: Optional[str] = None
     tech: Optional[List[str]] = None
     vhost: Optional[bool] = None
     location: Optional[str] = None
     matched_gf_patterns: Optional[List[str]] = None
-    response_headers: Optional[Dict[str, Any]] = None
+    response_headers: Optional[str] = None
     
     def __post_init__(self):
         if self.tech is None:
             self.tech = []
         if self.matched_gf_patterns is None:
             self.matched_gf_patterns = []
-        if self.response_headers is None:
-            self.response_headers = {}

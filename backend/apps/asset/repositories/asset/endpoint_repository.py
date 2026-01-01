@@ -48,13 +48,13 @@ class DjangoEndpointRepository:
                     status_code=item.status_code,
                     content_length=item.content_length,
                     webserver=item.webserver or '',
-                    body_preview=item.body_preview or '',
+                    response_body=item.response_body or '',
                     content_type=item.content_type or '',
                     tech=item.tech if item.tech else [],
                     vhost=item.vhost,
                     location=item.location or '',
                     matched_gf_patterns=item.matched_gf_patterns if item.matched_gf_patterns else [],
-                    response_headers=item.response_headers if item.response_headers else {}
+                    response_headers=item.response_headers if item.response_headers else ''
                 )
                 for item in unique_items
             ]
@@ -66,7 +66,7 @@ class DjangoEndpointRepository:
                     unique_fields=['url', 'target'],
                     update_fields=[
                         'host', 'title', 'status_code', 'content_length',
-                        'webserver', 'body_preview', 'content_type', 'tech',
+                        'webserver', 'response_body', 'content_type', 'tech',
                         'vhost', 'location', 'matched_gf_patterns', 'response_headers'
                     ],
                     batch_size=1000
@@ -139,13 +139,13 @@ class DjangoEndpointRepository:
                     status_code=item.status_code,
                     content_length=item.content_length,
                     webserver=item.webserver or '',
-                    body_preview=item.body_preview or '',
+                    response_body=item.response_body or '',
                     content_type=item.content_type or '',
                     tech=item.tech if item.tech else [],
                     vhost=item.vhost,
                     location=item.location or '',
                     matched_gf_patterns=item.matched_gf_patterns if item.matched_gf_patterns else [],
-                    response_headers=item.response_headers if item.response_headers else {}
+                    response_headers=item.response_headers if item.response_headers else ''
                 )
                 for item in unique_items
             ]
@@ -185,7 +185,7 @@ class DjangoEndpointRepository:
             .values(
                 'url', 'host', 'location', 'title', 'status_code',
                 'content_length', 'content_type', 'webserver', 'tech',
-                'body_preview', 'vhost', 'matched_gf_patterns', 'created_at'
+                'response_body', 'response_headers', 'vhost', 'matched_gf_patterns', 'created_at'
             )
             .order_by('url')
         )

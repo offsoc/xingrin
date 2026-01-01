@@ -85,11 +85,10 @@ class Endpoint(models.Model):
         default='',
         help_text='服务器类型（HTTP 响应头 Server 值）'
     )
-    body_preview = models.CharField(
-        max_length=1000,
+    response_body = models.TextField(
         blank=True,
         default='',
-        help_text='响应正文前N个字符（默认100个字符）'
+        help_text='HTTP响应体'
     )
     content_type = models.CharField(
         max_length=200,
@@ -124,10 +123,10 @@ class Endpoint(models.Model):
         default=list,
         help_text='匹配的GF模式列表，用于识别敏感端点（如api, debug, config等）'
     )
-    response_headers = models.JSONField(
+    response_headers = models.TextField(
         blank=True,
-        default=dict,
-        help_text='HTTP响应头（JSON格式）'
+        default='',
+        help_text='原始HTTP响应头'
     )
 
     class Meta:
@@ -143,7 +142,12 @@ class Endpoint(models.Model):
             models.Index(fields=['status_code']),  # 状态码索引，优化筛选
             models.Index(fields=['title']),        # title索引，优化智能过滤搜索
             GinIndex(fields=['tech']),             # GIN索引，优化 tech 数组字段的 __contains 查询
-            GinIndex(fields=['response_headers']),  # GIN索引，优化 response_headers JSON 字段查询
+            # pg_trgm GIN 索引，支持 LIKE '%keyword%' 模糊搜索
+            GinIndex(
+                name='endpoint_resp_headers_trgm_idx',
+                fields=['response_headers'],
+                opclasses=['gin_trgm_ops']
+            ),
         ]
         constraints = [
             # 普通唯一约束：url + target 组合唯一
@@ -194,11 +198,10 @@ class WebSite(models.Model):
         default='',
         help_text='服务器类型（HTTP 响应头 Server 值）'
     )
-    body_preview = models.CharField(
-        max_length=1000,
+    response_body = models.TextField(
         blank=True,
         default='',
-        help_text='响应正文前N个字符（默认100个字符）'
+        help_text='HTTP响应体'
     )
     content_type = models.CharField(
         max_length=200,
@@ -227,10 +230,10 @@ class WebSite(models.Model):
         blank=True,
         help_text='是否支持虚拟主机'
     )
-    response_headers = models.JSONField(
+    response_headers = models.TextField(
         blank=True,
-        default=dict,
-        help_text='HTTP响应头（JSON格式）'
+        default='',
+        help_text='原始HTTP响应头'
     )
 
     class Meta:
@@ -246,7 +249,12 @@ class WebSite(models.Model):
             models.Index(fields=['title']),      # title索引，优化智能过滤搜索
             models.Index(fields=['status_code']),  # 状态码索引，优化智能过滤搜索
             GinIndex(fields=['tech']),  # GIN索引，优化 tech 数组字段的 __contains 查询
-            GinIndex(fields=['response_headers']),  # GIN索引，优化 response_headers JSON 字段查询
+            # pg_trgm GIN 索引，支持 LIKE '%keyword%' 模糊搜索
+            GinIndex(
+                name='website_resp_headers_trgm_idx',
+                fields=['response_headers'],
+                opclasses=['gin_trgm_ops']
+            ),
         ]
         constraints = [
             # 普通唯一约束：url + target 组合唯一

@@ -52,7 +52,7 @@ export function WebSitesView({
       location: tColumns("endpoint.location"),
       webServer: tColumns("endpoint.webServer"),
       contentType: tColumns("endpoint.contentType"),
-      bodyPreview: tColumns("endpoint.bodyPreview"),
+      responseBody: tColumns("endpoint.responseBody"),
       vhost: tColumns("endpoint.vhost"),
       responseHeaders: tColumns("website.responseHeaders"),
       createdAt: tColumns("common.createdAt"),
@@ -176,7 +176,7 @@ export function WebSitesView({
     const headers = [
       'url', 'host', 'location', 'title', 'status_code',
       'content_length', 'content_type', 'webserver', 'tech',
-      'body_preview', 'vhost', 'created_at'
+      'response_body', 'vhost', 'created_at'
     ]
     
     const rows = items.map(item => [
@@ -189,7 +189,7 @@ export function WebSitesView({
       escapeCSV(item.contentType),
       escapeCSV(item.webserver),
       escapeCSV(formatArrayForCSV(item.tech)),
-      escapeCSV(item.bodyPreview),
+      escapeCSV(item.responseBody),
       escapeCSV(item.vhost),
       escapeCSV(formatDateForCSV(item.createdAt))
     ].join(','))

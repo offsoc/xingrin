@@ -14,11 +14,11 @@ export interface WebSite {
   contentType: string
   statusCode: number
   contentLength: number
-  bodyPreview: string
+  responseBody: string
   tech: string[]
   vhost: boolean | null
   subdomain: string
-  responseHeaders?: Record<string, unknown>
+  responseHeaders?: string
   createdAt: string
 }
 

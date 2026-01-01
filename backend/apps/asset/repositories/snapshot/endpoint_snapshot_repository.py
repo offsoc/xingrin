@@ -52,10 +52,10 @@ class DjangoEndpointSnapshotRepository:
                     webserver=item.webserver,
                     content_type=item.content_type,
                     tech=item.tech if item.tech else [],
-                    body_preview=item.body_preview,
+                    response_body=item.response_body,
                     vhost=item.vhost,
                     matched_gf_patterns=item.matched_gf_patterns if item.matched_gf_patterns else [],
-                    response_headers=item.response_headers if item.response_headers else {}
+                    response_headers=item.response_headers if item.response_headers else ''
                 ))
             
             # 批量创建（忽略冲突，基于唯一约束去重）
@@ -102,7 +102,7 @@ class DjangoEndpointSnapshotRepository:
             .values(
                 'url', 'host', 'location', 'title', 'status_code',
                 'content_length', 'content_type', 'webserver', 'tech',
-                'body_preview', 'vhost', 'matched_gf_patterns', 'created_at'
+                'response_body', 'response_headers', 'vhost', 'matched_gf_patterns', 'created_at'
             )
             .order_by('url')
         )

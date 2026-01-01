@@ -129,12 +129,12 @@ class HttpxRecord:
         self.content_type = data.get('content_type', '')
         self.location = data.get('location', '')
         self.webserver = data.get('webserver', '')
-        self.body_preview = data.get('body_preview', '')
+        self.response_body = data.get('body', '')  # 从 body 字段获取完整响应体
         self.tech = data.get('tech', [])
         self.vhost = data.get('vhost')
         self.failed = data.get('failed', False)
         self.timestamp = data.get('timestamp')
-        self.response_headers = data.get('header', {})  # 响应头（httpx 输出的 header 字段）
+        self.response_headers = data.get('raw_header', '')  # 从 raw_header 字段获取原始响应头字符串
         
         # 从 URL 中提取主机名
         self.host = self._extract_hostname()
@@ -355,13 +355,13 @@ def _save_batch(
             location=record.location,  # location 字段保存重定向信息
             title=record.title[:1000] if record.title else '',
             web_server=record.webserver[:200] if record.webserver else '',
-            body_preview=record.body_preview[:1000] if record.body_preview else '',
+            response_body=record.response_body if record.response_body else '',
             content_type=record.content_type[:200] if record.content_type else '',
             tech=record.tech if isinstance(record.tech, list) else [],
             status=record.status_code,
             content_length=record.content_length,
             vhost=record.vhost,
-            response_headers=record.response_headers if record.response_headers else {},
+            response_headers=record.response_headers if record.response_headers else '',
         )
         
         snapshot_items.append(snapshot_dto)

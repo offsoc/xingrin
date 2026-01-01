@@ -9,3 +9,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<-EOSQL
 	GRANT ALL PRIVILEGES ON DATABASE xingrin TO "$POSTGRES_USER";
 	GRANT ALL PRIVILEGES ON DATABASE xingrin_dev TO "$POSTGRES_USER";
 EOSQL
+
+# 启用 pg_trgm 扩展（用于文本模糊搜索索引）
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "xingrin" <<-EOSQL
+	CREATE EXTENSION IF NOT EXISTS pg_trgm;
+EOSQL
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "xingrin_dev" <<-EOSQL
+	CREATE EXTENSION IF NOT EXISTS pg_trgm;
+EOSQL

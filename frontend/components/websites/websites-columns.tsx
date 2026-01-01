@@ -20,7 +20,7 @@ export interface WebsiteTranslations {
     location: string
     webServer: string
     contentType: string
-    bodyPreview: string
+    responseBody: string
     vhost: string
     responseHeaders: string
     createdAt: string
@@ -200,15 +200,15 @@ export function createWebSiteColumns({
       ),
     },
     {
-      accessorKey: "bodyPreview",
-      meta: { title: t.columns.bodyPreview },
+      accessorKey: "responseBody",
+      meta: { title: t.columns.responseBody },
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t.columns.bodyPreview} />
+        <DataTableColumnHeader column={column} title={t.columns.responseBody} />
       ),
       size: 350,
       minSize: 250,
       cell: ({ row }) => (
-        <ExpandableCell value={row.getValue("bodyPreview")} />
+        <ExpandableCell value={row.getValue("responseBody")} />
       ),
     },
     {
@@ -241,12 +241,9 @@ export function createWebSiteColumns({
       minSize: 150,
       maxSize: 400,
       cell: ({ row }) => {
-        const headers = row.getValue("responseHeaders") as Record<string, unknown> | null
-        if (!headers || Object.keys(headers).length === 0) return "-"
-        const formatted = Object.entries(headers)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join("\n")
-        return <ExpandableCell value={formatted} maxLines={3} variant="mono" />
+        const headers = row.getValue("responseHeaders") as string | null
+        if (!headers) return "-"
+        return <ExpandableCell value={headers} maxLines={3} variant="mono" />
       },
     },
     {

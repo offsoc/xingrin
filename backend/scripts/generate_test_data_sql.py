@@ -180,6 +180,28 @@ def get_db_config() -> dict:
     }
 
 
+def generate_raw_response_headers(headers_dict: dict) -> str:
+    """
+    将响应头字典转换为原始 HTTP 响应头字符串格式
+    
+    Args:
+        headers_dict: 响应头字典
+    
+    Returns:
+        原始 HTTP 响应头字符串，格式如：
+        HTTP/1.1 200 OK
+        Server: nginx
+        Content-Type: text/html
+        ...
+    """
+    lines = ['HTTP/1.1 200 OK']
+    for key, value in headers_dict.items():
+        # 将下划线转换为连字符，并首字母大写
+        header_name = key.replace('_', '-').title()
+        lines.append(f'{header_name}: {value}')
+    return '\r\n'.join(lines)
+
+
 DB_CONFIG = get_db_config()
 
 
@@ -812,7 +834,7 @@ class TestDataGenerator:
         ]
         
         # 真实的 body preview 内容
-        body_previews = [
+        response_bodies = [
             '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Login - Enterprise Portal</title><link rel="stylesheet" href="/assets/css/main.css"></head><body><div id="app"></div><script src="/assets/js/bundle.js"></script></body></html>',
             '<!DOCTYPE html><html><head><title>Dashboard</title><meta name="description" content="Enterprise management dashboard for monitoring and analytics"><link rel="icon" href="/favicon.ico"></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div></body></html>',
             '{"status":"ok","version":"2.4.1","environment":"production","timestamp":"2024-12-22T10:30:00Z","services":{"database":"healthy","cache":"healthy","queue":"healthy"},"uptime":864000}',
@@ -861,9 +883,9 @@ class TestDataGenerator:
                     random.choice([200, 301, 302, 403, 404]),
                     random.randint(1000, 500000), 'text/html; charset=utf-8',
                     f'https://{target_name}/login' if random.choice([True, False]) else '',
-                    random.choice(body_previews),
+                    random.choice(response_bodies),
                     random.choice([True, False, None]),
-                    json.dumps(response_headers)
+                    generate_raw_response_headers(response_headers)
                 ))
         
         # 批量插入
@@ -872,7 +894,7 @@ class TestDataGenerator:
             execute_values(cur, """
                 INSERT INTO website (
                     url, target_id, host, title, webserver, tech, status_code,
-                    content_length, content_type, location, body_preview, vhost,
+                    content_length, content_type, location, response_body, vhost,
                     response_headers, created_at
                 ) VALUES %s
                 ON CONFLICT DO NOTHING
@@ -978,7 +1000,7 @@ class TestDataGenerator:
         ]
         
         # 真实的 API 响应 body preview
-        body_previews = [
+        response_bodies = [
             '{"status":"success","data":{"user_id":12345,"username":"john_doe","email":"john@example.com","role":"user","created_at":"2024-01-15T10:30:00Z","last_login":"2024-12-22T08:45:00Z"}}',
             '{"success":true,"message":"Authentication successful","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c","expires_in":3600}',
             '{"error":"Unauthorized","code":"AUTH_FAILED","message":"Invalid credentials provided. Please check your username and password.","timestamp":"2024-12-22T15:30:45.123Z","request_id":"req_abc123xyz"}',
@@ -1048,9 +1070,9 @@ class TestDataGenerator:
                     random.choice([200, 201, 301, 400, 401, 403, 404, 500]),
                     random.randint(100, 50000), 'application/json',
                     tech_list,
-                    '', random.choice(body_previews),
+                    '', random.choice(response_bodies),
                     random.choice([True, False, None]), tags,
-                    json.dumps(response_headers)
+                    generate_raw_response_headers(response_headers)
                 ))
                 count += 1
         
@@ -1059,7 +1081,7 @@ class TestDataGenerator:
             execute_values(cur, """
                 INSERT INTO endpoint (
                     url, target_id, host, title, webserver, status_code, content_length,
-                    content_type, tech, location, body_preview, vhost, matched_gf_patterns,
+                    content_type, tech, location, response_body, vhost, matched_gf_patterns,
                     response_headers, created_at
                 ) VALUES %s
                 ON CONFLICT DO NOTHING
@@ -1443,7 +1465,7 @@ class TestDataGenerator:
                     random.randint(1000, 50000), 'text/html; charset=utf-8',
                     '',  # location 字段
                     '<!DOCTYPE html><html><head><title>Test</title></head><body>Content</body></html>',
-                    json.dumps(response_headers)
+                    generate_raw_response_headers(response_headers)
                 ))
                 count += 1
         
@@ -1452,7 +1474,7 @@ class TestDataGenerator:
             execute_values(cur, """
                 INSERT INTO website_snapshot (
                     scan_id, url, host, title, web_server, tech, status,
-                    content_length, content_type, location, body_preview,
+                    content_length, content_type, location, response_body,
                     response_headers, created_at
                 ) VALUES %s
                 ON CONFLICT DO NOTHING
@@ -1551,7 +1573,7 @@ class TestDataGenerator:
                     'application/json', tech_list,
                     '{"status":"ok","data":{}}',
                     tags,
-                    json.dumps(response_headers)
+                    generate_raw_response_headers(response_headers)
                 ))
                 count += 1
         
@@ -1560,7 +1582,7 @@ class TestDataGenerator:
             execute_values(cur, """
                 INSERT INTO endpoint_snapshot (
                     scan_id, url, host, title, status_code, content_length,
-                    location, webserver, content_type, tech, body_preview,
+                    location, webserver, content_type, tech, response_body,
                     matched_gf_patterns, response_headers, created_at
                 ) VALUES %s
                 ON CONFLICT DO NOTHING
@@ -2588,10 +2610,10 @@ class MillionDataGenerator:
                 if len(batch_data) >= batch_size:
                     execute_values(cur, """
                         INSERT INTO website (url, target_id, host, title, webserver, tech, 
-                            status_code, content_length, content_type, location, body_preview, 
+                            status_code, content_length, content_type, location, response_body, 
                             vhost, response_headers, created_at)
                         VALUES %s ON CONFLICT DO NOTHING
-                    """, batch_data, template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NULL, '{}'::jsonb, NOW())")
+                    """, batch_data, template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NULL, '', NOW())")
                     self.conn.commit()
                     batch_data = []
                     print(f"    ✓ {count:,} / {target_count:,}")
@@ -2601,10 +2623,10 @@ class MillionDataGenerator:
         if batch_data:
             execute_values(cur, """
                 INSERT INTO website (url, target_id, host, title, webserver, tech, 
-                    status_code, content_length, content_type, location, body_preview, 
+                    status_code, content_length, content_type, location, response_body, 
                     vhost, response_headers, created_at)
                 VALUES %s ON CONFLICT DO NOTHING
-            """, batch_data, template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NULL, '{}'::jsonb, NOW())")
+            """, batch_data, template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NULL, '', NOW())")
             self.conn.commit()
                 
         print(f"  ✓ 创建了 {count:,} 个网站\n")
@@ -2678,10 +2700,10 @@ class MillionDataGenerator:
                 if len(batch_data) >= batch_size:
                     execute_values(cur, """
                         INSERT INTO endpoint (url, target_id, host, title, webserver, status_code,
-                            content_length, content_type, tech, location, body_preview, vhost, 
+                            content_length, content_type, tech, location, response_body, vhost, 
                             matched_gf_patterns, response_headers, created_at)
                         VALUES %s ON CONFLICT DO NOTHING
-                    """, batch_data, template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '{}'::jsonb, NOW())")
+                    """, batch_data, template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '', NOW())")
                     self.conn.commit()
                     batch_data = []
                     print(f"    ✓ {count:,} / {target_count:,}")
@@ -2691,10 +2713,10 @@ class MillionDataGenerator:
         if batch_data:
             execute_values(cur, """
                 INSERT INTO endpoint (url, target_id, host, title, webserver, status_code,
-                    content_length, content_type, tech, location, body_preview, vhost, 
+                    content_length, content_type, tech, location, response_body, vhost, 
                     matched_gf_patterns, response_headers, created_at)
                 VALUES %s ON CONFLICT DO NOTHING
-            """, batch_data, template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '{}'::jsonb, NOW())")
+            """, batch_data, template="(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, '', NOW())")
             self.conn.commit()
                 
         print(f"  ✓ 创建了 {count:,} 个端点\n")

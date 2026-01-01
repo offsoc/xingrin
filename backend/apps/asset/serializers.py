@@ -70,7 +70,7 @@ class WebSiteSerializer(serializers.ModelSerializer):
     """站点序列化器（目标详情页）"""
     
     subdomain = serializers.CharField(source='subdomain.name', allow_blank=True, default='')
-    responseHeaders = serializers.JSONField(source='response_headers', read_only=True)  # HTTP响应头
+    responseHeaders = serializers.CharField(source='response_headers', read_only=True)  # 原始HTTP响应头
     
     class Meta:
         model = WebSite
@@ -84,7 +84,7 @@ class WebSiteSerializer(serializers.ModelSerializer):
             'content_type',
             'status_code',
             'content_length',
-            'body_preview',
+            'response_body',
             'tech',
             'vhost',
             'responseHeaders',  # HTTP响应头
@@ -142,7 +142,7 @@ class EndpointListSerializer(serializers.ModelSerializer):
         source='matched_gf_patterns',
         read_only=True,
     )
-    responseHeaders = serializers.JSONField(source='response_headers', read_only=True)  # HTTP响应头
+    responseHeaders = serializers.CharField(source='response_headers', read_only=True)  # 原始HTTP响应头
 
     class Meta:
         model = Endpoint
@@ -155,7 +155,7 @@ class EndpointListSerializer(serializers.ModelSerializer):
             'content_length',
             'content_type',
             'webserver',
-            'body_preview',
+            'response_body',
             'tech',
             'vhost',
             'responseHeaders',  # HTTP响应头
@@ -219,7 +219,7 @@ class WebsiteSnapshotSerializer(serializers.ModelSerializer):
     subdomain_name = serializers.CharField(source='subdomain.name', read_only=True)
     webserver = serializers.CharField(source='web_server', read_only=True)  # 映射字段名
     status_code = serializers.IntegerField(source='status', read_only=True)  # 映射字段名
-    responseHeaders = serializers.JSONField(source='response_headers', read_only=True)  # HTTP响应头
+    responseHeaders = serializers.CharField(source='response_headers', read_only=True)  # 原始HTTP响应头
     
     class Meta:
         model = WebsiteSnapshot
@@ -232,7 +232,7 @@ class WebsiteSnapshotSerializer(serializers.ModelSerializer):
             'content_type',
             'status_code',  # 使用映射后的字段名
             'content_length',
-            'body_preview',
+            'response_body',
             'tech',
             'vhost',
             'responseHeaders',  # HTTP响应头
@@ -270,7 +270,7 @@ class EndpointSnapshotSerializer(serializers.ModelSerializer):
         source='matched_gf_patterns',
         read_only=True,
     )
-    responseHeaders = serializers.JSONField(source='response_headers', read_only=True)  # HTTP响应头
+    responseHeaders = serializers.CharField(source='response_headers', read_only=True)  # 原始HTTP响应头
 
     class Meta:
         model = EndpointSnapshot
@@ -284,7 +284,7 @@ class EndpointSnapshotSerializer(serializers.ModelSerializer):
             'content_type',
             'status_code',
             'content_length',
-            'body_preview',
+            'response_body',
             'tech',
             'vhost',
             'responseHeaders',  # HTTP响应头

@@ -119,10 +119,10 @@ def bulk_merge_website_fields(
                     insert_sql = f"""
                         INSERT INTO {table_name} (
                             target_id, url, host, location, title, webserver, 
-                            body_preview, content_type, tech, status_code, content_length,
+                            response_body, content_type, tech, status_code, content_length,
                             response_headers, created_at
                         )
-                        VALUES (%s, %s, %s, '', %s, %s, '', '', %s::varchar[], %s, %s, '{{}}'::jsonb, NOW())
+                        VALUES (%s, %s, %s, '', %s, %s, '', '', %s::varchar[], %s, %s, '', NOW())
                         ON CONFLICT (target_id, url) DO UPDATE SET
                             tech = (SELECT ARRAY(SELECT DISTINCT unnest(
                                 COALESCE({table_name}.tech, ARRAY[]::varchar[]) || EXCLUDED.tech

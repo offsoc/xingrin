@@ -110,9 +110,9 @@ def _parse_and_validate_line(line: str) -> Optional[dict]:
             'webserver': _sanitize_string(line_data.get('webserver', '')),
             'location': _sanitize_string(line_data.get('location', '')),
             'tech': line_data.get('tech', []),
-            'body_preview': _sanitize_string(line_data.get('body_preview', '')),
+            'response_body': _sanitize_string(line_data.get('body', '')),
             'vhost': line_data.get('vhost', False),
-            'response_headers': line_data.get('header', {}),
+            'response_headers': _sanitize_string(line_data.get('raw_header', '')),
         }
     
     except Exception:
@@ -299,11 +299,11 @@ def _save_batch(
                 webserver=record.get('webserver', ''),
                 content_type=record.get('content_type', ''),
                 tech=record.get('tech', []),
-                body_preview=record.get('body_preview', ''),
+                response_body=record.get('response_body', ''),
                 vhost=record.get('vhost', False),
                 matched_gf_patterns=[],
                 target_id=target_id,
-                response_headers=record.get('response_headers', {}),
+                response_headers=record.get('response_headers', ''),
             )
             snapshots.append(dto)
         except Exception as e:
