@@ -15,6 +15,7 @@ import {
   IconServer, // Server icon
   IconTerminal2, // Terminal icon
   IconBug, // Vulnerability icon
+  IconMessageReport, // Feedback icon
 } from "@tabler/icons-react"
 // Import internationalization hook
 import { useTranslations } from 'next-intl'
@@ -132,6 +133,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   // Secondary navigation menu items
   const navSecondary = [
+    {
+      title: t('feedback'),
+      url: "https://github.com/yyhuni/xingrin/issues",
+      icon: IconMessageReport,
+    },
     {
       title: t('help'),
       url: "https://github.com/yyhuni/xingrin",

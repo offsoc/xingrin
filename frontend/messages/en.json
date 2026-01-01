@@ -310,7 +310,8 @@
     "workers": "Workers",
     "systemLogs": "System Logs",
     "notifications": "Notifications",
-    "help": "Get Help"
+    "help": "Get Help",
+    "feedback": "Feedback"
   },
   "dashboard": {
     "title": "Dashboard",

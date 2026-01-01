@@ -310,7 +310,8 @@
     "workers": "扫描节点",
     "systemLogs": "系统日志",
     "notifications": "通知设置",
-    "help": "获取帮助"
+    "help": "获取帮助",
+    "feedback": "反馈建议"
   },
   "dashboard": {
     "title": "仪表盘",
