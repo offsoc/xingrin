@@ -88,6 +88,16 @@ def _register_scheduled_jobs(scheduler: BackgroundScheduler):
         replace_existing=True,
     )
     logger.info("  - 已注册: 扫描结果清理（每天 03:00）")
+    
+    # 4. 搜索物化视图刷新（每分钟检查，带防抖）
+    scheduler.add_job(
+        _trigger_search_view_refresh,
+        trigger=IntervalTrigger(minutes=1),  # 每分钟检查
+        id='search_view_refresh',
+        name='搜索物化视图刷新',
+        replace_existing=True,
+    )
+    logger.info("  - 已注册: 搜索物化视图刷新（每分钟检查）")
 
 
 def _trigger_scheduled_scans():
@@ -131,3 +141,26 @@ def _trigger_cleanup():
         
     except Exception as e:
         logger.error(f"扫描清理任务分发失败: {e}", exc_info=True)
+
+
+def _trigger_search_view_refresh():
+    """触发搜索物化视图刷新（带防抖检查）"""
+    try:
+        from apps.asset.services.search_refresh_service import SearchRefreshService
+        
+        service = SearchRefreshService()
+        
+        # 检查是否需要刷新（包含防抖逻辑）
+        if not service.should_refresh_with_debounce():
+            return  # 不需要刷新，静默返回
+        
+        # 执行刷新
+        result = service.refresh_materialized_view(concurrent=True)
+        
+        if result['success']:
+            logger.info(f"搜索物化视图刷新完成，耗时 {result['duration_ms']}ms")
+        else:
+            logger.error(f"搜索物化视图刷新失败: {result['error']}")
+            
+    except Exception as e:
+        logger.error(f"搜索物化视图刷新任务执行失败: {e}", exc_info=True)

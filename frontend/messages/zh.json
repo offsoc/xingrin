@@ -315,6 +315,35 @@
     "help": "获取帮助",
     "feedback": "反馈建议"
   },
+  "search": {
+    "title": "资产搜索",
+    "hint": "点击搜索框查看可用字段和语法",
+    "searching": "搜索中...",
+    "loading": "加载中...",
+    "resultsCount": "找到 {count} 条结果",
+    "error": "搜索失败，请稍后重试",
+    "noResults": "未找到匹配的资产",
+    "noResultsHint": "请尝试调整搜索条件",
+    "fields": {
+      "host": "主机名",
+      "url": "URL 地址",
+      "title": "页面标题",
+      "tech": "技术栈",
+      "status": "HTTP 状态码",
+      "body": "响应体内容",
+      "header": "响应头内容"
+    },
+    "card": {
+      "title": "标题",
+      "expand": "展开",
+      "collapse": "收起",
+      "vulnerabilities": "关联漏洞 ({count})",
+      "vulnName": "漏洞名称",
+      "severity": "严重程度",
+      "source": "来源",
+      "vulnType": "漏洞类型"
+    }
+  },
   "dashboard": {
     "title": "仪表盘",
     "stats": {

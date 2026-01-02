@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronUp, Eye } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -18,21 +20,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { SearchResult } from "@/types/search.types"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import type { SearchResult, Vulnerability } from "@/types/search.types"
 
 interface SearchResultCardProps {
   result: SearchResult
+  onViewVulnerability?: (vuln: Vulnerability) => void
 }
 
+// 漏洞严重程度颜色配置
 const severityColors: Record<string, string> = {
-  critical: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-  high: "bg-red-500/10 text-red-500 border-red-500/20",
-  medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  low: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  info: "bg-gray-500/10 text-gray-500 border-gray-500/20",
+  critical: "bg-[#da3633]/10 text-[#da3633] border border-[#da3633]/20 dark:text-[#f85149]",
+  high: "bg-[#d29922]/10 text-[#d29922] border border-[#d29922]/20",
+  medium: "bg-[#d4a72c]/10 text-[#d4a72c] border border-[#d4a72c]/20",
+  low: "bg-[#238636]/10 text-[#238636] border border-[#238636]/20 dark:text-[#3fb950]",
+  info: "bg-[#848d97]/10 text-[#848d97] border border-[#848d97]/20",
 }
 
-export function SearchResultCard({ result }: SearchResultCardProps) {
+export function SearchResultCard({ result, onViewVulnerability }: SearchResultCardProps) {
+  const t = useTranslations('search.card')
   const [vulnOpen, setVulnOpen] = useState(false)
   const [techExpanded, setTechExpanded] = useState(false)
   const [isOverflowing, setIsOverflowing] = useState(false)
@@ -63,11 +73,19 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
     return () => resizeObserver.disconnect()
   }, [result.technologies, techExpanded, maxHeight])
 
+  const handleViewVulnerability = (vuln: Vulnerability) => {
+    if (onViewVulnerability) {
+      onViewVulnerability(vuln)
+    }
+  }
+
   return (
     <Card className="overflow-hidden py-0 gap-0">
       <CardContent className="p-0">
-        {/* 顶部 Host 栏 */}
-        <h3 className="font-semibold text-sm px-4 py-2 bg-muted/30 border-b">{result.host}</h3>
+        {/* 顶部 URL 栏 */}
+        <h3 className="font-semibold text-sm px-4 py-2 bg-muted/30 border-b truncate" title={result.url}>
+          {result.url || result.host}
+        </h3>
 
         {/* 中间左右分栏 */}
         <div className="flex flex-col md:flex-row">
@@ -75,21 +93,17 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
           <div className="w-full md:w-2/5 px-4 pt-2 pb-3 border-b md:border-b-0 md:border-r flex flex-col">
             <div className="space-y-1.5 text-sm">
               <div className="flex items-center h-[28px]">
-                <span className="text-muted-foreground w-12 shrink-0">标题</span>
-                <span className="font-medium truncate">{result.title}</span>
+                <span className="text-muted-foreground w-12 shrink-0">{t('title')}</span>
+                <span className="font-medium truncate" title={result.title}>{result.title || '-'}</span>
               </div>
               <div className="flex items-center">
                 <span className="text-muted-foreground w-12 shrink-0">Host</span>
-                <span className="font-mono text-sm">{result.host}</span>
-              </div>
-              <div className="flex items-center">
-                <span className="text-muted-foreground w-12 shrink-0">IP</span>
-                <span className="font-mono text-sm">{result.ip}</span>
+                <span className="font-mono text-sm truncate" title={result.host}>{result.host || '-'}</span>
               </div>
             </div>
 
             {/* Technologies 直接显示 */}
-            {result.technologies.length > 0 && (
+            {result.technologies && result.technologies.length > 0 && (
               <div className="mt-3 flex flex-col gap-1">
                 <div
                   ref={containerRef}
@@ -114,12 +128,12 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
                     {techExpanded ? (
                       <>
                         <ChevronUp className="h-3 w-3" />
-                        <span>收起</span>
+                        <span>{t('collapse')}</span>
                       </>
                     ) : (
                       <>
                         <ChevronDown className="h-3 w-3" />
-                        <span>展开</span>
+                        <span>{t('expand')}</span>
                       </>
                     )}
                   </button>
@@ -145,15 +159,14 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
                   Body
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="header" className="flex-1 overflow-auto bg-muted/30 px-4 py-2">
+              <TabsContent value="header" className="flex-1 overflow-auto bg-muted/30 px-4 py-2 max-h-[200px]">
                 <pre className="text-xs font-mono whitespace-pre-wrap">
-                  {formatHeaders(result.responseHeaders)}
+                  {result.responseHeaders ? formatHeaders(result.responseHeaders) : '-'}
                 </pre>
               </TabsContent>
-              <TabsContent value="body" className="flex-1 overflow-auto bg-muted/30 px-4 py-2">
+              <TabsContent value="body" className="flex-1 overflow-auto bg-muted/30 px-4 py-2 max-h-[200px]">
                 <pre className="text-xs font-mono whitespace-pre-wrap">
-                  {result.responseBody.slice(0, 500)}
-                  {result.responseBody.length > 500 && "..."}
+                  {result.responseBody || '-'}
                 </pre>
               </TabsContent>
             </Tabs>
@@ -161,7 +174,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
         </div>
 
         {/* 底部漏洞区 */}
-        {result.vulnerabilities.length > 0 && (
+        {result.vulnerabilities && result.vulnerabilities.length > 0 && (
           <div className="border-t">
             <Collapsible open={vulnOpen} onOpenChange={setVulnOpen}>
               <CollapsibleTrigger className="flex items-center gap-1 px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full">
@@ -170,35 +183,70 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
                 ) : (
                   <ChevronUp className="size-4 rotate-90" />
                 )}
-                <span>关联漏洞 ({result.vulnerabilities.length})</span>
+                <span>{t('vulnerabilities', { count: result.vulnerabilities.length })}</span>
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="px-4 pb-4">
-                  <Table>
+                  <Table className="table-fixed">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-xs">漏洞名称</TableHead>
-                        <TableHead className="text-xs w-24">Severity</TableHead>
-                        <TableHead className="text-xs w-24">Source</TableHead>
-                        <TableHead className="text-xs w-32">Vuln Type</TableHead>
+                        <TableHead className="text-xs w-[40%]">{t('vulnName')}</TableHead>
+                        <TableHead className="text-xs w-[15%]">{t('severity')}</TableHead>
+                        <TableHead className="text-xs w-[15%]">{t('source')}</TableHead>
+                        <TableHead className="text-xs w-[20%]">{t('vulnType')}</TableHead>
+                        <TableHead className="text-xs w-[10%]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {result.vulnerabilities.map((vuln) => (
-                        <TableRow key={vuln.id}>
+                      {result.vulnerabilities.map((vuln, index) => (
+                        <TableRow key={`${vuln.name}-${index}`}>
                           <TableCell className="text-xs font-medium">
-                            {vuln.name}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="truncate block max-w-full cursor-default">
+                                  {vuln.name}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-[400px]">
+                                {vuln.name}
+                              </TooltipContent>
+                            </Tooltip>
                           </TableCell>
                           <TableCell>
                             <Badge
                               variant="outline"
-                              className={`text-xs ${severityColors[vuln.severity]}`}
+                              className={`text-xs ${severityColors[vuln.severity] || severityColors.info}`}
                             >
                               {vuln.severity}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-xs">{vuln.source}</TableCell>
-                          <TableCell className="text-xs">{vuln.vulnType}</TableCell>
+                          <TableCell className="text-xs">
+                            <Badge variant="outline" className="text-xs">
+                              {vuln.source}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="truncate block max-w-full cursor-default">
+                                  {vuln.vulnType}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent side="top">
+                                {vuln.vulnType}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2"
+                              onClick={() => handleViewVulnerability(vuln)}
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

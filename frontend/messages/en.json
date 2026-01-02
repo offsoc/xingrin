@@ -315,6 +315,35 @@
     "help": "Get Help",
     "feedback": "Feedback"
   },
+  "search": {
+    "title": "Asset Search",
+    "hint": "Click search box to view available fields and syntax",
+    "searching": "Searching...",
+    "loading": "Loading...",
+    "resultsCount": "Found {count} results",
+    "error": "Search failed, please try again later",
+    "noResults": "No matching assets found",
+    "noResultsHint": "Try adjusting your search criteria",
+    "fields": {
+      "host": "Hostname",
+      "url": "URL address",
+      "title": "Page title",
+      "tech": "Technology stack",
+      "status": "HTTP status code",
+      "body": "Response body content",
+      "header": "Response header content"
+    },
+    "card": {
+      "title": "Title",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "vulnerabilities": "Vulnerabilities ({count})",
+      "vulnName": "Vulnerability Name",
+      "severity": "Severity",
+      "source": "Source",
+      "vulnType": "Vuln Type"
+    }
+  },
   "dashboard": {
     "title": "Dashboard",
     "stats": {

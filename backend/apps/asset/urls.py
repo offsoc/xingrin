@@ -10,6 +10,7 @@ from .views import (
     DirectoryViewSet,
     VulnerabilityViewSet,
     AssetStatisticsViewSet,
+    AssetSearchView,
 )
 
 # 创建 DRF 路由器
@@ -25,4 +26,5 @@ router.register(r'statistics', AssetStatisticsViewSet, basename='asset-statistic
 
 urlpatterns = [
     path('assets/', include(router.urls)),
+    path('assets/search/', AssetSearchView.as_view(), name='asset-search'),
 ]

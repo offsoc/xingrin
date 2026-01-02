@@ -162,6 +162,14 @@ def on_initiate_scan_flow_completed(flow: Flow, flow_run: FlowRun, state: State)
     # 执行状态更新并获取统计数据
     stats = _update_completed_status()
     
+    # 标记物化视图需要刷新（由 APScheduler 定时任务检查并执行）
+    try:
+        from apps.asset.services.search_refresh_service import SearchRefreshService
+        SearchRefreshService.mark_needs_refresh()
+        logger.info("✓ 已标记物化视图需要刷新 - Scan ID: %s", scan_id)
+    except Exception as e:
+        logger.error(f"标记物化视图刷新失败 - Scan ID: {scan_id}: {e}", exc_info=True)
+    
     # 发送通知（包含统计摘要）
     logger.info("准备发送扫描完成通知 - Scan ID: %s, Target: %s", scan_id, target_name)
     try:
