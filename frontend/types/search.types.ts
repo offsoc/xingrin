@@ -30,15 +30,25 @@ export interface SearchResponse {
   totalPages: number
 }
 
-// 搜索参数类型
+// 搜索操作符类型
+export type SearchOperator = '=' | '==' | '!='
+
+// 单个搜索条件
+export interface SearchCondition {
+  field: string
+  operator: SearchOperator
+  value: string
+}
+
+// 搜索表达式（支持 AND/OR 组合）
+export interface SearchExpression {
+  conditions: SearchCondition[]  // 同一组内的条件用 AND 连接
+  orGroups?: SearchExpression[]  // 多组之间用 OR 连接
+}
+
+// 发送给后端的搜索参数
 export interface SearchParams {
-  host?: string
-  title?: string
-  tech?: string
-  status?: string
-  body?: string
-  header?: string
-  url?: string
+  q?: string  // 完整的搜索表达式字符串
   page?: number
   pageSize?: number
 }

@@ -3,6 +3,18 @@ import type { SearchParams, SearchResponse } from "@/types/search.types"
 
 /**
  * 资产搜索 API 服务
+ * 
+ * 搜索语法：
+ * - field="value"     模糊匹配（ILIKE %value%）
+ * - field=="value"    精确匹配
+ * - field!="value"    不等于
+ * - &&                AND 连接
+ * - ||                OR 连接
+ * 
+ * 示例：
+ * - host="api" && tech="nginx"
+ * - tech="vue" || tech="react"
+ * - status=="200" && host!="test"
  */
 export class SearchService {
   /**
@@ -10,16 +22,9 @@ export class SearchService {
    * GET /api/assets/search/
    */
   static async search(params: SearchParams): Promise<SearchResponse> {
-    // 构建查询参数，过滤空值
     const queryParams = new URLSearchParams()
     
-    if (params.host) queryParams.append('host', params.host)
-    if (params.title) queryParams.append('title', params.title)
-    if (params.tech) queryParams.append('tech', params.tech)
-    if (params.status) queryParams.append('status', params.status)
-    if (params.body) queryParams.append('body', params.body)
-    if (params.header) queryParams.append('header', params.header)
-    if (params.url) queryParams.append('url', params.url)
+    if (params.q) queryParams.append('q', params.q)
     if (params.page) queryParams.append('page', params.page.toString())
     if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString())
     

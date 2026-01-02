@@ -11,59 +11,53 @@ import { useAssetSearch } from "@/hooks/use-search"
 import type { SearchParams, SearchState } from "@/types/search.types"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
-// 搜索示例
+// 搜索示例 - 展示各种查询语法
 const SEARCH_FILTER_EXAMPLES = [
-  'host="example.com"',
-  'title="后台管理"',
+  // 模糊匹配 (=)
+  'host="api"',
+  'title="Dashboard"',
   'tech="nginx"',
-  'status="200"',
-  'body="password"',
-  'header="Server: nginx"',
+  // 精确匹配 (==)
+  'status=="200"',
+  'host=="admin.example.com"',
+  // 不等于 (!=)
+  'status!="404"',
+  'host!="test"',
+  // AND 组合 (&&)
+  'host="api" && status=="200"',
+  'tech="nginx" && title="Dashboard"',
+  'host="admin" && tech="php" && status=="200"',
+  // OR 组合 (||)
+  'tech="vue" || tech="react"',
+  'status=="200" || status=="301"',
+  'host="admin" || host="manage"',
+  // 混合查询
+  'host="api" && (tech="nginx" || tech="apache")',
+  '(status=="200" || status=="301") && tech="vue"',
+  'host="example" && status!="404" && tech="nginx"',
 ]
 
-// 解析搜索查询字符串为参数对象
-function parseSearchQuery(query: string): SearchParams {
-  const params: SearchParams = {}
-  
-  // 匹配 key="value" 或 key=value 格式
-  const regex = /(\w+)\s*=\s*"?([^"&]+)"?/g
-  let match
-  
-  while ((match = regex.exec(query)) !== null) {
-    const [, key, value] = match
-    const trimmedValue = value.trim()
-    
-    switch (key.toLowerCase()) {
-      case 'host':
-        params.host = trimmedValue
-        break
-      case 'url':
-        params.url = trimmedValue
-        break
-      case 'title':
-        params.title = trimmedValue
-        break
-      case 'tech':
-        params.tech = trimmedValue
-        break
-      case 'status':
-        params.status = trimmedValue
-        break
-      case 'body':
-        params.body = trimmedValue
-        break
-      case 'header':
-        params.header = trimmedValue
-        break
-    }
+// 验证搜索查询语法
+function validateSearchQuery(query: string): { valid: boolean; error?: string } {
+  if (!query.trim()) {
+    return { valid: false, error: 'Query cannot be empty' }
   }
   
-  // 如果没有匹配到任何字段，尝试作为 host 搜索
-  if (Object.keys(params).length === 0 && query.trim()) {
-    params.host = query.trim()
+  // 检查是否有未闭合的引号
+  const quoteCount = (query.match(/"/g) || []).length
+  if (quoteCount % 2 !== 0) {
+    return { valid: false, error: 'Unclosed quote detected' }
   }
   
-  return params
+  // 检查基本语法：field="value" 或 field=="value" 或 field!="value"
+  const conditionPattern = /(\w+)\s*(==|!=|=)\s*"([^"]*)"/g
+  const conditions = query.match(conditionPattern)
+  
+  if (!conditions || conditions.length === 0) {
+    return { valid: false, error: 'Invalid syntax. Use: field="value", field=="value", or field!="value"' }
+  }
+  
+  return { valid: true }
 }
 
 export function SearchPage() {
@@ -94,10 +88,17 @@ export function SearchPage() {
   const handleSearch = useCallback((_filters: unknown, rawQuery: string) => {
     if (!rawQuery.trim()) return
 
+    // 验证语法
+    const validation = validateSearchQuery(rawQuery)
+    if (!validation.valid) {
+      // 可以显示错误提示，这里简单处理
+      console.warn('Search validation:', validation.error)
+    }
+
     setQuery(rawQuery)
-    const params = parseSearchQuery(rawQuery)
-    setSearchParams(params)
-    setPage(1) // 重置页码
+    // 直接将原始查询发送给后端解析
+    setSearchParams({ q: rawQuery })
+    setPage(1)
     setSearchState("searching")
   }, [])
 
@@ -112,7 +113,7 @@ export function SearchPage() {
 
   const handlePageSizeChange = useCallback((newPageSize: number) => {
     setPageSize(newPageSize)
-    setPage(1) // 重置页码
+    setPage(1)
   }, [])
 
   return (
@@ -136,7 +137,7 @@ export function SearchPage() {
               <SmartFilterInput
                 fields={SEARCH_FILTER_FIELDS}
                 examples={SEARCH_FILTER_EXAMPLES}
-                placeholder='host="example.com" title="后台"'
+                placeholder='host="api" && tech="nginx" && status=="200"'
                 value={query}
                 onSearch={handleSearch}
                 className="w-full [&_input]:h-12 [&_input]:text-base [&_button]:h-12 [&_button]:w-12 [&_button]:p-0"
@@ -184,7 +185,7 @@ export function SearchPage() {
                 <SmartFilterInput
                   fields={SEARCH_FILTER_FIELDS}
                   examples={SEARCH_FILTER_EXAMPLES}
-                  placeholder='host="example.com" title="后台"'
+                  placeholder='host="api" && tech="nginx" && status=="200"'
                   value={query}
                   onSearch={handleSearch}
                   className="flex-1"

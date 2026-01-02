@@ -3,6 +3,22 @@
 
 提供资产搜索的 REST API 接口：
 - GET /api/assets/search/ - 搜索资产
+
+搜索语法：
+- field="value"     模糊匹配（ILIKE %value%）
+- field=="value"    精确匹配
+- field!="value"    不等于
+- &&                AND 连接
+- ||                OR 连接
+
+支持的字段：
+- host: 主机名
+- url: URL
+- title: 标题
+- tech: 技术栈
+- status: 状态码
+- body: 响应体
+- header: 响应头
 """
 
 import logging
@@ -25,15 +41,14 @@ class AssetSearchView(APIView):
     GET /api/assets/search/
     
     Query Parameters:
-        host: 主机名模糊匹配
-        title: 标题模糊匹配
-        tech: 技术栈匹配
-        status: 状态码匹配（支持逗号分隔多值，如 "200,301"）
-        body: 响应体模糊匹配
-        header: 响应头模糊匹配
-        url: URL 模糊匹配
+        q: 搜索查询表达式
         page: 页码（从 1 开始，默认 1）
         pageSize: 每页数量（默认 10，最大 100）
+    
+    示例查询：
+        ?q=host="api" && tech="nginx"
+        ?q=tech="vue" || tech="react"
+        ?q=status=="200" && host!="test"
     
     Response:
         {
@@ -51,20 +66,13 @@ class AssetSearchView(APIView):
     
     def get(self, request: Request):
         """搜索资产"""
-        # 获取搜索参数
-        host = request.query_params.get('host', '').strip() or None
-        title = request.query_params.get('title', '').strip() or None
-        tech = request.query_params.get('tech', '').strip() or None
-        status_param = request.query_params.get('status', '').strip() or None
-        body = request.query_params.get('body', '').strip() or None
-        header = request.query_params.get('header', '').strip() or None
-        url = request.query_params.get('url', '').strip() or None
+        # 获取搜索查询
+        query = request.query_params.get('q', '').strip()
         
-        # 检查是否有搜索条件
-        if not any([host, title, tech, status_param, body, header, url]):
+        if not query:
             return error_response(
                 code=ErrorCodes.VALIDATION_ERROR,
-                message='At least one search parameter is required',
+                message='Search query (q) is required',
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
@@ -82,30 +90,14 @@ class AssetSearchView(APIView):
         
         try:
             # 获取总数
-            total = self.service.count(
-                host=host,
-                title=title,
-                tech=tech,
-                status=status_param,
-                body=body,
-                header=header,
-                url=url,
-            )
+            total = self.service.count(query)
             
             # 计算分页
             total_pages = (total + page_size - 1) // page_size if total > 0 else 1
             offset = (page - 1) * page_size
             
             # 获取搜索结果
-            all_results = self.service.search(
-                host=host,
-                title=title,
-                tech=tech,
-                status=status_param,
-                body=body,
-                header=header,
-                url=url,
-            )
+            all_results = self.service.search(query)
             
             # 手动分页
             results = all_results[offset:offset + page_size]
@@ -117,10 +109,8 @@ class AssetSearchView(APIView):
                 response_headers = {}
                 if result.get('response_headers'):
                     try:
-                        # 尝试解析为 JSON
                         response_headers = json.loads(result['response_headers'])
                     except (json.JSONDecodeError, TypeError):
-                        # 如果不是 JSON，尝试解析为 HTTP 头格式
                         headers_str = result['response_headers']
                         for line in headers_str.split('\n'):
                             if ':' in line:
@@ -158,6 +148,6 @@ class AssetSearchView(APIView):
             logger.exception("搜索失败")
             return error_response(
                 code=ErrorCodes.SERVER_ERROR,
-                message='Search failed',
+                message=f'Search failed: {str(e)}',
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

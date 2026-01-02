@@ -13,16 +13,8 @@ export function useAssetSearch(
   params: SearchParams,
   options?: { enabled?: boolean }
 ) {
-  // 检查是否有有效的搜索条件
-  const hasSearchParams = !!(
-    params.host ||
-    params.title ||
-    params.tech ||
-    params.status ||
-    params.body ||
-    params.header ||
-    params.url
-  )
+  // 检查是否有有效的搜索查询
+  const hasSearchParams = !!(params.q && params.q.trim())
 
   return useQuery<SearchResponse>({
     queryKey: ['asset-search', params],
