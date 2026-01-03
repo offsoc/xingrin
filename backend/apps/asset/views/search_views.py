@@ -19,6 +19,10 @@
 - status: 状态码
 - body: 响应体
 - header: 响应头
+
+支持的资产类型：
+- website: 站点（默认）
+- endpoint: 端点
 """
 
 import logging
@@ -31,7 +35,7 @@ from django.db import connection
 
 from apps.common.response_helpers import success_response, error_response
 from apps.common.error_codes import ErrorCodes
-from apps.asset.services.search_service import AssetSearchService
+from apps.asset.services.search_service import AssetSearchService, VALID_ASSET_TYPES
 
 logger = logging.getLogger(__name__)
 
@@ -44,12 +48,13 @@ class AssetSearchView(APIView):
     
     Query Parameters:
         q: 搜索查询表达式
+        asset_type: 资产类型 ('website' 或 'endpoint'，默认 'website')
         page: 页码（从 1 开始，默认 1）
         pageSize: 每页数量（默认 10，最大 100）
     
     示例查询：
         ?q=host="api" && tech="nginx"
-        ?q=tech="vue" || tech="react"
+        ?q=tech="vue" || tech="react"&asset_type=endpoint
         ?q=status=="200" && host!="test"
     
     Response:
@@ -58,7 +63,8 @@ class AssetSearchView(APIView):
             "total": 100,
             "page": 1,
             "pageSize": 10,
-            "totalPages": 10
+            "totalPages": 10,
+            "assetType": "website"
         }
     """
     
@@ -80,20 +86,33 @@ class AssetSearchView(APIView):
                     result[key.strip()] = value.strip()
             return result
     
-    def _format_result(self, result: dict, vulnerabilities_by_url: dict) -> dict:
+    def _format_result(self, result: dict, vulnerabilities_by_url: dict, asset_type: str) -> dict:
         """格式化单个搜索结果"""
-        website_url = result.get('url', '')
-        vulns = vulnerabilities_by_url.get(website_url, [])
+        url = result.get('url', '')
+        vulns = vulnerabilities_by_url.get(url, [])
         
-        return {
-            'url': website_url,
+        # 基础字段（Website 和 Endpoint 共有）
+        formatted = {
+            'id': result.get('id'),
+            'url': url,
             'host': result.get('host', ''),
             'title': result.get('title', ''),
             'technologies': result.get('tech', []) or [],
             'statusCode': result.get('status_code'),
+            'contentLength': result.get('content_length'),
+            'contentType': result.get('content_type', ''),
+            'webserver': result.get('webserver', ''),
+            'location': result.get('location', ''),
+            'vhost': result.get('vhost'),
             'responseHeaders': self._parse_headers(result.get('response_headers')),
             'responseBody': result.get('response_body', ''),
-            'vulnerabilities': [
+            'createdAt': result.get('created_at').isoformat() if result.get('created_at') else None,
+            'targetId': result.get('target_id'),
+        }
+        
+        # Website 特有字段：漏洞关联
+        if asset_type == 'website':
+            formatted['vulnerabilities'] = [
                 {
                     'id': v.get('id'),
                     'name': v.get('vuln_type', ''),
@@ -101,8 +120,13 @@ class AssetSearchView(APIView):
                     'severity': v.get('severity', 'info'),
                 }
                 for v in vulns
-            ],
-        }
+            ]
+        
+        # Endpoint 特有字段
+        if asset_type == 'endpoint':
+            formatted['matchedGfPatterns'] = result.get('matched_gf_patterns', []) or []
+        
+        return formatted
     
     def _get_vulnerabilities_by_url_prefix(self, website_urls: list) -> dict:
         """
@@ -199,6 +223,15 @@ class AssetSearchView(APIView):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
+        # 获取并验证资产类型
+        asset_type = request.query_params.get('asset_type', 'website').strip().lower()
+        if asset_type not in VALID_ASSET_TYPES:
+            return error_response(
+                code=ErrorCodes.VALIDATION_ERROR,
+                message=f'Invalid asset_type. Must be one of: {", ".join(VALID_ASSET_TYPES)}',
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        
         # 获取分页参数
         try:
             page = int(request.query_params.get('page', 1))
@@ -212,19 +245,21 @@ class AssetSearchView(APIView):
         page_size = min(max(1, page_size), 100)
         
         # 获取总数和搜索结果
-        total = self.service.count(query)
+        total = self.service.count(query, asset_type)
         total_pages = (total + page_size - 1) // page_size if total > 0 else 1
         offset = (page - 1) * page_size
         
-        all_results = self.service.search(query)
+        all_results = self.service.search(query, asset_type)
         results = all_results[offset:offset + page_size]
         
-        # 批量查询漏洞数据（按 URL 前缀匹配）
-        website_urls = [(r.get('url'), r.get('target_id')) for r in results if r.get('url') and r.get('target_id')]
-        vulnerabilities_by_url = self._get_vulnerabilities_by_url_prefix(website_urls) if website_urls else {}
+        # 批量查询漏洞数据（仅 Website 类型需要）
+        vulnerabilities_by_url = {}
+        if asset_type == 'website':
+            website_urls = [(r.get('url'), r.get('target_id')) for r in results if r.get('url') and r.get('target_id')]
+            vulnerabilities_by_url = self._get_vulnerabilities_by_url_prefix(website_urls) if website_urls else {}
         
         # 格式化结果
-        formatted_results = [self._format_result(r, vulnerabilities_by_url) for r in results]
+        formatted_results = [self._format_result(r, vulnerabilities_by_url, asset_type) for r in results]
         
         return success_response(data={
             'results': formatted_results,
@@ -232,4 +267,5 @@ class AssetSearchView(APIView):
             'page': page,
             'pageSize': page_size,
             'totalPages': total_pages,
+            'assetType': asset_type,
         })

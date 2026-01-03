@@ -1,56 +1,130 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Search, AlertCircle } from "lucide-react"
+import { Search, AlertCircle, Globe, Link2, ShieldAlert, History, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
+import { useQuery } from "@tanstack/react-query"
 import { SmartFilterInput, type FilterField } from "@/components/common/smart-filter-input"
-import { SearchResultCard } from "./search-result-card"
 import { SearchPagination } from "./search-pagination"
 import { useAssetSearch } from "@/hooks/use-search"
 import { VulnerabilityDetailDialog } from "@/components/vulnerabilities/vulnerability-detail-dialog"
 import { VulnerabilityService } from "@/services/vulnerability.service"
-import type { SearchParams, SearchState, Vulnerability as SearchVuln } from "@/types/search.types"
+import type { SearchParams, SearchState, Vulnerability as SearchVuln, AssetType } from "@/types/search.types"
 import type { Vulnerability } from "@/types/vulnerability.types"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { SearchResultsTable } from "./search-results-table"
+import { SearchResultCard } from "./search-result-card"
+import { Badge } from "@/components/ui/badge"
+import { getAssetStatistics } from "@/services/dashboard.service"
+import { cn } from "@/lib/utils"
 
-// 搜索示例 - 展示各种查询语法
-const SEARCH_FILTER_EXAMPLES = [
-  // 模糊匹配 (=)
+// Website 搜索示例
+const WEBSITE_SEARCH_EXAMPLES = [
   'host="api"',
   'title="Dashboard"',
   'tech="nginx"',
-  // 精确匹配 (==)
   'status=="200"',
-  'host=="admin.example.com"',
-  // 不等于 (!=)
-  'status!="404"',
-  'host!="test"',
-  // AND 组合 (&&)
   'host="api" && status=="200"',
-  'tech="nginx" && title="Dashboard"',
-  'host="admin" && tech="php" && status=="200"',
-  // OR 组合 (||)
   'tech="vue" || tech="react"',
-  'status=="200" || status=="301"',
-  'host="admin" || host="manage"',
-  // 混合查询
-  'host="api" && (tech="nginx" || tech="apache")',
-  '(status=="200" || status=="301") && tech="vue"',
-  'host="example" && status!="404" && tech="nginx"',
+  'host="admin" && tech="php" && status=="200"',
+  'status!="404"',
 ]
+
+// Endpoint 搜索示例
+const ENDPOINT_SEARCH_EXAMPLES = [
+  'host="api"',
+  'url="/api/v1"',
+  'title="Dashboard"',
+  'tech="nginx"',
+  'status=="200"',
+  'host="api" && status=="200"',
+  'url="/admin" && status=="200"',
+  'tech="vue" || tech="react"',
+]
+
+// 快捷搜索标签
+const QUICK_SEARCH_TAGS = [
+  { label: 'status=="200"', query: 'status=="200"' },
+  { label: 'tech="nginx"', query: 'tech="nginx"' },
+  { label: 'tech="php"', query: 'tech="php"' },
+  { label: 'tech="vue"', query: 'tech="vue"' },
+  { label: 'tech="react"', query: 'tech="react"' },
+  { label: 'status=="403"', query: 'status=="403"' },
+]
+
+// 最近搜索本地存储 key
+const RECENT_SEARCHES_KEY = 'xingrin_recent_searches'
+const MAX_RECENT_SEARCHES = 5
+
+// 获取最近搜索记录
+function getRecentSearches(): string[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const saved = localStorage.getItem(RECENT_SEARCHES_KEY)
+    return saved ? JSON.parse(saved) : []
+  } catch {
+    return []
+  }
+}
+
+// 保存搜索记录
+function saveRecentSearch(query: string) {
+  if (typeof window === 'undefined' || !query.trim()) return
+  try {
+    const searches = getRecentSearches().filter(s => s !== query)
+    searches.unshift(query)
+    localStorage.setItem(
+      RECENT_SEARCHES_KEY,
+      JSON.stringify(searches.slice(0, MAX_RECENT_SEARCHES))
+    )
+  } catch {
+    // ignore
+  }
+}
+
+// 删除搜索记录
+function removeRecentSearch(query: string) {
+  if (typeof window === 'undefined') return
+  try {
+    const searches = getRecentSearches().filter(s => s !== query)
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches))
+  } catch {
+    // ignore
+  }
+}
 
 export function SearchPage() {
   const t = useTranslations('search')
   const [searchState, setSearchState] = useState<SearchState>("initial")
   const [query, setQuery] = useState("")
+  const [assetType, setAssetType] = useState<AssetType>("website")
   const [searchParams, setSearchParams] = useState<SearchParams>({})
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [selectedVuln, setSelectedVuln] = useState<Vulnerability | null>(null)
   const [vulnDialogOpen, setVulnDialogOpen] = useState(false)
-  const [loadingVuln, setLoadingVuln] = useState(false)
+  const [, setLoadingVuln] = useState(false)
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
+
+  // 获取资产统计数据
+  const { data: stats } = useQuery({
+    queryKey: ['assetStatistics'],
+    queryFn: getAssetStatistics,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+
+  // 加载最近搜索记录
+  useEffect(() => {
+    setRecentSearches(getRecentSearches())
+  }, [])
+
+  // 根据资产类型选择搜索示例
+  const searchExamples = useMemo(() => {
+    return assetType === 'endpoint' ? ENDPOINT_SEARCH_EXAMPLES : WEBSITE_SEARCH_EXAMPLES
+  }, [assetType])
 
   // 搜索过滤字段配置
   const SEARCH_FILTER_FIELDS: FilterField[] = [
@@ -73,15 +147,51 @@ export function SearchPage() {
     if (!rawQuery.trim()) return
 
     setQuery(rawQuery)
-    setSearchParams({ q: rawQuery })
+    setSearchParams({ q: rawQuery, asset_type: assetType })
     setPage(1)
     setSearchState("searching")
+    
+    // 保存到最近搜索
+    saveRecentSearch(rawQuery)
+    setRecentSearches(getRecentSearches())
+  }, [assetType])
+
+  // 处理快捷标签点击
+  const handleQuickTagClick = useCallback((tagQuery: string) => {
+    setQuery(tagQuery)
+  }, [])
+
+  // 处理最近搜索点击
+  const handleRecentSearchClick = useCallback((recentQuery: string) => {
+    setQuery(recentQuery)
+    setSearchParams({ q: recentQuery, asset_type: assetType })
+    setPage(1)
+    setSearchState("searching")
+    saveRecentSearch(recentQuery)
+    setRecentSearches(getRecentSearches())
+  }, [assetType])
+
+  // 删除最近搜索
+  const handleRemoveRecentSearch = useCallback((e: React.MouseEvent, searchQuery: string) => {
+    e.stopPropagation()
+    removeRecentSearch(searchQuery)
+    setRecentSearches(getRecentSearches())
   }, [])
 
   // 当数据加载完成时更新状态
   if (searchState === "searching" && data && !isLoading) {
     setSearchState("results")
   }
+
+  const handleAssetTypeChange = useCallback((value: AssetType) => {
+    setAssetType(value)
+    // 清空搜索结果
+    if (searchState === "results") {
+      setSearchState("initial")
+      setSearchParams({})
+      setQuery("")
+    }
+  }, [searchState])
 
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage)
@@ -107,6 +217,19 @@ export function SearchPage() {
     }
   }, [t])
 
+  // 资产类型选择器组件
+  const AssetTypeSelector = (
+    <Select value={assetType} onValueChange={handleAssetTypeChange}>
+      <SelectTrigger size="sm" className="w-[100px]">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="website">{t('assetTypes.website')}</SelectItem>
+        <SelectItem value="endpoint">{t('assetTypes.endpoint')}</SelectItem>
+      </SelectContent>
+    </Select>
+  )
+
   return (
     <div className="flex-1 w-full flex flex-col">
       <AnimatePresence mode="wait">
@@ -117,26 +240,122 @@ export function SearchPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
             transition={{ duration: 0.3 }}
-            className="flex-1 flex flex-col items-center justify-center px-4 -mt-50"
+            className="flex-1 flex flex-col items-center justify-center px-4 relative overflow-hidden"
           >
-            <div className="flex flex-col items-center gap-6 w-full max-w-2xl">
-              <h1 className="text-3xl font-semibold text-foreground flex items-center gap-3">
-                <Search className="h-8 w-8" />
-                {t('title')}
-              </h1>
+            {/* 背景装饰 */}
+            <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+              <div className="absolute left-1/2 top-1/4 -translate-x-1/2 h-[400px] w-[600px] rounded-full bg-primary/5 blur-3xl" />
+              <div className="absolute right-1/4 top-1/2 h-[200px] w-[300px] rounded-full bg-primary/3 blur-2xl" />
+            </div>
 
-              <SmartFilterInput
-                fields={SEARCH_FILTER_FIELDS}
-                examples={SEARCH_FILTER_EXAMPLES}
-                placeholder='host="api" && tech="nginx" && status=="200"'
-                value={query}
-                onSearch={handleSearch}
-                className="w-full [&_input]:h-12 [&_input]:text-base [&_button]:h-12 [&_button]:w-12 [&_button]:p-0"
-              />
+            <div className="flex flex-col items-center gap-6 w-full max-w-3xl -mt-16">
+              {/* 标题 */}
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-2">
+                  <Search className="h-8 w-8 text-primary" />
+                </div>
+                <h1 className="text-3xl font-semibold text-foreground">
+                  {t('title')}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {t('hint')}
+                </p>
+              </div>
 
-              <p className="text-sm text-muted-foreground">
-                {t('hint')}
-              </p>
+              {/* 搜索框 */}
+              <div className="flex items-center gap-3 w-full">
+                {AssetTypeSelector}
+                <SmartFilterInput
+                  fields={SEARCH_FILTER_FIELDS}
+                  examples={searchExamples}
+                  placeholder='host="api" && tech="nginx" && status=="200"'
+                  value={query}
+                  onSearch={handleSearch}
+                  className="flex-1"
+                />
+              </div>
+
+              {/* 快捷搜索标签 */}
+              <div className="flex flex-wrap justify-center gap-2">
+                {QUICK_SEARCH_TAGS.map((tag) => (
+                  <Badge
+                    key={tag.query}
+                    variant="outline"
+                    className="cursor-pointer hover:bg-accent transition-colors px-3 py-1"
+                    onClick={() => handleQuickTagClick(tag.query)}
+                  >
+                    {tag.label}
+                  </Badge>
+                ))}
+              </div>
+
+              {/* 资产统计 */}
+              {stats && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="grid grid-cols-3 gap-6 mt-4"
+                >
+                  <div className="flex flex-col items-center gap-1 p-4 rounded-xl bg-muted/50">
+                    <Globe className="h-5 w-5 text-muted-foreground mb-1" />
+                    <span className="text-2xl font-bold text-primary">
+                      {stats.totalWebsites.toLocaleString()}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{t('assetTypes.website')}</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 p-4 rounded-xl bg-muted/50">
+                    <Link2 className="h-5 w-5 text-muted-foreground mb-1" />
+                    <span className="text-2xl font-bold text-primary">
+                      {stats.totalEndpoints.toLocaleString()}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{t('assetTypes.endpoint')}</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 p-4 rounded-xl bg-muted/50">
+                    <ShieldAlert className="h-5 w-5 text-muted-foreground mb-1" />
+                    <span className="text-2xl font-bold text-primary">
+                      {stats.totalVulns.toLocaleString()}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{t('stats.vulnerabilities')}</span>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* 最近搜索 */}
+              {recentSearches.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="w-full max-w-xl mt-2"
+                >
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                    <History className="h-3.5 w-3.5" />
+                    <span>{t('recentSearches')}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {recentSearches.map((search) => (
+                      <Badge
+                        key={search}
+                        variant="secondary"
+                        className={cn(
+                          "cursor-pointer hover:bg-secondary/80 transition-colors",
+                          "pl-3 pr-1.5 py-1 gap-1 group"
+                        )}
+                        onClick={() => handleRecentSearchClick(search)}
+                      >
+                        <span className="font-mono text-xs truncate max-w-[200px]">{search}</span>
+                        <button
+                          onClick={(e) => handleRemoveRecentSearch(e, search)}
+                          className="ml-1 p-0.5 rounded hover:bg-muted-foreground/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
             </div>
           </motion.div>
         )}
@@ -172,10 +391,11 @@ export function SearchPage() {
               transition={{ duration: 0.3, delay: 0.1 }}
               className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-4 py-3"
             >
-              <div className="flex items-center gap-3 max-w-4xl mx-auto">
+              <div className="flex items-center gap-3">
+                {AssetTypeSelector}
                 <SmartFilterInput
                   fields={SEARCH_FILTER_FIELDS}
-                  examples={SEARCH_FILTER_EXAMPLES}
+                  examples={searchExamples}
                   placeholder='host="api" && tech="nginx" && status=="200"'
                   value={query}
                   onSearch={handleSearch}
@@ -189,7 +409,7 @@ export function SearchPage() {
 
             {/* 错误提示 */}
             {error && (
-              <div className="p-4 max-w-4xl mx-auto w-full">
+              <div className="p-4 w-full">
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
@@ -212,39 +432,41 @@ export function SearchPage() {
               </div>
             )}
 
-            {/* 搜索结果列表 */}
+            {/* 搜索结果 */}
             {!error && data && data.results.length > 0 && (
               <>
                 <div className="flex-1 overflow-auto p-4">
-                  <div className="max-w-4xl mx-auto space-y-4">
-                    {data.results.map((result, index) => (
-                      <motion.div
-                        key={`${result.url}-${index}`}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                      >
-                        <SearchResultCard 
-                          result={result} 
+                  {assetType === 'website' ? (
+                    // Website 使用卡片样式
+                    <div className="space-y-4 max-w-4xl mx-auto">
+                      {data.results.map((result) => (
+                        <SearchResultCard
+                          key={result.id}
+                          result={result}
                           onViewVulnerability={handleViewVulnerability}
                         />
-                      </motion.div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    // Endpoint 使用表格样式
+                    <SearchResultsTable
+                      results={data.results}
+                      assetType={assetType}
+                      onViewVulnerability={handleViewVulnerability}
+                    />
+                  )}
                 </div>
 
                 {/* 分页控制 */}
                 <div className="border-t px-4 py-3">
-                  <div className="max-w-4xl mx-auto">
-                    <SearchPagination
-                      page={page}
-                      pageSize={pageSize}
-                      total={data.total}
-                      totalPages={data.totalPages}
-                      onPageChange={handlePageChange}
-                      onPageSizeChange={handlePageSizeChange}
-                    />
-                  </div>
+                  <SearchPagination
+                    page={page}
+                    pageSize={pageSize}
+                    total={data.total}
+                    totalPages={data.totalPages}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                  />
                 </div>
               </>
             )}

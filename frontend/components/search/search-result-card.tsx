@@ -25,7 +25,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import type { SearchResult, Vulnerability } from "@/types/search.types"
+import type { SearchResult, Vulnerability, WebsiteSearchResult } from "@/types/search.types"
+
+// 类型守卫：检查是否为 WebsiteSearchResult
+function isWebsiteResult(result: SearchResult): result is WebsiteSearchResult {
+  return 'vulnerabilities' in result
+}
 
 interface SearchResultCardProps {
   result: SearchResult
@@ -41,6 +46,15 @@ const severityColors: Record<string, string> = {
   info: "bg-[#848d97]/10 text-[#848d97] border border-[#848d97]/20",
 }
 
+// 状态码 Badge variant
+function getStatusVariant(status: number | null): "default" | "secondary" | "destructive" | "outline" {
+  if (!status) return "outline"
+  if (status >= 200 && status < 300) return "default"
+  if (status >= 300 && status < 400) return "secondary"
+  if (status >= 400) return "destructive"
+  return "outline"
+}
+
 export function SearchResultCard({ result, onViewVulnerability }: SearchResultCardProps) {
   const t = useTranslations('search.card')
   const [vulnOpen, setVulnOpen] = useState(false)
@@ -54,8 +68,16 @@ export function SearchResultCard({ result, onViewVulnerability }: SearchResultCa
       .join("\n")
   }
 
+  // 格式化字节数
+  const formatBytes = (bytes: number | null) => {
+    if (bytes === null || bytes === undefined) return null
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
   // 检测内容是否溢出
-  const maxHeight = 26 * 4 // 4行高度 (badge ~22px + gap 4px)
+  const maxHeight = 26 * 4
   
   useEffect(() => {
     const el = containerRef.current
@@ -82,27 +104,51 @@ export function SearchResultCard({ result, onViewVulnerability }: SearchResultCa
   return (
     <Card className="overflow-hidden py-0 gap-0">
       <CardContent className="p-0">
-        {/* 顶部 URL 栏 */}
-        <h3 className="font-semibold text-sm px-4 py-2 bg-muted/30 border-b break-all">
-          {result.url || result.host}
-        </h3>
+        {/* 顶部 URL + Badge 行 */}
+        <div className="px-4 py-2 bg-muted/30 border-b space-y-2">
+          <h3 className="font-mono text-sm break-all">
+            {result.url || result.host}
+          </h3>
+          {/* Badge 行 */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={getStatusVariant(result.statusCode)} className="font-mono text-xs">
+              {result.statusCode ?? '-'}
+            </Badge>
+            {result.webserver && (
+              <Badge variant="outline" className="font-mono text-xs">
+                {result.webserver}
+              </Badge>
+            )}
+            {result.contentType && (
+              <Badge variant="outline" className="font-mono text-xs">
+                {result.contentType.split(';')[0]}
+              </Badge>
+            )}
+            {formatBytes(result.contentLength) && (
+              <Badge variant="outline" className="font-mono text-xs">
+                {formatBytes(result.contentLength)}
+              </Badge>
+            )}
+
+          </div>
+        </div>
 
         {/* 中间左右分栏 */}
         <div className="flex flex-col md:flex-row">
           {/* 左侧信息区 */}
-          <div className="w-full md:w-2/5 px-4 pt-2 pb-3 border-b md:border-b-0 md:border-r flex flex-col">
+          <div className="w-full md:w-[320px] md:shrink-0 px-4 py-3 border-b md:border-b-0 md:border-r flex flex-col">
             <div className="space-y-1.5 text-sm">
-              <div className="flex items-center h-[28px]">
-                <span className="text-muted-foreground w-12 shrink-0">{t('title')}</span>
-                <span className="font-medium truncate" title={result.title}>{result.title || '-'}</span>
+              <div className="flex items-baseline">
+                <span className="text-muted-foreground w-12 shrink-0">Title</span>
+                <span className="truncate" title={result.title}>{result.title || '-'}</span>
               </div>
-              <div className="flex items-center">
+              <div className="flex items-baseline">
                 <span className="text-muted-foreground w-12 shrink-0">Host</span>
-                <span className="font-mono text-sm truncate" title={result.host}>{result.host || '-'}</span>
+                <span className="font-mono truncate" title={result.host}>{result.host || '-'}</span>
               </div>
             </div>
 
-            {/* Technologies 直接显示 */}
+            {/* Technologies */}
             {result.technologies && result.technologies.length > 0 && (
               <div className="mt-3 flex flex-col gap-1">
                 <div
@@ -143,7 +189,7 @@ export function SearchResultCard({ result, onViewVulnerability }: SearchResultCa
           </div>
 
           {/* 右侧 Tab 区 */}
-          <div className="w-full md:w-3/5 flex flex-col">
+          <div className="w-full md:flex-1 flex flex-col">
             <Tabs defaultValue="header" className="w-full h-full flex flex-col gap-0">
               <TabsList className="h-[28px] gap-4 rounded-none border-b bg-transparent px-4 pt-1">
                 <TabsTrigger 
@@ -158,6 +204,14 @@ export function SearchResultCard({ result, onViewVulnerability }: SearchResultCa
                 >
                   Body
                 </TabsTrigger>
+                {result.location && (
+                  <TabsTrigger 
+                    value="location" 
+                    className="h-full rounded-none border-b-2 border-transparent border-x-0 border-t-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0 focus-visible:outline-none data-[state=active]:border-b-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                  >
+                    Location
+                  </TabsTrigger>
+                )}
               </TabsList>
               <TabsContent value="header" className="flex-1 overflow-auto bg-muted/30 px-4 py-2 max-h-[200px]">
                 <pre className="text-xs font-mono whitespace-pre-wrap">
@@ -169,12 +223,19 @@ export function SearchResultCard({ result, onViewVulnerability }: SearchResultCa
                   {result.responseBody || '-'}
                 </pre>
               </TabsContent>
+              {result.location && (
+                <TabsContent value="location" className="flex-1 overflow-auto bg-muted/30 px-4 py-2 max-h-[200px]">
+                  <pre className="text-xs font-mono whitespace-pre-wrap">
+                    {result.location}
+                  </pre>
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         </div>
 
-        {/* 底部漏洞区 */}
-        {result.vulnerabilities && result.vulnerabilities.length > 0 && (
+        {/* 底部漏洞区 - 仅 Website 类型显示 */}
+        {isWebsiteResult(result) && result.vulnerabilities && result.vulnerabilities.length > 0 && (
           <div className="border-t">
             <Collapsible open={vulnOpen} onOpenChange={setVulnOpen}>
               <CollapsibleTrigger className="flex items-center gap-1 px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full">

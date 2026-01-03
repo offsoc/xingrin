@@ -1,14 +1,48 @@
-// 搜索结果类型
-export interface SearchResult {
+// 资产类型
+export type AssetType = 'website' | 'endpoint'
+
+// Website 搜索结果类型
+export interface WebsiteSearchResult {
+  id: number
   url: string
   host: string
   title: string
   technologies: string[]
   statusCode: number | null
+  contentLength: number | null
+  contentType: string
+  webserver: string
+  location: string
+  vhost: boolean | null
   responseHeaders: Record<string, string>
   responseBody: string
+  createdAt: string | null
+  targetId: number
   vulnerabilities: Vulnerability[]
 }
+
+// Endpoint 搜索结果类型
+export interface EndpointSearchResult {
+  id: number
+  url: string
+  host: string
+  title: string
+  technologies: string[]
+  statusCode: number | null
+  contentLength: number | null
+  contentType: string
+  webserver: string
+  location: string
+  vhost: boolean | null
+  responseHeaders: Record<string, string>
+  responseBody: string
+  createdAt: string | null
+  targetId: number
+  matchedGfPatterns: string[]
+}
+
+// 通用搜索结果类型（兼容旧代码）
+export type SearchResult = WebsiteSearchResult | EndpointSearchResult
 
 export interface Vulnerability {
   id?: number
@@ -28,6 +62,7 @@ export interface SearchResponse {
   page: number
   pageSize: number
   totalPages: number
+  assetType: AssetType
 }
 
 // 搜索操作符类型
@@ -49,6 +84,7 @@ export interface SearchExpression {
 // 发送给后端的搜索参数
 export interface SearchParams {
   q?: string  // 完整的搜索表达式字符串
+  asset_type?: AssetType  // 资产类型
   page?: number
   pageSize?: number
 }

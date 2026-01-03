@@ -325,6 +325,14 @@
     "noResults": "No matching assets found",
     "noResultsHint": "Try adjusting your search criteria",
     "vulnLoadError": "Failed to load vulnerability details",
+    "recentSearches": "Recent Searches",
+    "stats": {
+      "vulnerabilities": "Vulnerabilities"
+    },
+    "assetTypes": {
+      "website": "Website",
+      "endpoint": "Endpoint"
+    },
     "fields": {
       "host": "Hostname",
       "url": "URL address",
@@ -333,6 +341,22 @@
       "status": "HTTP status code",
       "body": "Response body content",
       "header": "Response header content"
+    },
+    "table": {
+      "url": "URL",
+      "host": "Host",
+      "title": "Title",
+      "status": "Status",
+      "technologies": "Technologies",
+      "contentLength": "Content Length",
+      "location": "Location",
+      "webserver": "Web Server",
+      "contentType": "Content Type",
+      "responseBody": "Response Body",
+      "responseHeaders": "Response Headers",
+      "vhost": "VHost",
+      "createdAt": "Created At",
+      "gfPatterns": "GF Patterns"
     },
     "card": {
       "title": "Title",

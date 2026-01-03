@@ -6,11 +6,12 @@
 - 支持表达式语法解析
 - 支持 =（模糊）、==（精确）、!=（不等于）操作符
 - 支持 && (AND) 和 || (OR) 逻辑组合
+- 支持 Website 和 Endpoint 两种资产类型
 """
 
 import logging
 import re
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any, Tuple, Literal
 
 from django.db import connection
 
@@ -29,6 +30,54 @@ FIELD_MAPPING = {
 
 # 数组类型字段
 ARRAY_FIELDS = {'tech'}
+
+# 资产类型到视图名的映射
+VIEW_MAPPING = {
+    'website': 'asset_search_view',
+    'endpoint': 'endpoint_search_view',
+}
+
+# 有效的资产类型
+VALID_ASSET_TYPES = {'website', 'endpoint'}
+
+# Website 查询字段
+WEBSITE_SELECT_FIELDS = """
+    id,
+    url,
+    host,
+    title,
+    tech,
+    status_code,
+    response_headers,
+    response_body,
+    content_type,
+    content_length,
+    webserver,
+    location,
+    vhost,
+    created_at,
+    target_id
+"""
+
+# Endpoint 查询字段（包含 matched_gf_patterns）
+ENDPOINT_SELECT_FIELDS = """
+    id,
+    url,
+    host,
+    title,
+    tech,
+    status_code,
+    response_headers,
+    response_body,
+    content_type,
+    content_length,
+    webserver,
+    location,
+    vhost,
+    matched_gf_patterns,
+    created_at,
+    target_id
+"""
 
 
 class SearchQueryParser:
@@ -226,6 +275,12 @@ class SearchQueryParser:
         if is_array:
             # 数组字段：检查数组中是否有元素包含该值
             return f"EXISTS (SELECT 1 FROM unnest({field}) AS t WHERE t ILIKE %s)", [f"%{value}%"]
+        elif field == 'status_code':
+            # 状态码是整数，模糊匹配转为精确匹配
+            try:
+                return f"{field} = %s", [int(value)]
+            except ValueError:
+                return f"{field}::text ILIKE %s", [f"%{value}%"]
         else:
             return f"{field} ILIKE %s", [f"%{value}%"]
     
@@ -259,33 +314,36 @@ class SearchQueryParser:
             return f"({field} IS NULL OR {field} != %s)", [value]
 
 
+AssetType = Literal['website', 'endpoint']
+
+
 class AssetSearchService:
     """资产搜索服务"""
     
-    def search(self, query: str) -> List[Dict[str, Any]]:
+    def search(
+        self, 
+        query: str, 
+        asset_type: AssetType = 'website'
+    ) -> List[Dict[str, Any]]:
         """
         搜索资产
         
         Args:
             query: 搜索查询字符串
+            asset_type: 资产类型 ('website' 或 'endpoint')
         
         Returns:
             List[Dict]: 搜索结果列表
         """
         where_clause, params = SearchQueryParser.parse(query)
         
+        # 根据资产类型选择视图和字段
+        view_name = VIEW_MAPPING.get(asset_type, 'asset_search_view')
+        select_fields = ENDPOINT_SELECT_FIELDS if asset_type == 'endpoint' else WEBSITE_SELECT_FIELDS
+        
         sql = f"""
-            SELECT 
-                id,
-                url,
-                host,
-                title,
-                tech,
-                status_code,
-                response_headers,
-                response_body,
-                target_id
-            FROM asset_search_view
+            SELECT {select_fields}
+            FROM {view_name}
             WHERE {where_clause}
             ORDER BY created_at DESC
         """
@@ -305,19 +363,23 @@ class AssetSearchService:
             logger.error(f"搜索查询失败: {e}, SQL: {sql}, params: {params}")
             raise
     
-    def count(self, query: str) -> int:
+    def count(self, query: str, asset_type: AssetType = 'website') -> int:
         """
         统计搜索结果数量
         
         Args:
             query: 搜索查询字符串
+            asset_type: 资产类型 ('website' 或 'endpoint')
         
         Returns:
             int: 结果总数
         """
         where_clause, params = SearchQueryParser.parse(query)
         
-        sql = f"SELECT COUNT(*) FROM asset_search_view WHERE {where_clause}"
+        # 根据资产类型选择视图
+        view_name = VIEW_MAPPING.get(asset_type, 'asset_search_view')
+        
+        sql = f"SELECT COUNT(*) FROM {view_name} WHERE {where_clause}"
         
         try:
             with connection.cursor() as cursor:

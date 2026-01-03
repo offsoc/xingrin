@@ -11,6 +11,10 @@ import type { SearchParams, SearchResponse } from "@/types/search.types"
  * - &&                AND 连接
  * - ||                OR 连接
  * 
+ * 支持的资产类型：
+ * - website: 站点（默认）
+ * - endpoint: 端点
+ * 
  * 示例：
  * - host="api" && tech="nginx"
  * - tech="vue" || tech="react"
@@ -25,6 +29,7 @@ export class SearchService {
     const queryParams = new URLSearchParams()
     
     if (params.q) queryParams.append('q', params.q)
+    if (params.asset_type) queryParams.append('asset_type', params.asset_type)
     if (params.page) queryParams.append('page', params.page.toString())
     if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString())
     

@@ -325,6 +325,14 @@
     "noResults": "未找到匹配的资产",
     "noResultsHint": "请尝试调整搜索条件",
     "vulnLoadError": "加载漏洞详情失败",
+    "recentSearches": "最近搜索",
+    "stats": {
+      "vulnerabilities": "漏洞"
+    },
+    "assetTypes": {
+      "website": "网站",
+      "endpoint": "URL"
+    },
     "fields": {
       "host": "主机名",
       "url": "URL 地址",
@@ -333,6 +341,22 @@
       "status": "HTTP 状态码",
       "body": "响应体内容",
       "header": "响应头内容"
+    },
+    "table": {
+      "url": "URL",
+      "host": "主机名",
+      "title": "标题",
+      "status": "状态码",
+      "technologies": "技术栈",
+      "contentLength": "内容长度",
+      "location": "跳转地址",
+      "webserver": "Web 服务器",
+      "contentType": "内容类型",
+      "responseBody": "响应体",
+      "responseHeaders": "响应头",
+      "vhost": "VHost",
+      "createdAt": "创建时间",
+      "gfPatterns": "GF 模式"
     },
     "card": {
       "title": "标题",
