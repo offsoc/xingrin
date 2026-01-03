@@ -11,7 +11,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 安装 Docker CLI（用于本地 Worker 任务分发）
-RUN apt-get update && apt-get install -y docker.io && rm -rf /var/lib/apt/lists/*
+# 只安装 docker-ce-cli，避免安装完整 Docker 引擎
+RUN apt-get update && \
+    apt-get install -y ca-certificates gnupg && \
+    install -m 07
 
 # 安装 uv（超快的 Python 包管理器）
 RUN pip install uv
