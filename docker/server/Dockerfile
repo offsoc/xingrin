@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 安装 Docker CLI（用于本地 Worker 任务分发）
-RUN curl -fsSL https://get.docker.com | sh
+RUN apt-get update && apt-get install -y docker.io && rm -rf /var/lib/apt/lists/*
 
 # 安装 uv（超快的 Python 包管理器）
 RUN pip install uv
