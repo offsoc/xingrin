@@ -11,16 +11,27 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { YamlEditor } from "@/components/ui/yaml-editor"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { Zap, Settings2, AlertCircle, ChevronRight, ChevronLeft, Target, Server } from "lucide-react"
 import { quickScan } from "@/services/scan.service"
-import { CAPABILITY_CONFIG, getEngineIcon, parseEngineCapabilities } from "@/lib/engine-config"
+import { CAPABILITY_CONFIG, getEngineIcon, parseEngineCapabilities, mergeEngineConfigurations } from "@/lib/engine-config"
 import { TargetValidator } from "@/lib/target-validator"
 import { useEngines } from "@/hooks/use-engines"
 
@@ -36,6 +47,13 @@ export function QuickScanDialog({ trigger }: QuickScanDialogProps) {
   
   const [targetInput, setTargetInput] = React.useState("")
   const [selectedEngineIds, setSelectedEngineIds] = React.useState<number[]>([])
+  
+  // Configuration state management
+  const [configuration, setConfiguration] = React.useState("")
+  const [isConfigEdited, setIsConfigEdited] = React.useState(false)
+  const [isYamlValid, setIsYamlValid] = React.useState(true)
+  const [showOverwriteConfirm, setShowOverwriteConfirm] = React.useState(false)
+  const [pendingEngineChange, setPendingEngineChange] = React.useState<{ engineId: number; checked: boolean } | null>(null)
   
   const { data: engines, isLoading, error } = useEngines()
   
@@ -70,9 +88,19 @@ export function QuickScanDialog({ trigger }: QuickScanDialogProps) {
     return Array.from(allCaps)
   }, [selectedEngines])
   
+  // Update configuration when engines change (if not manually edited)
+  const updateConfigurationFromEngines = React.useCallback((engineIds: number[]) => {
+    if (!engines) return
+    const selectedEngs = engines.filter(e => engineIds.includes(e.id))
+    const mergedConfig = mergeEngineConfigurations(selectedEngs.map(e => e.configuration || ""))
+    setConfiguration(mergedConfig)
+  }, [engines])
+  
   const resetForm = () => {
     setTargetInput("")
     setSelectedEngineIds([])
+    setConfiguration("")
+    setIsConfigEdited(false)
     setStep(1)
   }
   
@@ -81,16 +109,52 @@ export function QuickScanDialog({ trigger }: QuickScanDialogProps) {
     if (!isOpen) resetForm()
   }
   
-  const handleEngineToggle = (engineId: number, checked: boolean) => {
+  const applyEngineChange = (engineId: number, checked: boolean) => {
+    let newEngineIds: number[]
     if (checked) {
-      setSelectedEngineIds((prev) => [...prev, engineId])
+      newEngineIds = [...selectedEngineIds, engineId]
     } else {
-      setSelectedEngineIds((prev) => prev.filter((id) => id !== engineId))
+      newEngineIds = selectedEngineIds.filter((id) => id !== engineId)
+    }
+    setSelectedEngineIds(newEngineIds)
+    updateConfigurationFromEngines(newEngineIds)
+    setIsConfigEdited(false)
+  }
+  
+  const handleEngineToggle = (engineId: number, checked: boolean) => {
+    if (isConfigEdited) {
+      // User has edited config, show confirmation
+      setPendingEngineChange({ engineId, checked })
+      setShowOverwriteConfirm(true)
+    } else {
+      applyEngineChange(engineId, checked)
     }
   }
   
+  const handleOverwriteConfirm = () => {
+    if (pendingEngineChange) {
+      applyEngineChange(pendingEngineChange.engineId, pendingEngineChange.checked)
+    }
+    setShowOverwriteConfirm(false)
+    setPendingEngineChange(null)
+  }
+  
+  const handleOverwriteCancel = () => {
+    setShowOverwriteConfirm(false)
+    setPendingEngineChange(null)
+  }
+  
+  const handleConfigurationChange = (value: string) => {
+    setConfiguration(value)
+    setIsConfigEdited(true)
+  }
+  
+  const handleYamlValidationChange = (isValid: boolean) => {
+    setIsYamlValid(isValid)
+  }
+  
   const canProceedToStep2 = validInputs.length > 0 && !hasErrors
-  const canSubmit = selectedEngineIds.length > 0
+  const canSubmit = selectedEngineIds.length > 0 && configuration.trim().length > 0 && isYamlValid
   
   const handleNext = () => {
     if (step === 1 && canProceedToStep2) setStep(2)
@@ -118,6 +182,10 @@ export function QuickScanDialog({ trigger }: QuickScanDialogProps) {
       toast.error(t("toast.selectEngine"))
       return
     }
+    if (!configuration.trim()) {
+      toast.error(t("toast.emptyConfig"))
+      return
+    }
     
     const targets = validInputs.map(r => r.originalInput)
     
@@ -125,7 +193,9 @@ export function QuickScanDialog({ trigger }: QuickScanDialogProps) {
     try {
       const response = await quickScan({
         targets: targets.map(name => ({ name })),
+        configuration,
         engineIds: selectedEngineIds,
+        engineNames: selectedEngines.map(e => e.name),
       })
       
       const { targetStats, scans, count } = response
@@ -139,13 +209,7 @@ export function QuickScanDialog({ trigger }: QuickScanDialogProps) {
       handleClose(false)
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: { code?: string; message?: string }; detail?: string } } }
-      if (err?.response?.data?.error?.code === 'CONFIG_CONFLICT') {
-        toast.error(t("toast.configConflict"), {
-          description: err.response.data.error.message,
-        })
-      } else {
-        toast.error(err?.response?.data?.detail || err?.response?.data?.error?.message || t("toast.createFailed"))
-      }
+      toast.error(err?.response?.data?.detail || err?.response?.data?.error?.message || t("toast.createFailed"))
     } finally {
       setIsSubmitting(false)
     }
@@ -338,6 +402,11 @@ export function QuickScanDialog({ trigger }: QuickScanDialogProps) {
                       <h3 className="text-sm font-medium truncate">
                         {selectedEngines.map((e) => e.name).join(", ")}
                       </h3>
+                      {isConfigEdited && (
+                        <Badge variant="outline" className="ml-auto text-xs">
+                          {t("configEdited")}
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex-1 flex flex-col overflow-hidden p-4 gap-3">
                       {selectedCapabilities.length > 0 && (
@@ -353,17 +422,30 @@ export function QuickScanDialog({ trigger }: QuickScanDialogProps) {
                         </div>
                       )}
                       <div className="flex-1 bg-muted/50 rounded-lg border overflow-hidden min-h-0">
-                        <pre className="h-full p-3 text-xs font-mono overflow-auto whitespace-pre-wrap break-all">
-                          {selectedEngines.map((e) => e.configuration || `# ${t("noConfig")}`).join("\n\n")}
-                        </pre>
+                        <YamlEditor
+                          value={configuration}
+                          onChange={handleConfigurationChange}
+                          disabled={isSubmitting}
+                          onValidationChange={handleYamlValidationChange}
+                        />
                       </div>
                     </div>
                   </>
                 ) : (
-                  <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                    <div className="text-center">
-                      <Settings2 className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                      <p className="text-sm">{t("selectEngineHint")}</p>
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    <div className="px-4 py-3 border-b bg-muted/30 flex items-center gap-2 shrink-0">
+                      <Settings2 className="h-4 w-4 text-muted-foreground" />
+                      <h3 className="text-sm font-medium">{t("configTitle")}</h3>
+                    </div>
+                    <div className="flex-1 flex flex-col overflow-hidden p-4">
+                      <div className="flex-1 bg-muted/50 rounded-lg border overflow-hidden min-h-0">
+                        <YamlEditor
+                          value={configuration}
+                          onChange={handleConfigurationChange}
+                          disabled={isSubmitting}
+                          onValidationChange={handleYamlValidationChange}
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -418,6 +500,26 @@ export function QuickScanDialog({ trigger }: QuickScanDialogProps) {
           </div>
         </DialogFooter>
       </DialogContent>
+      
+      {/* Overwrite confirmation dialog */}
+      <AlertDialog open={showOverwriteConfirm} onOpenChange={setShowOverwriteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("overwriteConfirm.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("overwriteConfirm.description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleOverwriteCancel}>
+              {t("overwriteConfirm.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleOverwriteConfirm}>
+              {t("overwriteConfirm.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   )
 }

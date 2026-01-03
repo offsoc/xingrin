@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo } from "react"
+import React, { useState, useMemo, useCallback } from "react"
 import { Play, Settings2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -13,11 +13,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { YamlEditor } from "@/components/ui/yaml-editor"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { cn } from "@/lib/utils"
-import { CAPABILITY_CONFIG, getEngineIcon, parseEngineCapabilities } from "@/lib/engine-config"
+import { CAPABILITY_CONFIG, getEngineIcon, parseEngineCapabilities, mergeEngineConfigurations } from "@/lib/engine-config"
 
 import type { Organization } from "@/types/organization.types"
 
@@ -49,6 +60,13 @@ export function InitiateScanDialog({
   const tCommon = useTranslations("common.actions")
   const [selectedEngineIds, setSelectedEngineIds] = useState<number[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // Configuration state management
+  const [configuration, setConfiguration] = useState("")
+  const [isConfigEdited, setIsConfigEdited] = useState(false)
+  const [isYamlValid, setIsYamlValid] = useState(true)
+  const [showOverwriteConfirm, setShowOverwriteConfirm] = useState(false)
+  const [pendingEngineChange, setPendingEngineChange] = useState<{ engineId: number; checked: boolean } | null>(null)
 
   const { data: engines, isLoading, error } = useEngines()
 
@@ -66,16 +84,67 @@ export function InitiateScanDialog({
     return Array.from(allCaps)
   }, [selectedEngines])
 
-  const handleEngineToggle = (engineId: number, checked: boolean) => {
+  // Update configuration when engines change (if not manually edited)
+  const updateConfigurationFromEngines = useCallback((engineIds: number[]) => {
+    if (!engines) return
+    const selectedEngs = engines.filter(e => engineIds.includes(e.id))
+    const mergedConfig = mergeEngineConfigurations(selectedEngs.map(e => e.configuration || ""))
+    setConfiguration(mergedConfig)
+  }, [engines])
+
+  const applyEngineChange = (engineId: number, checked: boolean) => {
+    let newEngineIds: number[]
     if (checked) {
-      setSelectedEngineIds((prev) => [...prev, engineId])
+      newEngineIds = [...selectedEngineIds, engineId]
     } else {
-      setSelectedEngineIds((prev) => prev.filter((id) => id !== engineId))
+      newEngineIds = selectedEngineIds.filter((id) => id !== engineId)
+    }
+    setSelectedEngineIds(newEngineIds)
+    updateConfigurationFromEngines(newEngineIds)
+    setIsConfigEdited(false)
+  }
+
+  const handleEngineToggle = (engineId: number, checked: boolean) => {
+    if (isConfigEdited) {
+      // User has edited config, show confirmation
+      setPendingEngineChange({ engineId, checked })
+      setShowOverwriteConfirm(true)
+    } else {
+      applyEngineChange(engineId, checked)
     }
   }
 
+  const handleOverwriteConfirm = () => {
+    if (pendingEngineChange) {
+      applyEngineChange(pendingEngineChange.engineId, pendingEngineChange.checked)
+    }
+    setShowOverwriteConfirm(false)
+    setPendingEngineChange(null)
+  }
+
+  const handleOverwriteCancel = () => {
+    setShowOverwriteConfirm(false)
+    setPendingEngineChange(null)
+  }
+
+  const handleConfigurationChange = (value: string) => {
+    setConfiguration(value)
+    setIsConfigEdited(true)
+  }
+
+  const handleYamlValidationChange = (isValid: boolean) => {
+    setIsYamlValid(isValid)
+  }
+
   const handleInitiate = async () => {
-    if (!selectedEngineIds.length) return
+    if (selectedEngineIds.length === 0) {
+      toast.error(tToast("noEngineSelected"))
+      return
+    }
+    if (!configuration.trim()) {
+      toast.error(tToast("emptyConfig"))
+      return
+    }
     if (!organizationId && !targetId) {
       toast.error(tToast("paramError"), { description: tToast("paramErrorDesc") })
       return
@@ -85,7 +154,9 @@ export function InitiateScanDialog({
       const response = await initiateScan({
         organizationId,
         targetId,
+        configuration,
         engineIds: selectedEngineIds,
+        engineNames: selectedEngines.map(e => e.name),
       })
       
       // 后端返回 201 说明成功创建扫描任务
@@ -96,19 +167,14 @@ export function InitiateScanDialog({
       onSuccess?.()
       onOpenChange(false)
       setSelectedEngineIds([])
+      setConfiguration("")
+      setIsConfigEdited(false)
     } catch (err: unknown) {
       console.error("Failed to initiate scan:", err)
-      // 处理配置冲突错误
       const error = err as { response?: { data?: { error?: { code?: string; message?: string } } } }
-      if (error?.response?.data?.error?.code === 'CONFIG_CONFLICT') {
-        toast.error(tToast("configConflict"), {
-          description: error.response.data.error.message,
-        })
-      } else {
-        toast.error(tToast("initiateScanFailed"), {
-          description: err instanceof Error ? err.message : tToast("unknownError"),
-        })
-      }
+      toast.error(tToast("initiateScanFailed"), {
+        description: error?.response?.data?.error?.message || (err instanceof Error ? err.message : tToast("unknownError")),
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -117,7 +183,11 @@ export function InitiateScanDialog({
   const handleOpenChange = (newOpen: boolean) => {
     if (!isSubmitting) {
       onOpenChange(newOpen)
-      if (!newOpen) setSelectedEngineIds([])
+      if (!newOpen) {
+        setSelectedEngineIds([])
+        setConfiguration("")
+        setIsConfigEdited(false)
+      }
     }
   }
 
@@ -220,30 +290,49 @@ export function InitiateScanDialog({
             {selectedEngines.length > 0 ? (
               <>
                 <div className="px-4 py-3 border-b bg-muted/30 shrink-0 min-w-0">
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedCapabilities.map((capKey) => {
-                      const config = CAPABILITY_CONFIG[capKey]
-                      return (
-                        <Badge key={capKey} variant="outline" className={cn("text-xs", config?.color)}>
-                          {config?.label || capKey}
-                        </Badge>
-                      )
-                    })}
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap gap-1.5 flex-1">
+                      {selectedCapabilities.map((capKey) => {
+                        const config = CAPABILITY_CONFIG[capKey]
+                        return (
+                          <Badge key={capKey} variant="outline" className={cn("text-xs", config?.color)}>
+                            {config?.label || capKey}
+                          </Badge>
+                        )
+                      })}
+                    </div>
+                    {isConfigEdited && (
+                      <Badge variant="outline" className="text-xs shrink-0">
+                        {t("configEdited")}
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 <div className="flex-1 flex flex-col overflow-hidden p-4 min-w-0">
                   <div className="flex-1 bg-muted/50 rounded-lg border overflow-hidden min-h-0 min-w-0">
-                    <pre className="h-full p-3 text-xs font-mono overflow-auto whitespace-pre-wrap break-all">
-                      {selectedEngines.map((e) => e.configuration || `# ${t("noConfig")}`).join("\n\n")}
-                    </pre>
+                    <YamlEditor
+                      value={configuration}
+                      onChange={handleConfigurationChange}
+                      disabled={isSubmitting}
+                      onValidationChange={handleYamlValidationChange}
+                    />
                   </div>
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                <div className="text-center">
-                  <Settings2 className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                  <p className="text-sm">{t("selectEngineHint")}</p>
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="px-4 py-3 border-b bg-muted/30 shrink-0">
+                  <h3 className="text-sm font-medium">{t("configTitle")}</h3>
+                </div>
+                <div className="flex-1 flex flex-col overflow-hidden p-4">
+                  <div className="flex-1 bg-muted/50 rounded-lg border overflow-hidden min-h-0">
+                    <YamlEditor
+                      value={configuration}
+                      onChange={handleConfigurationChange}
+                      disabled={isSubmitting}
+                      onValidationChange={handleYamlValidationChange}
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -254,7 +343,7 @@ export function InitiateScanDialog({
           <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isSubmitting}>
             {tCommon("cancel")}
           </Button>
-          <Button onClick={handleInitiate} disabled={!selectedEngineIds.length || isSubmitting}>
+          <Button onClick={handleInitiate} disabled={selectedEngineIds.length === 0 || !configuration.trim() || !isYamlValid || isSubmitting}>
             {isSubmitting ? (
               <>
                 <LoadingSpinner />
@@ -269,6 +358,26 @@ export function InitiateScanDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+      
+      {/* Overwrite confirmation dialog */}
+      <AlertDialog open={showOverwriteConfirm} onOpenChange={setShowOverwriteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("overwriteConfirm.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("overwriteConfirm.description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleOverwriteCancel}>
+              {t("overwriteConfirm.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleOverwriteConfirm}>
+              {t("overwriteConfirm.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   )
 }

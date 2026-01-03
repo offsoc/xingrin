@@ -30,9 +30,9 @@ class Scan(models.Model):
         default=list,
         help_text='引擎名称列表，如 ["引擎A", "引擎B"]'
     )
-    merged_configuration = models.TextField(
+    yaml_configuration = models.TextField(
         default='',
-        help_text='合并后的 YAML 配置'
+        help_text='YAML 格式的扫描配置'
     )
 
     created_at = models.DateTimeField(auto_now_add=True, help_text='任务创建时间')
@@ -136,9 +136,9 @@ class ScheduledScan(models.Model):
         default=list,
         help_text='引擎名称列表，如 ["引擎A", "引擎B"]'
     )
-    merged_configuration = models.TextField(
+    yaml_configuration = models.TextField(
         default='',
-        help_text='合并后的 YAML 配置'
+        help_text='YAML 格式的扫描配置'
     )
     
     # 关联的组织（组织扫描模式：执行时动态获取组织下所有目标）

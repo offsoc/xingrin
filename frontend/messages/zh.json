@@ -175,6 +175,12 @@
       "website": "官网",
       "description": "描述"
     },
+    "yamlEditor": {
+      "syntaxError": "语法错误",
+      "syntaxValid": "语法正确",
+      "errorLocation": "第 {line} 行，第 {column} 列",
+      "loading": "加载编辑器..."
+    },
     "theme": {
       "switchToLight": "切换到亮色模式",
       "switchToDark": "切换到暗色模式",
@@ -749,8 +755,14 @@
         "taskNameRequired": "请输入任务名称",
         "scanEngine": "扫描引擎",
         "scanEnginePlaceholder": "选择扫描引擎",
-        "scanEngineDesc": "选择要使用的扫描引擎配置",
+        "scanEngineDesc": "选择引擎可快速填充配置，也可直接编辑配置",
         "scanEngineRequired": "请选择扫描引擎",
+        "configuration": "扫描配置",
+        "configurationPlaceholder": "请输入 YAML 格式的扫描配置...",
+        "configurationDesc": "YAML 格式的扫描配置，可选择引擎自动填充或手动编辑",
+        "configurationRequired": "请输入扫描配置",
+        "yamlInvalid": "YAML 配置格式错误，请检查语法",
+        "configEdited": "已编辑",
         "selectScanMode": "选择扫描模式",
         "organizationScan": "组织扫描",
         "organizationScanDesc": "选择组织，执行时动态获取其下所有目标",
@@ -803,7 +815,14 @@
       },
       "toast": {
         "selectOrganization": "请选择一个组织",
-        "selectTarget": "请选择一个扫描目标"
+        "selectTarget": "请选择一个扫描目标",
+        "configConflict": "配置冲突"
+      },
+      "overwriteConfirm": {
+        "title": "覆盖配置确认",
+        "description": "您已手动编辑了配置，切换引擎将覆盖当前配置。确定要继续吗？",
+        "cancel": "取消",
+        "confirm": "确定覆盖"
       }
     },
     "engine": {
@@ -1405,6 +1424,8 @@
     "initiateScanFailed": "发起扫描失败",
     "noScansCreated": "未创建任何扫描任务",
     "unknownError": "未知错误",
+    "noEngineSelected": "请选择至少一个扫描引擎",
+    "emptyConfig": "扫描配置不能为空",
     "engineNameRequired": "请输入引擎名称",
     "configRequired": "配置内容不能为空",
     "yamlSyntaxError": "YAML 语法错误",
@@ -1741,6 +1762,7 @@
       "noValidTarget": "请输入至少一个有效目标",
       "hasInvalidInputs": "存在 {count} 个无效输入，请修正后继续",
       "selectEngine": "请选择扫描引擎",
+      "emptyConfig": "扫描配置不能为空",
       "getEnginesFailed": "获取引擎列表失败",
       "createFailed": "创建扫描任务失败",
       "createSuccess": "已创建 {count} 个扫描任务",

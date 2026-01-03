@@ -4,6 +4,41 @@ from django.db.models import Count
 from .models import Scan, ScheduledScan
 
 
+# ==================== 通用验证 Mixin ====================
+
+class ScanConfigValidationMixin:
+    """扫描配置验证 Mixin，提供通用的验证方法"""
+    
+    def validate_configuration(self, value):
+        """验证 YAML 配置格式"""
+        import yaml
+        
+        if not value or not value.strip():
+            raise serializers.ValidationError("configuration 不能为空")
+        
+        try:
+            yaml.safe_load(value)
+        except yaml.YAMLError as e:
+            raise serializers.ValidationError(f"无效的 YAML 格式: {str(e)}")
+        
+        return value
+    
+    def validate_engine_ids(self, value):
+        """验证引擎 ID 列表"""
+        if not value:
+            raise serializers.ValidationError("engine_ids 不能为空，请至少选择一个扫描引擎")
+        return value
+    
+    def validate_engine_names(self, value):
+        """验证引擎名称列表"""
+        if not value:
+            raise serializers.ValidationError("engine_names 不能为空")
+        return value
+
+
+# ==================== 扫描任务序列化器 ====================
+
+
 class ScanSerializer(serializers.ModelSerializer):
     """扫描任务序列化器"""
     target_name = serializers.SerializerMethodField()
@@ -82,12 +117,12 @@ class ScanHistorySerializer(serializers.ModelSerializer):
         return summary
 
 
-class QuickScanSerializer(serializers.Serializer):
+class QuickScanSerializer(ScanConfigValidationMixin, serializers.Serializer):
     """
     快速扫描序列化器
     
     功能：
-    - 接收目标列表和引擎配置
+    - 接收目标列表和 YAML 配置
     - 自动创建/获取目标
     - 立即发起扫描
     """
@@ -101,11 +136,24 @@ class QuickScanSerializer(serializers.Serializer):
         help_text='目标列表，每个目标包含 name 字段'
     )
     
-    # 扫描引擎 ID 列表
+    # YAML 配置（必填）
+    configuration = serializers.CharField(
+        required=True,
+        help_text='YAML 格式的扫描配置（必填）'
+    )
+    
+    # 扫描引擎 ID 列表（必填，用于记录和显示）
     engine_ids = serializers.ListField(
         child=serializers.IntegerField(),
         required=True,
-        help_text='使用的扫描引擎 ID 列表 (必填)'
+        help_text='使用的扫描引擎 ID 列表（必填）'
+    )
+    
+    # 引擎名称列表（必填，用于记录和显示）
+    engine_names = serializers.ListField(
+        child=serializers.CharField(),
+        required=True,
+        help_text='引擎名称列表（必填）'
     )
     
     def validate_targets(self, value):
@@ -126,12 +174,6 @@ class QuickScanSerializer(serializers.Serializer):
             if not target['name']:
                 raise serializers.ValidationError(f"第 {idx + 1} 个目标的 name 不能为空")
         
-        return value
-    
-    def validate_engine_ids(self, value):
-        """验证引擎 ID 列表"""
-        if not value:
-            raise serializers.ValidationError("engine_ids 不能为空")
         return value
 
 
@@ -171,7 +213,7 @@ class ScheduledScanSerializer(serializers.ModelSerializer):
         return 'organization' if obj.organization_id else 'target'
 
 
-class CreateScheduledScanSerializer(serializers.Serializer):
+class CreateScheduledScanSerializer(ScanConfigValidationMixin, serializers.Serializer):
     """创建定时扫描任务序列化器
     
     扫描模式（二选一）：
@@ -180,9 +222,25 @@ class CreateScheduledScanSerializer(serializers.Serializer):
     """
     
     name = serializers.CharField(max_length=200, help_text='任务名称')
+    
+    # YAML 配置（必填）
+    configuration = serializers.CharField(
+        required=True,
+        help_text='YAML 格式的扫描配置（必填）'
+    )
+    
+    # 扫描引擎 ID 列表（必填，用于记录和显示）
     engine_ids = serializers.ListField(
         child=serializers.IntegerField(),
-        help_text='扫描引擎 ID 列表'
+        required=True,
+        help_text='扫描引擎 ID 列表（必填）'
+    )
+    
+    # 引擎名称列表（必填，用于记录和显示）
+    engine_names = serializers.ListField(
+        child=serializers.CharField(),
+        required=True,
+        help_text='引擎名称列表（必填）'
     )
     
     # 组织扫描模式
@@ -206,11 +264,61 @@ class CreateScheduledScanSerializer(serializers.Serializer):
     )
     is_enabled = serializers.BooleanField(default=True, help_text='是否立即启用')
     
-    def validate_engine_ids(self, value):
-        """验证引擎 ID 列表"""
-        if not value:
-            raise serializers.ValidationError("engine_ids 不能为空")
-        return value
+    def validate(self, data):
+        """验证 organization_id 和 target_id 互斥"""
+        organization_id = data.get('organization_id')
+        target_id = data.get('target_id')
+        
+        if not organization_id and not target_id:
+            raise serializers.ValidationError('必须提供 organization_id 或 target_id 其中之一')
+        
+        if organization_id and target_id:
+            raise serializers.ValidationError('organization_id 和 target_id 只能提供其中之一')
+        
+        return data
+
+
+class InitiateScanSerializer(ScanConfigValidationMixin, serializers.Serializer):
+    """发起扫描任务序列化器
+    
+    扫描模式（二选一）：
+    - 组织扫描：提供 organization_id，扫描组织下所有目标
+    - 目标扫描：提供 target_id，扫描单个目标
+    """
+    
+    # YAML 配置（必填）
+    configuration = serializers.CharField(
+        required=True,
+        help_text='YAML 格式的扫描配置（必填）'
+    )
+    
+    # 扫描引擎 ID 列表（必填）
+    engine_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True,
+        help_text='扫描引擎 ID 列表（必填）'
+    )
+    
+    # 引擎名称列表（必填）
+    engine_names = serializers.ListField(
+        child=serializers.CharField(),
+        required=True,
+        help_text='引擎名称列表（必填）'
+    )
+    
+    # 组织扫描模式
+    organization_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text='组织 ID（组织扫描模式）'
+    )
+    
+    # 目标扫描模式
+    target_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text='目标 ID（目标扫描模式）'
+    )
     
     def validate(self, data):
         """验证 organization_id 和 target_id 互斥"""

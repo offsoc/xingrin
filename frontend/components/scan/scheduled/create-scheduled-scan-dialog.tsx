@@ -9,11 +9,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { YamlEditor } from "@/components/ui/yaml-editor"
 import {
   Command,
   CommandEmpty,
@@ -43,6 +54,7 @@ import { useTargets } from "@/hooks/use-targets"
 import { useEngines } from "@/hooks/use-engines"
 import { useOrganizations } from "@/hooks/use-organizations"
 import { useTranslations, useLocale } from "next-intl"
+import { mergeEngineConfigurations, CAPABILITY_CONFIG, parseEngineCapabilities } from "@/lib/engine-config"
 import type { CreateScheduledScanRequest } from "@/types/scheduled-scan.types"
 import type { ScanEngine } from "@/types/engine.types"
 import type { Target } from "@/types/target.types"
@@ -124,6 +136,13 @@ export function CreateScheduledScanDialog({
   const [selectedOrgId, setSelectedOrgId] = React.useState<number | null>(null)
   const [selectedTargetId, setSelectedTargetId] = React.useState<number | null>(null)
   const [cronExpression, setCronExpression] = React.useState("0 2 * * *")
+  
+  // Configuration state management
+  const [configuration, setConfiguration] = React.useState("")
+  const [isConfigEdited, setIsConfigEdited] = React.useState(false)
+  const [isYamlValid, setIsYamlValid] = React.useState(true)
+  const [showOverwriteConfirm, setShowOverwriteConfirm] = React.useState(false)
+  const [pendingEngineChange, setPendingEngineChange] = React.useState<{ engineId: number; checked: boolean } | null>(null)
 
   React.useEffect(() => {
     if (open) {
@@ -143,6 +162,30 @@ export function CreateScheduledScanDialog({
   const engines: ScanEngine[] = enginesData || []
   const organizations: Organization[] = organizationsData?.organizations || []
 
+  // Get selected engines for display
+  const selectedEngines = React.useMemo(() => {
+    if (!engineIds.length || !engines.length) return []
+    return engines.filter(e => engineIds.includes(e.id))
+  }, [engineIds, engines])
+
+  // Get selected capabilities for display
+  const selectedCapabilities = React.useMemo(() => {
+    if (!selectedEngines.length) return []
+    const allCaps = new Set<string>()
+    selectedEngines.forEach((engine) => {
+      parseEngineCapabilities(engine.configuration || "").forEach((cap) => allCaps.add(cap))
+    })
+    return Array.from(allCaps)
+  }, [selectedEngines])
+
+  // Update configuration when engines change (if not manually edited)
+  const updateConfigurationFromEngines = React.useCallback((newEngineIds: number[]) => {
+    if (!engines.length) return
+    const selectedEngs = engines.filter(e => newEngineIds.includes(e.id))
+    const mergedConfig = mergeEngineConfigurations(selectedEngs.map(e => e.configuration || ""))
+    setConfiguration(mergedConfig)
+  }, [engines])
+
   const resetForm = () => {
     setName("")
     setEngineIds([])
@@ -150,15 +193,53 @@ export function CreateScheduledScanDialog({
     setSelectedOrgId(null)
     setSelectedTargetId(null)
     setCronExpression("0 2 * * *")
+    setConfiguration("")
+    setIsConfigEdited(false)
     resetStep()
   }
 
-  const handleEngineToggle = (engineId: number, checked: boolean) => {
+  const applyEngineChange = (engineId: number, checked: boolean) => {
+    let newEngineIds: number[]
     if (checked) {
-      setEngineIds((prev) => [...prev, engineId])
+      newEngineIds = [...engineIds, engineId]
     } else {
-      setEngineIds((prev) => prev.filter((id) => id !== engineId))
+      newEngineIds = engineIds.filter((id) => id !== engineId)
     }
+    setEngineIds(newEngineIds)
+    updateConfigurationFromEngines(newEngineIds)
+    setIsConfigEdited(false)
+  }
+
+  const handleEngineToggle = (engineId: number, checked: boolean) => {
+    if (isConfigEdited) {
+      // User has edited config, show confirmation
+      setPendingEngineChange({ engineId, checked })
+      setShowOverwriteConfirm(true)
+    } else {
+      applyEngineChange(engineId, checked)
+    }
+  }
+
+  const handleOverwriteConfirm = () => {
+    if (pendingEngineChange) {
+      applyEngineChange(pendingEngineChange.engineId, pendingEngineChange.checked)
+    }
+    setShowOverwriteConfirm(false)
+    setPendingEngineChange(null)
+  }
+
+  const handleOverwriteCancel = () => {
+    setShowOverwriteConfirm(false)
+    setPendingEngineChange(null)
+  }
+
+  const handleConfigurationChange = (value: string) => {
+    setConfiguration(value)
+    setIsConfigEdited(true)
+  }
+
+  const handleYamlValidationChange = (isValid: boolean) => {
+    setIsYamlValid(isValid)
   }
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -180,6 +261,8 @@ export function CreateScheduledScanDialog({
         case 1:
           if (!name.trim()) { toast.error(t("form.taskNameRequired")); return false }
           if (engineIds.length === 0) { toast.error(t("form.scanEngineRequired")); return false }
+          if (!configuration.trim()) { toast.error(t("form.configurationRequired")); return false }
+          if (!isYamlValid) { toast.error(t("form.yamlInvalid")); return false }
           return true
         case 2:
           const parts = cronExpression.trim().split(/\s+/)
@@ -193,6 +276,8 @@ export function CreateScheduledScanDialog({
       case 1:
         if (!name.trim()) { toast.error(t("form.taskNameRequired")); return false }
         if (engineIds.length === 0) { toast.error(t("form.scanEngineRequired")); return false }
+        if (!configuration.trim()) { toast.error(t("form.configurationRequired")); return false }
+        if (!isYamlValid) { toast.error(t("form.yamlInvalid")); return false }
         return true
       case 2: return true
       case 3:
@@ -216,7 +301,9 @@ export function CreateScheduledScanDialog({
     if (!validateCurrentStep()) return
     const request: CreateScheduledScanRequest = {
       name: name.trim(),
+      configuration: configuration.trim(),
       engineIds: engineIds,
+      engineNames: selectedEngines.map(e => e.name),
       cronExpression: cronExpression.trim(),
     }
     if (selectionMode === "organization" && selectedOrgId) {
@@ -306,7 +393,7 @@ export function CreateScheduledScanDialog({
                 {engineIds.length > 0 && (
                   <p className="text-xs text-muted-foreground">{t("form.selectedEngines", { count: engineIds.length })}</p>
                 )}
-                <div className="border rounded-md p-3 max-h-[200px] overflow-y-auto space-y-2">
+                <div className="border rounded-md p-3 max-h-[150px] overflow-y-auto space-y-2">
                   {engines.length === 0 ? (
                     <p className="text-sm text-muted-foreground">{t("form.noEngine")}</p>
                   ) : (
@@ -332,6 +419,36 @@ export function CreateScheduledScanDialog({
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">{t("form.scanEngineDesc")}</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>{t("form.configuration")} *</Label>
+                  {isConfigEdited && (
+                    <Badge variant="outline" className="text-xs">
+                      {t("form.configEdited")}
+                    </Badge>
+                  )}
+                </div>
+                {selectedCapabilities.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedCapabilities.map((capKey) => {
+                      const config = CAPABILITY_CONFIG[capKey]
+                      return (
+                        <Badge key={capKey} variant="outline" className={cn("text-xs", config?.color)}>
+                          {config?.label || capKey}
+                        </Badge>
+                      )
+                    })}
+                  </div>
+                )}
+                <div className="border rounded-md overflow-hidden h-[180px]">
+                  <YamlEditor
+                    value={configuration}
+                    onChange={handleConfigurationChange}
+                    onValidationChange={handleYamlValidationChange}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">{t("form.configurationDesc")}</p>
               </div>
             </div>
           )}
@@ -504,6 +621,26 @@ export function CreateScheduledScanDialog({
           )}
         </div>
       </DialogContent>
+      
+      {/* Overwrite confirmation dialog */}
+      <AlertDialog open={showOverwriteConfirm} onOpenChange={setShowOverwriteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("overwriteConfirm.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("overwriteConfirm.description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleOverwriteCancel}>
+              {t("overwriteConfirm.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleOverwriteConfirm}>
+              {t("overwriteConfirm.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   )
 }
