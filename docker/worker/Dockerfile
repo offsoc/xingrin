@@ -102,7 +102,11 @@ RUN pip install uv --break-system-packages && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# 6. 复制后端代码
+# 6. 设置 Prefect 配置目录（避免 home 目录不存在的警告）
+ENV PREFECT_HOME=/app/.prefect
+RUN mkdir -p /app/.prefect
+
+# 7. 复制后端代码
 COPY backend /app/backend
 ENV PYTHONPATH=/app/backend
 
