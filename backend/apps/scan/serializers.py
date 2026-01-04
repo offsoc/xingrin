@@ -2,7 +2,17 @@ from rest_framework import serializers
 from django.db.models import Count
 import yaml
 
-from .models import Scan, ScheduledScan
+from .models import Scan, ScheduledScan, ScanLog
+
+
+# ==================== 扫描日志序列化器 ====================
+
+class ScanLogSerializer(serializers.ModelSerializer):
+    """扫描日志序列化器"""
+    
+    class Meta:
+        model = ScanLog
+        fields = ['id', 'level', 'content', 'created_at']
 
 
 # ==================== 通用验证 Mixin ====================

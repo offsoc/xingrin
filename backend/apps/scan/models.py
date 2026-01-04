@@ -106,6 +106,55 @@ class Scan(models.Model):
         return f"Scan #{self.id} - {self.target.name}"
 
 
+class ScanLog(models.Model):
+    """扫描日志模型
+    
+    存储扫描过程中的关键处理日志，用于前端实时查看扫描进度。
+    
+    日志类型：
+    - 阶段开始/完成/失败
+    - 处理进度（如 "Progress: 50/120"）
+    - 发现结果统计（如 "Found 120 subdomains"）
+    - 错误信息
+    
+    日志格式：[stage_name] message
+    """
+    
+    class Level(models.TextChoices):
+        INFO = 'info', 'Info'
+        WARNING = 'warning', 'Warning'
+        ERROR = 'error', 'Error'
+    
+    id = models.BigAutoField(primary_key=True)
+    scan = models.ForeignKey(
+        'Scan',
+        on_delete=models.CASCADE,
+        related_name='logs',
+        db_index=True,
+        help_text='关联的扫描任务'
+    )
+    level = models.CharField(
+        max_length=10,
+        choices=Level.choices,
+        default=Level.INFO,
+        help_text='日志级别'
+    )
+    content = models.TextField(help_text='日志内容')
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True, help_text='创建时间')
+    
+    class Meta:
+        db_table = 'scan_log'
+        verbose_name = '扫描日志'
+        verbose_name_plural = '扫描日志'
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['scan', 'created_at']),
+        ]
+    
+    def __str__(self):
+        return f"[{self.level}] {self.content[:50]}"
+
+
 class ScheduledScan(models.Model):
     """
     定时扫描任务模型

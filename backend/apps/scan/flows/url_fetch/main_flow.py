@@ -25,6 +25,7 @@ from apps.scan.handlers.scan_flow_handlers import (
     on_scan_flow_completed,
     on_scan_flow_failed,
 )
+from apps.scan.utils import user_log
 
 from .domain_name_url_fetch_flow import domain_name_url_fetch_flow
 from .sites_url_fetch_flow import sites_url_fetch_flow
@@ -291,6 +292,8 @@ def url_fetch_flow(
             "="*60
         )
         
+        user_log(scan_id, "url_fetch", "Starting URL fetch")
+        
         # Step 1: 准备工作目录
         logger.info("Step 1: 准备工作目录")
         from apps.scan.utils import setup_scan_directory
@@ -403,7 +406,9 @@ def url_fetch_flow(
                 target_id=target_id
             )
         
-        logger.info("="*60 + "\n✓ URL 获取扫描完成\n" + "="*60)
+        # 记录 Flow 完成
+        logger.info("✓ URL 获取完成 - 保存 endpoints: %d", saved_count)
+        user_log(scan_id, "url_fetch", f"url_fetch completed: found {saved_count} endpoints")
         
         # 构建已执行的任务列表
         executed_tasks = ['setup_directory', 'classify_tools']

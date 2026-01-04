@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   IconCircleCheck,
   IconLoader,
@@ -19,6 +21,8 @@ import {
 import { cn } from "@/lib/utils"
 import { useTranslations, useLocale } from "next-intl"
 import type { ScanStage, ScanRecord, StageProgress, StageStatus } from "@/types/scan.types"
+import { useScanLogs } from "@/hooks/use-scan-logs"
+import { ScanLogList } from "./scan-log-list"
 
 /**
  * Scan stage details
@@ -190,12 +194,26 @@ export function ScanProgressDialog({
 }: ScanProgressDialogProps) {
   const t = useTranslations("scan.progress")
   const locale = useLocale()
+  const [activeTab, setActiveTab] = useState<'stages' | 'logs'>('stages')
+  
+  // 判断扫描是否正在运行（用于控制轮询）
+  const isRunning = data?.status === 'running' || data?.status === 'initiated'
+  
+  // 日志轮询 Hook
+  const { logs, loading: logsLoading } = useScanLogs({
+    scanId: data?.id ?? 0,
+    enabled: open && activeTab === 'logs' && !!data?.id,
+    pollingInterval: isRunning ? 3000 : 0,  // 运行中时 3s 轮询，否则不轮询
+  })
   
   if (!data) return null
 
+  // 固定宽度，切换 Tab 时不变化
+  const dialogWidth = 'sm:max-w-[600px] sm:min-w-[550px]'
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] sm:min-w-[450px]">
+      <DialogContent className={cn(dialogWidth, "transition-all duration-200")}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ScanStatusIcon status={data.status} />
@@ -244,37 +262,26 @@ export function ScanProgressDialog({
 
         <Separator />
 
-        {/* Total progress */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium">{t("totalProgress")}</span>
-            <span className="font-mono text-muted-foreground">{data.progress}%</span>
+        {/* Tab 切换 */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'stages' | 'logs')}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="stages">{t("tab_stages")}</TabsTrigger>
+            <TabsTrigger value="logs">{t("tab_logs")}</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* Tab 内容 */}
+        {activeTab === 'stages' ? (
+          /* Stage list */
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {data.stages.map((stage) => (
+              <StageRow key={stage.stage} stage={stage} t={t} />
+            ))}
           </div>
-
-          <div className="h-2 bg-primary/10 rounded-full overflow-hidden border border-border">
-            <div 
-              className={`h-full transition-all ${
-                data.status === "completed" ? "bg-[#238636]/80" : 
-                data.status === "failed" ? "bg-[#da3633]/80" : 
-                data.status === "running" ? "bg-[#d29922]/80 progress-striped" : 
-                data.status === "cancelled" ? "bg-[#848d97]/80" :
-                data.status === "cancelling" ? "bg-[#d29922]/80 progress-striped" :
-                data.status === "initiated" ? "bg-[#d29922]/80 progress-striped" :
-                "bg-muted-foreground/80"
-              }`}
-              style={{ width: `${data.status === "completed" ? 100 : data.progress}%` }}
-            />
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Stage list */}
-        <div className="space-y-2 max-h-[300px] overflow-y-auto">
-          {data.stages.map((stage) => (
-            <StageRow key={stage.stage} stage={stage} t={t} />
-          ))}
-        </div>
+        ) : (
+          /* Log list */
+          <ScanLogList logs={logs} loading={logsLoading} />
+        )}
       </DialogContent>
     </Dialog>
   )

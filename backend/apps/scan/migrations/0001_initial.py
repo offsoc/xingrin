@@ -116,4 +116,21 @@ class Migration(migrations.Migration):
                 'indexes': [models.Index(fields=['-created_at'], name='scheduled_s_created_9b9c2e_idx'), models.Index(fields=['is_enabled', '-created_at'], name='scheduled_s_is_enab_23d660_idx'), models.Index(fields=['name'], name='scheduled_s_name_bf332d_idx')],
             },
         ),
+        migrations.CreateModel(
+            name='ScanLog',
+            fields=[
+                ('id', models.BigAutoField(primary_key=True, serialize=False)),
+                ('level', models.CharField(choices=[('info', 'Info'), ('warning', 'Warning'), ('error', 'Error')], default='info', help_text='日志级别', max_length=10)),
+                ('content', models.TextField(help_text='日志内容')),
+                ('created_at', models.DateTimeField(auto_now_add=True, db_index=True, help_text='创建时间')),
+                ('scan', models.ForeignKey(db_index=True, help_text='关联的扫描任务', on_delete=django.db.models.deletion.CASCADE, related_name='logs', to='scan.scan')),
+            ],
+            options={
+                'verbose_name': '扫描日志',
+                'verbose_name_plural': '扫描日志',
+                'db_table': 'scan_log',
+                'ordering': ['created_at'],
+                'indexes': [models.Index(fields=['scan', 'created_at'], name='scan_log_scan_id_e8c8f5_idx')],
+            },
+        ),
     ]

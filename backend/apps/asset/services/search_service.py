@@ -37,46 +37,55 @@ VIEW_MAPPING = {
     'endpoint': 'endpoint_search_view',
 }
 
+# 资产类型到原表名的映射（用于 JOIN 获取数组字段）
+# ⚠️ 重要：pg_ivm 不支持 ArrayField，所有数组字段必须从原表 JOIN 获取
+TABLE_MAPPING = {
+    'website': 'website',
+    'endpoint': 'endpoint',
+}
+
 # 有效的资产类型
 VALID_ASSET_TYPES = {'website', 'endpoint'}
 
-# Website 查询字段
+# Website 查询字段（v=视图，t=原表）
+# ⚠️ 注意：t.tech 从原表获取，因为 pg_ivm 不支持 ArrayField
 WEBSITE_SELECT_FIELDS = """
-    id,
-    url,
-    host,
-    title,
-    tech,
-    status_code,
-    response_headers,
-    response_body,
-    content_type,
-    content_length,
-    webserver,
-    location,
-    vhost,
-    created_at,
-    target_id
+    v.id,
+    v.url,
+    v.host,
+    v.title,
+    t.tech,  -- ArrayField，从 website 表 JOIN 获取
+    v.status_code,
+    v.response_headers,
+    v.response_body,
+    v.content_type,
+    v.content_length,
+    v.webserver,
+    v.location,
+    v.vhost,
+    v.created_at,
+    v.target_id
 """
 
-# Endpoint 查询字段（包含 matched_gf_patterns）
+# Endpoint 查询字段
+# ⚠️ 注意：t.tech 和 t.matched_gf_patterns 从原表获取，因为 pg_ivm 不支持 ArrayField
 ENDPOINT_SELECT_FIELDS = """
-    id,
-    url,
-    host,
-    title,
-    tech,
-    status_code,
-    response_headers,
-    response_body,
-    content_type,
-    content_length,
-    webserver,
-    location,
-    vhost,
-    matched_gf_patterns,
-    created_at,
-    target_id
+    v.id,
+    v.url,
+    v.host,
+    v.title,
+    t.tech,  -- ArrayField，从 endpoint 表 JOIN 获取
+    v.status_code,
+    v.response_headers,
+    v.response_body,
+    v.content_type,
+    v.content_length,
+    v.webserver,
+    v.location,
+    v.vhost,
+    t.matched_gf_patterns,  -- ArrayField，从 endpoint 表 JOIN 获取
+    v.created_at,
+    v.target_id
 """
 
 
@@ -119,8 +128,8 @@ class SearchQueryParser:
         
         # 检查是否包含操作符语法，如果不包含则作为 host 模糊搜索
         if not cls.CONDITION_PATTERN.search(query):
-            # 裸文本，默认作为 host 模糊搜索
-            return "host ILIKE %s", [f"%{query}%"]
+            # 裸文本，默认作为 host 模糊搜索（v 是视图别名）
+            return "v.host ILIKE %s", [f"%{query}%"]
         
         # 按 || 分割为 OR 组
         or_groups = cls._split_by_or(query)
@@ -273,45 +282,45 @@ class SearchQueryParser:
     def _build_like_condition(cls, field: str, value: str, is_array: bool) -> Tuple[str, List[Any]]:
         """构建模糊匹配条件"""
         if is_array:
-            # 数组字段：检查数组中是否有元素包含该值
-            return f"EXISTS (SELECT 1 FROM unnest({field}) AS t WHERE t ILIKE %s)", [f"%{value}%"]
+            # 数组字段：检查数组中是否有元素包含该值（从原表 t 获取）
+            return f"EXISTS (SELECT 1 FROM unnest(t.{field}) AS elem WHERE elem ILIKE %s)", [f"%{value}%"]
         elif field == 'status_code':
             # 状态码是整数，模糊匹配转为精确匹配
             try:
-                return f"{field} = %s", [int(value)]
+                return f"v.{field} = %s", [int(value)]
             except ValueError:
-                return f"{field}::text ILIKE %s", [f"%{value}%"]
+                return f"v.{field}::text ILIKE %s", [f"%{value}%"]
         else:
-            return f"{field} ILIKE %s", [f"%{value}%"]
+            return f"v.{field} ILIKE %s", [f"%{value}%"]
     
     @classmethod
     def _build_exact_condition(cls, field: str, value: str, is_array: bool) -> Tuple[str, List[Any]]:
         """构建精确匹配条件"""
         if is_array:
-            # 数组字段：检查数组中是否包含该精确值
-            return f"%s = ANY({field})", [value]
+            # 数组字段：检查数组中是否包含该精确值（从原表 t 获取）
+            return f"%s = ANY(t.{field})", [value]
         elif field == 'status_code':
             # 状态码是整数
             try:
-                return f"{field} = %s", [int(value)]
+                return f"v.{field} = %s", [int(value)]
             except ValueError:
-                return f"{field}::text = %s", [value]
+                return f"v.{field}::text = %s", [value]
         else:
-            return f"{field} = %s", [value]
+            return f"v.{field} = %s", [value]
     
     @classmethod
     def _build_not_equal_condition(cls, field: str, value: str, is_array: bool) -> Tuple[str, List[Any]]:
         """构建不等于条件"""
         if is_array:
-            # 数组字段：检查数组中不包含该值
-            return f"NOT (%s = ANY({field}))", [value]
+            # 数组字段：检查数组中不包含该值（从原表 t 获取）
+            return f"NOT (%s = ANY(t.{field}))", [value]
         elif field == 'status_code':
             try:
-                return f"({field} IS NULL OR {field} != %s)", [int(value)]
+                return f"(v.{field} IS NULL OR v.{field} != %s)", [int(value)]
             except ValueError:
-                return f"({field} IS NULL OR {field}::text != %s)", [value]
+                return f"(v.{field} IS NULL OR v.{field}::text != %s)", [value]
         else:
-            return f"({field} IS NULL OR {field} != %s)", [value]
+            return f"(v.{field} IS NULL OR v.{field} != %s)", [value]
 
 
 AssetType = Literal['website', 'endpoint']
@@ -339,15 +348,18 @@ class AssetSearchService:
         """
         where_clause, params = SearchQueryParser.parse(query)
         
-        # 根据资产类型选择视图和字段
+        # 根据资产类型选择视图、原表和字段
         view_name = VIEW_MAPPING.get(asset_type, 'asset_search_view')
+        table_name = TABLE_MAPPING.get(asset_type, 'website')
         select_fields = ENDPOINT_SELECT_FIELDS if asset_type == 'endpoint' else WEBSITE_SELECT_FIELDS
         
+        # JOIN 原表获取数组字段（tech, matched_gf_patterns）
         sql = f"""
             SELECT {select_fields}
-            FROM {view_name}
+            FROM {view_name} v
+            JOIN {table_name} t ON v.id = t.id
             WHERE {where_clause}
-            ORDER BY created_at DESC
+            ORDER BY v.created_at DESC
         """
         
         # 添加 LIMIT
@@ -383,10 +395,12 @@ class AssetSearchService:
         """
         where_clause, params = SearchQueryParser.parse(query)
         
-        # 根据资产类型选择视图
+        # 根据资产类型选择视图和原表
         view_name = VIEW_MAPPING.get(asset_type, 'asset_search_view')
+        table_name = TABLE_MAPPING.get(asset_type, 'website')
         
-        sql = f"SELECT COUNT(*) FROM {view_name} WHERE {where_clause}"
+        # JOIN 原表以支持数组字段查询
+        sql = f"SELECT COUNT(*) FROM {view_name} v JOIN {table_name} t ON v.id = t.id WHERE {where_clause}"
         
         try:
             with connection.cursor() as cursor:
@@ -419,8 +433,9 @@ class AssetSearchService:
         """
         where_clause, params = SearchQueryParser.parse(query)
         
-        # 根据资产类型选择视图和字段
+        # 根据资产类型选择视图、原表和字段
         view_name = VIEW_MAPPING.get(asset_type, 'asset_search_view')
+        table_name = TABLE_MAPPING.get(asset_type, 'website')
         select_fields = ENDPOINT_SELECT_FIELDS if asset_type == 'endpoint' else WEBSITE_SELECT_FIELDS
         
         # 使用 OFFSET/LIMIT 分批查询（Django 不支持命名游标）
@@ -428,11 +443,13 @@ class AssetSearchService:
         
         try:
             while True:
+                # JOIN 原表获取数组字段
                 sql = f"""
                     SELECT {select_fields}
-                    FROM {view_name}
+                    FROM {view_name} v
+                    JOIN {table_name} t ON v.id = t.id
                     WHERE {where_clause}
-                    ORDER BY created_at DESC
+                    ORDER BY v.created_at DESC
                     LIMIT {batch_size} OFFSET {offset}
                 """
                 

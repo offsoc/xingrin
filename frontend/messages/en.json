@@ -737,6 +737,8 @@
       "status": "Status",
       "errorReason": "Error Reason",
       "totalProgress": "Total Progress",
+      "tab_stages": "Stages",
+      "tab_logs": "Logs",
       "status_running": "Scanning",
       "status_cancelled": "Cancelled",
       "status_completed": "Completed",

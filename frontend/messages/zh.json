@@ -737,6 +737,8 @@
       "status": "状态",
       "errorReason": "错误原因",
       "totalProgress": "总进度",
+      "tab_stages": "阶段",
+      "tab_logs": "日志",
       "status_running": "扫描中",
       "status_cancelled": "已取消",
       "status_completed": "已完成",

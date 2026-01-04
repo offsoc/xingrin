@@ -6,6 +6,18 @@
 包含：
 1. asset_search_view - Website 搜索视图
 2. endpoint_search_view - Endpoint 搜索视图
+
+重要限制：
+⚠️ pg_ivm 不支持数组类型字段（ArrayField），因为其使用 anyarray 伪类型进行比较时，
+PostgreSQL 无法确定空数组的元素类型，导致错误：
+  "cannot determine element type of \"anyarray\" argument"
+
+因此，所有 ArrayField 字段（tech, matched_gf_patterns 等）已从 IMMV 中移除，
+搜索时通过 JOIN 原表获取。
+
+如需添加新的数组字段，请：
+1. 不要将其包含在 IMMV 视图中
+2. 在搜索服务中通过 JOIN 原表获取
 """
 
 from django.db import migrations
@@ -33,6 +45,8 @@ class Migration(migrations.Migration):
         # ==================== Website IMMV ====================
         
         # 2. 创建 asset_search_view IMMV
+        # ⚠️ 注意：不包含 w.tech 数组字段，pg_ivm 不支持 ArrayField
+        # 数组字段通过 search_service.py 中 JOIN website 表获取
         migrations.RunSQL(
             sql="""
                 SELECT pgivm.create_immv('asset_search_view', $$
@@ -41,7 +55,6 @@ class Migration(migrations.Migration):
                         w.url,
                         w.host,
                         w.title,
-                        w.tech,
                         w.status_code,
                         w.response_headers,
                         w.response_body,
@@ -85,10 +98,6 @@ class Migration(migrations.Migration):
                 CREATE INDEX IF NOT EXISTS asset_search_view_body_trgm_idx 
                 ON asset_search_view USING gin (response_body gin_trgm_ops);
                 
-                -- tech 数组索引
-                CREATE INDEX IF NOT EXISTS asset_search_view_tech_idx 
-                ON asset_search_view USING gin (tech);
-                
                 -- status_code 索引
                 CREATE INDEX IF NOT EXISTS asset_search_view_status_idx 
                 ON asset_search_view (status_code);
@@ -104,7 +113,6 @@ class Migration(migrations.Migration):
                 DROP INDEX IF EXISTS asset_search_view_url_trgm_idx;
                 DROP INDEX IF EXISTS asset_search_view_headers_trgm_idx;
                 DROP INDEX IF EXISTS asset_search_view_body_trgm_idx;
-                DROP INDEX IF EXISTS asset_search_view_tech_idx;
                 DROP INDEX IF EXISTS asset_search_view_status_idx;
                 DROP INDEX IF EXISTS asset_search_view_created_idx;
             """
@@ -113,6 +121,8 @@ class Migration(migrations.Migration):
         # ==================== Endpoint IMMV ====================
         
         # 4. 创建 endpoint_search_view IMMV
+        # ⚠️ 注意：不包含 e.tech 和 e.matched_gf_patterns 数组字段，pg_ivm 不支持 ArrayField
+        # 数组字段通过 search_service.py 中 JOIN endpoint 表获取
         migrations.RunSQL(
             sql="""
                 SELECT pgivm.create_immv('endpoint_search_view', $$
@@ -121,7 +131,6 @@ class Migration(migrations.Migration):
                         e.url,
                         e.host,
                         e.title,
-                        e.tech,
                         e.status_code,
                         e.response_headers,
                         e.response_body,
@@ -130,7 +139,6 @@ class Migration(migrations.Migration):
                         e.webserver,
                         e.location,
                         e.vhost,
-                        e.matched_gf_patterns,
                         e.created_at,
                         e.target_id
                     FROM endpoint e
@@ -166,10 +174,6 @@ class Migration(migrations.Migration):
                 CREATE INDEX IF NOT EXISTS endpoint_search_view_body_trgm_idx 
                 ON endpoint_search_view USING gin (response_body gin_trgm_ops);
                 
-                -- tech 数组索引
-                CREATE INDEX IF NOT EXISTS endpoint_search_view_tech_idx 
-                ON endpoint_search_view USING gin (tech);
-                
                 -- status_code 索引
                 CREATE INDEX IF NOT EXISTS endpoint_search_view_status_idx 
                 ON endpoint_search_view (status_code);
@@ -185,7 +189,6 @@ class Migration(migrations.Migration):
                 DROP INDEX IF EXISTS endpoint_search_view_url_trgm_idx;
                 DROP INDEX IF EXISTS endpoint_search_view_headers_trgm_idx;
                 DROP INDEX IF EXISTS endpoint_search_view_body_trgm_idx;
-                DROP INDEX IF EXISTS endpoint_search_view_tech_idx;
                 DROP INDEX IF EXISTS endpoint_search_view_status_idx;
                 DROP INDEX IF EXISTS endpoint_search_view_created_idx;
             """

@@ -113,3 +113,40 @@ export async function getScanStatistics(): Promise<ScanStatistics> {
   const res = await api.get<ScanStatistics>('/scans/statistics/')
   return res.data
 }
+
+/**
+ * Scan log entry type
+ */
+export interface ScanLog {
+  id: number
+  level: 'info' | 'warning' | 'error'
+  content: string
+  createdAt: string
+}
+
+/**
+ * Get scan logs response type
+ */
+export interface GetScanLogsResponse {
+  results: ScanLog[]
+  hasMore: boolean
+}
+
+/**
+ * Get scan logs params type
+ */
+export interface GetScanLogsParams {
+  afterId?: number
+  limit?: number
+}
+
+/**
+ * Get scan logs
+ * @param scanId - Scan ID
+ * @param params - Query parameters (afterId for cursor, limit for max results)
+ * @returns Scan logs with hasMore indicator
+ */
+export async function getScanLogs(scanId: number, params?: GetScanLogsParams): Promise<GetScanLogsResponse> {
+  const res = await api.get<GetScanLogsResponse>(`/scans/${scanId}/logs/`, { params })
+  return res.data
+}
