@@ -65,7 +65,7 @@ class ScanHistorySerializer(serializers.ModelSerializer):
 class QuickScanSerializer(ScanConfigValidationMixin, serializers.Serializer):
     """快速扫描序列化器"""
     
-    MAX_BATCH_SIZE = 1000
+    MAX_BATCH_SIZE = 5000
     
     targets = serializers.ListField(
         child=serializers.DictField(),
