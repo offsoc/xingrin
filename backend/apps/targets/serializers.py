@@ -182,12 +182,12 @@ class BatchCreateTargetSerializer(serializers.Serializer):
     批量创建目标的序列化器
     
     安全限制：
-    - 最多支持 1000 个目标的批量创建
+    - 最多支持 5000 个目标的批量创建
     - 防止恶意用户提交大量数据导致服务器过载
     """
     
     # 批量创建的最大数量限制
-    MAX_BATCH_SIZE = 1000
+    MAX_BATCH_SIZE = 5000
     
     # 目标列表
     targets = serializers.ListField(
