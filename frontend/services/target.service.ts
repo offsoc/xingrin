@@ -12,7 +12,7 @@ import type {
   BatchCreateTargetsRequest,
   BatchCreateTargetsResponse,
 } from '@/types/target.types'
-import { USE_MOCK, mockDelay, getMockTargets, getMockTargetById } from '@/mock'
+import { USE_MOCK, mockDelay, getMockTargets, getMockTargetById, getMockTargetBlacklist, updateMockTargetBlacklist } from '@/mock'
 
 /**
  * Get all targets list (paginated)
@@ -156,6 +156,34 @@ export async function getTargetEndpoints(
       ...(filter && { filter }),
     },
   })
+  return response.data
+}
+
+/**
+ * Get target's blacklist rules
+ */
+export async function getTargetBlacklist(id: number): Promise<{ patterns: string[] }> {
+  if (USE_MOCK) {
+    await mockDelay()
+    return getMockTargetBlacklist(id)
+  }
+  const response = await api.get<{ patterns: string[] }>(`/targets/${id}/blacklist/`)
+  return response.data
+}
+
+/**
+ * Update target's blacklist rules (full replace)
+ */
+export async function updateTargetBlacklist(
+  id: number,
+  patterns: string[]
+): Promise<{ count: number }> {
+  if (USE_MOCK) {
+    await mockDelay()
+    const result = updateMockTargetBlacklist(id, { patterns })
+    return { count: result.patterns.length }
+  }
+  const response = await api.put<{ count: number }>(`/targets/${id}/blacklist/`, { patterns })
   return response.data
 }
 

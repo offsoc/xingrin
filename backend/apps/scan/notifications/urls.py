@@ -21,9 +21,6 @@ urlpatterns = [
 
     # 标记全部已读
     path('mark-all-as-read/', NotificationMarkAllAsReadView.as_view(), name='mark-all-as-read'),
-    
-    # 测试通知
-    path('test/', views.notifications_test, name='test'),
 ]
 
 # WebSocket 实时通知路由在 routing.py 中定义：ws://host/ws/notifications/

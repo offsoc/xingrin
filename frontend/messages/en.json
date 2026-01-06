@@ -319,6 +319,8 @@
     "workers": "Workers",
     "systemLogs": "System Logs",
     "notifications": "Notifications",
+    "apiKeys": "API Keys",
+    "globalBlacklist": "Global Blacklist",
     "help": "Get Help",
     "feedback": "Feedback"
   },
@@ -836,7 +838,9 @@
         "noConfig": "No config",
         "capabilitiesCount": "{count} capabilities",
         "selected": "Selected",
-        "selectedEngines": "{count} engines selected"
+        "selectedEngines": "{count} engines selected",
+        "scanTarget": "Scan Target",
+        "presetTargetHint": "Target is preset and cannot be changed. To scan other targets, create from the global scheduled scans page."
       },
       "presets": {
         "everyHour": "Every Hour",
@@ -1690,6 +1694,12 @@
         "error": "Notification connection error: {message}"
       }
     },
+    "apiKeys": {
+      "settings": {
+        "success": "API key settings saved",
+        "error": "Failed to save API key settings"
+      }
+    },
     "tool": {
       "create": {
         "success": "Tool created successfully",
@@ -1758,6 +1768,12 @@
       "fetch": {
         "error": "Failed to fetch system logs, please check backend",
         "recovered": "System log connection recovered"
+      }
+    },
+    "blacklist": {
+      "save": {
+        "success": "Blacklist rules saved",
+        "error": "Failed to save blacklist rules"
       }
     }
   },
@@ -2005,6 +2021,9 @@
     },
     "targetDetail": {
       "noDescription": "No description",
+      "breadcrumb": {
+        "targetDetail": "Target Detail"
+      },
       "error": {
         "title": "Load Failed",
         "message": "An error occurred while fetching target data"
@@ -2012,11 +2031,138 @@
       "notFound": {
         "title": "Target Not Found",
         "message": "Target with ID {id} not found"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "assets": "Assets",
+        "vulnerabilities": "Vulnerabilities",
+        "settings": "Settings"
+      },
+      "settings": {
+        "loadError": "Failed to load settings",
+        "blacklist": {
+          "title": "Blacklist Rules",
+          "description": "Assets matching the following rules will be automatically excluded during scanning.",
+          "rulesTitle": "Supported Rule Types",
+          "rules": {
+            "domain": "Domain wildcard, matches specified suffix",
+            "domainShort": "Domain",
+            "keyword": "Keyword match, contains specified string",
+            "keywordShort": "Keyword",
+            "ip": "Exact IP address match",
+            "ipShort": "IP",
+            "cidr": "Matches IP range",
+            "cidrShort": "CIDR"
+          },
+          "placeholder": "Enter rules, one per line\n\nExamples:\n*.gov\n*.edu\n*cdn*\n192.168.0.0/16\n10.0.0.1",
+          "save": "Save Rules"
+        },
+        "scheduledScans": {
+          "title": "Scheduled Scans",
+          "description": "Configure automated scan tasks for this target",
+          "create": "New Scheduled Scan",
+          "empty": "No scheduled scans",
+          "emptyHint": "Click the button above to create a scheduled scan",
+          "enabled": "Enabled",
+          "disabled": "Disabled",
+          "nextRun": "Next run",
+          "runCount": "Run count",
+          "edit": "Edit",
+          "delete": "Delete",
+          "cronDaily": "Daily at {time}",
+          "cronWeekly": "Every {day} at {time}",
+          "cronMonthly": "Monthly on day {day} at {time}",
+          "weekdays": {
+            "sun": "Sunday",
+            "mon": "Monday",
+            "tue": "Tuesday",
+            "wed": "Wednesday",
+            "thu": "Thursday",
+            "fri": "Friday",
+            "sat": "Saturday"
+          },
+          "deleteConfirm": {
+            "title": "Confirm Delete",
+            "description": "Are you sure you want to delete the scheduled scan \"{name}\"? This action cannot be undone.",
+            "cancel": "Cancel",
+            "confirm": "Delete"
+          }
+        }
+      },
+      "overview": {
+        "loadError": "Failed to load target data",
+        "createdAt": "Created",
+        "lastScanned": "Last Scanned",
+        "assetsTitle": "Assets",
+        "vulnerabilitiesTitle": "Vulnerabilities",
+        "scanHistoryTitle": "Scan History",
+        "recentScans": "Recent Scans",
+        "noScans": "No scan records",
+        "viewAll": "View all",
+        "cards": {
+          "websites": "Websites",
+          "subdomains": "Subdomains",
+          "ips": "IP Addresses",
+          "urls": "URLs",
+          "directories": "Directories",
+          "vulnerabilities": "Total Vulnerabilities"
+        },
+        "severity": {
+          "critical": "Critical",
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low"
+        },
+        "scanStatus": {
+          "completed": "Completed",
+          "running": "Running",
+          "failed": "Failed",
+          "cancelled": "Cancelled",
+          "initiated": "Pending"
+        },
+        "scheduledScans": {
+          "title": "Scheduled Scans",
+          "manage": "Manage",
+          "empty": "No scheduled scans",
+          "createFirst": "Create your first scheduled scan",
+          "configured": "Configured",
+          "enabled": "Enabled",
+          "nextRun": "Next run",
+          "today": "Today",
+          "tomorrow": "Tomorrow",
+          "more": "+{count} more"
+        },
+        "initiateScan": "Initiate Scan"
       }
     },
     "nav": {
       "scanEngine": "Scan Engine",
       "wordlists": "Wordlist Management"
+    },
+    "settings": {
+      "blacklist": {
+        "title": "Global Blacklist",
+        "description": "Configure global blacklist rules. Matching assets will be automatically excluded during scans.",
+        "loadError": "Failed to load blacklist rules",
+        "card": {
+          "title": "Blacklist Rules",
+          "description": "These rules apply to all target scans. To configure blacklist for a specific target, go to the target settings page."
+        },
+        "rules": {
+          "title": "Supported rule types",
+          "domain": "Domain",
+          "keyword": "Keyword",
+          "ip": "IP",
+          "cidr": "CIDR"
+        },
+        "scopeHint": "Global rules apply to all targets. Target-level rules can be configured in Target → Settings.",
+        "placeholder": "Enter rules, one per line\n\nExamples:\n*.gov\n*.edu\n*cdn*\n192.168.0.0/16\n10.0.0.1",
+        "save": "Save Rules",
+        "toast": {
+          "saveSuccess": "Blacklist rules saved",
+          "saveError": "Failed to save blacklist rules"
+        }
+      }
     }
   },
   "metadata": {
