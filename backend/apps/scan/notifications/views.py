@@ -23,45 +23,7 @@ from .services import NotificationService, NotificationSettingsService
 logger = logging.getLogger(__name__)
 
 
-def notifications_test(request):
-    """
-    测试通知推送
-    """
-    try:
-        from .services import create_notification
-        from django.http import JsonResponse
 
-        level_param = request.GET.get('level', NotificationLevel.LOW)
-        try:
-            level_choice = NotificationLevel(level_param)
-        except ValueError:
-            level_choice = NotificationLevel.LOW
-
-        title = request.GET.get('title') or "测试通知"
-        message = request.GET.get('message') or "这是一条测试通知消息"
-
-        # 创建测试通知
-        notification = create_notification(
-            title=title,
-            message=message,
-            level=level_choice
-        )
-        
-        return JsonResponse({
-            'success': True,
-            'message': '测试通知已发送',
-            'notification_id': notification.id
-        })
-        
-    except Exception as e:
-        logger.error(f"发送测试通知失败: {e}")
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
-
-
-# build_api_response 已废弃，请使用 success_response/error_response
 
 
 def _parse_bool(value: str | None) -> bool | None:
