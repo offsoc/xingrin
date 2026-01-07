@@ -31,9 +31,11 @@ import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useScan } from "@/hooks/use-scans"
 import { useScanLogs } from "@/hooks/use-scan-logs"
 import { ScanLogList } from "@/components/scan/scan-log-list"
+import { YamlEditor } from "@/components/ui/yaml-editor"
 import { getDateLocale } from "@/lib/date-utils"
 import { cn } from "@/lib/utils"
 import type { StageStatus } from "@/types/scan.types"
@@ -95,6 +97,9 @@ export function ScanOverview({ scanId }: ScanOverviewProps) {
   
   // Auto-refresh state (default: on when running)
   const [autoRefresh, setAutoRefresh] = useState(true)
+  
+  // Tab state for logs/config
+  const [activeTab, setActiveTab] = useState<'logs' | 'config'>('logs')
   
   // Logs hook
   const { logs, loading: logsLoading } = useScanLogs({
@@ -329,7 +334,7 @@ export function ScanOverview({ scanId }: ScanOverviewProps) {
                         <div
                           key={stageName}
                           className={cn(
-                            "flex items-center justify-between py-2 rounded-md transition-colors text-sm",
+                            "flex items-center justify-between py-2 px-2 rounded-md transition-colors text-sm",
                             isRunning && "bg-[#d29922]/10 border border-[#d29922]/30",
                             stageProgress.status === "completed" && "text-muted-foreground",
                             stageProgress.status === "failed" && "bg-[#da3633]/10 text-[#da3633]",
@@ -400,28 +405,18 @@ export function ScanOverview({ scanId }: ScanOverviewProps) {
           </Link>
         </div>
 
-        {/* Right Column: Logs */}
+        {/* Right Column: Logs / Config */}
         <div className="flex flex-col min-h-0 rounded-lg overflow-hidden border">
-          <div className="flex-1 min-h-0">
-            <ScanLogList logs={logs} loading={logsLoading} />
-          </div>
-          {/* Bottom status bar */}
-          <div className="flex items-center justify-between px-4 py-2 bg-muted/50 border-t text-xs text-muted-foreground shrink-0">
-            <div className="flex items-center gap-3">
-              <span>{t("logsTitle")}</span>
-              <Separator orientation="vertical" className="h-3" />
-              <span>{logs.length} 条记录</span>
-              {isRunning && autoRefresh && (
-                <>
-                  <Separator orientation="vertical" className="h-3" />
-                  <span className="flex items-center gap-1.5">
-                    <span className="size-1.5 rounded-full bg-green-500 animate-pulse" />
-                    每 3 秒刷新
-                  </span>
-                </>
-              )}
-            </div>
-            {isRunning && (
+          {/* Tab Header */}
+          <div className="flex items-center justify-between px-3 py-2 bg-muted/30 border-b shrink-0">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'logs' | 'config')}>
+              <TabsList variant="underline" className="h-8 gap-3">
+                <TabsTrigger variant="underline" value="logs" className="text-xs">{t("logsTitle")}</TabsTrigger>
+                <TabsTrigger variant="underline" value="config" className="text-xs">{t("configTitle")}</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            {/* Auto-refresh toggle (only for logs tab when running) */}
+            {activeTab === 'logs' && isRunning && (
               <div className="flex items-center gap-2">
                 <Switch
                   id="log-auto-refresh"
@@ -430,11 +425,49 @@ export function ScanOverview({ scanId }: ScanOverviewProps) {
                   className="scale-75"
                 />
                 <Label htmlFor="log-auto-refresh" className="text-xs cursor-pointer">
-                  自动刷新
+                  {t("autoRefresh")}
                 </Label>
               </div>
             )}
           </div>
+          
+          {/* Tab Content */}
+          <div className="flex-1 min-h-0">
+            {activeTab === 'logs' ? (
+              <ScanLogList logs={logs} loading={logsLoading} />
+            ) : (
+              <div className="h-full">
+                {scan.yamlConfiguration ? (
+                  <YamlEditor
+                    value={scan.yamlConfiguration}
+                    onChange={() => {}}
+                    disabled={true}
+                    height="100%"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                    {t("noConfig")}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {/* Bottom status bar (only for logs tab) */}
+          {activeTab === 'logs' && (
+            <div className="flex items-center px-4 py-2 bg-muted/50 border-t text-xs text-muted-foreground shrink-0">
+              <span>{logs.length} 条记录</span>
+              {isRunning && autoRefresh && (
+                <>
+                  <Separator orientation="vertical" className="h-3 mx-3" />
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-1.5 rounded-full bg-green-500 animate-pulse" />
+                    每 3 秒刷新
+                  </span>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -41,7 +41,7 @@ class ScanHistorySerializer(serializers.ModelSerializer):
         fields = [
             'id', 'target', 'target_name', 'engine_ids', 'engine_names', 
             'worker_name', 'created_at', 'status', 'error_message', 'summary', 
-            'progress', 'current_stage', 'stage_progress'
+            'progress', 'current_stage', 'stage_progress', 'yaml_configuration'
         ]
     
     def get_summary(self, obj):

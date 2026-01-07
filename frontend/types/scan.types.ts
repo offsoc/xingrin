@@ -59,6 +59,7 @@ export interface ScanRecord {
   progress: number             // 0-100
   currentStage?: ScanStage     // Current scan stage (only has value in running status)
   stageProgress?: StageProgress // Stage progress details
+  yamlConfiguration?: string     // YAML configuration string
 }
 
 export interface GetScansParams {
