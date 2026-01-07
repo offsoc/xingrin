@@ -27,7 +27,7 @@
 
 ## 🌐 在线 Demo
 
-👉 **[https://xingrin.vercel.app/](https://xingrin.vercel.app/)**
+ **[https://xingrin.vercel.app/](https://xingrin.vercel.app/)**
 
 > ⚠️ 仅用于 UI 展示，未接入后端数据库
 
@@ -72,13 +72,17 @@
 ### 🚫 黑名单过滤
 - **两层黑名单** - 全局黑名单 + Target 级黑名单，灵活控制扫描范围
 - **智能规则识别** - 自动识别域名通配符（`*.gov`）、IP、CIDR 网段
-- **敏感目标保护** - 过滤政府、军事、教育等敏感域名，防止误扫
-- **内网过滤** - 支持 `10.0.0.0/8`、`172.16.0.0/12`、`192.168.0.0/16` 等私有网段
 
 ### 🔖 指纹识别
 - **多源指纹库** - 内置 EHole、Goby、Wappalyzer、Fingers、FingerPrintHub、ARL 等 2.7W+ 指纹规则
 - **自动识别** - 扫描流程自动执行，识别 Web 应用技术栈
 - **指纹管理** - 支持查询、导入、导出指纹规则
+
+### 📸 站点截图
+- **自动截图** - 使用 Playwright 对发现的网站自动截图
+- **WebP 格式** - 高压缩比存储，500k图片压缩存储只占几十K
+- **多来源支持** - 支持对 Websites、Endpoints 等不同来源的 URL 截图
+- **资产关联** - 截图自动同步到资产表，方便查看
 
 #### 扫描流程架构
 
@@ -101,6 +105,7 @@ flowchart LR
         direction TB
         URL["URL 收集<br/>waymore, katana"]
         DIR["目录扫描<br/>ffuf"]
+        SCREENSHOT["站点截图<br/>playwright"]
     end
     
     subgraph STAGE3["阶段 3: 漏洞检测"]
@@ -125,6 +130,7 @@ flowchart LR
     style FINGER fill:#5dade2,stroke:#3498db,stroke-width:1px,color:#fff
     style URL fill:#bb8fce,stroke:#9b59b6,stroke-width:1px,color:#fff
     style DIR fill:#bb8fce,stroke:#9b59b6,stroke-width:1px,color:#fff
+    style SCREENSHOT fill:#bb8fce,stroke:#9b59b6,stroke-width:1px,color:#fff
     style VULN fill:#f0b27a,stroke:#e67e22,stroke-width:1px,color:#fff
 ```
 
@@ -231,7 +237,6 @@ sudo ./install.sh --mirror
 > **💡 --mirror 参数说明**
 > - 自动配置 Docker 镜像加速（国内镜像源）
 > - 加速 Git 仓库克隆（Nuclei 模板等）
-> - 大幅提升安装速度，避免网络超时
 
 ### 访问服务
 
@@ -263,6 +268,32 @@ sudo ./uninstall.sh
 - 微信群去公众号底下的菜单，有个交流群，点击就可以看到了，链接过期可以私信我拉你
 
 <img src="docs/wechat-qrcode.png" alt="微信公众号" width="200">
+
+### 🎁 关注公众号免费领取指纹库
+
+| 指纹库 | 数量 |
+|--------|------|
+| ehole.json | 21,977 |
+| ARL.yaml | 9,264 |
+| goby.json | 7,086 |
+| FingerprintHub.json | 3,147 |
+
+> 💡 关注公众号回复「指纹」即可获取
+
+## ☕ 赞助支持
+
+如果这个项目对你有帮助，谢谢请我能喝杯蜜雪冰城，你的star和赞助是我免费更新的动力
+
+<p>
+  <img src="docs/wx_pay.jpg" alt="微信支付" width="200">
+  <img src="docs/zfb_pay.jpg" alt="支付宝" width="200">
+</p>
+
+### 🙏 感谢以下赞助
+
+| 昵称 | 金额 |
+|------|------|
+| X（闭关中） | ¥88 |
 
 
 ## ⚠️ 免责声明
