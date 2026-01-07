@@ -103,7 +103,7 @@ export function LogToolbar({
 
       {/* 日志级别筛选 */}
       <Select value={logLevel} onValueChange={(v) => onLogLevelChange(v as LogLevel)}>
-        <SelectTrigger className="w-[100px]">
+        <SelectTrigger className="w-[130px]">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
