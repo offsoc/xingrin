@@ -182,7 +182,7 @@ echo -e "${BOLD}${GREEN}══════════════════�
 echo ""
 echo -e "${BOLD}访问地址${NC}"
 if [ "$WITH_FRONTEND" = true ]; then
-    echo -e "  XingRin:  ${CYAN}https://${ACCESS_HOST}/${NC}"
+    echo -e "  XingRin:  ${CYAN}https://${ACCESS_HOST}:8083/${NC}"
     echo -e "  ${YELLOW}(HTTP 会自动跳转到 HTTPS)${NC}"
 else
     echo -e "  API:      ${CYAN}通过前端或 nginx 访问（后端未暴露 8888）${NC}"

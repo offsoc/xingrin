@@ -23,11 +23,26 @@ GITHUB_RELEASES_URL = f"https://github.com/{GITHUB_REPO}/releases"
 
 def get_current_version() -> str:
     """读取当前版本号"""
-    version_file = Path(__file__).parent.parent.parent.parent.parent / 'VERSION'
-    try:
-        return version_file.read_text(encoding='utf-8').strip()
-    except FileNotFoundError:
-        return "unknown"
+    import os
+
+    # 方式1：从环境变量读取（Docker 容器中推荐）
+    version = os.environ.get('IMAGE_TAG', '')
+    if version:
+        return version
+
+    # 方式2：从文件读取（开发环境）
+    possible_paths = [
+        Path('/app/VERSION'),
+        Path(__file__).parent.parent.parent.parent.parent / 'VERSION',
+    ]
+
+    for path in possible_paths:
+        try:
+            return path.read_text(encoding='utf-8').strip()
+        except (FileNotFoundError, OSError):
+            continue
+
+    return "unknown"
 
 
 def compare_versions(current: str, latest: str) -> bool:

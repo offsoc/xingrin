@@ -44,6 +44,8 @@ services:
     restart: always
     env_file:
       - .env
+    environment:
+      - IMAGE_TAG=${IMAGE_TAG:-dev}
     ports:
       - "8888:8888"
     depends_on:

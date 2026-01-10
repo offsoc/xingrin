@@ -94,7 +94,7 @@ echo ""
 
 # 测试性功能警告
 echo -e "${BOLD}${YELLOW}[!] 警告：此功能为测试性功能，可能会导致升级失败${NC}"
-echo -e "${YELLOW}    建议运行 ./uninstall.sh 后重新执行 ./install.sh 进行全新安装${NC}"
+echo -e "${YELLOW}    建议运行 ./uninstall.sh 后重新clone最新代码进行全新安装${NC}"
 echo ""
 echo -n -e "${YELLOW}是否继续更新？(y/N) ${NC}"
 read -r ans_continue
