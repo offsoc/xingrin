@@ -312,7 +312,11 @@ class TaskDistributor:
         # - 本地 Worker：install.sh 已预拉取镜像，直接使用本地版本
         # - 远程 Worker：deploy 时已预拉取镜像，直接使用本地版本
         # - 避免每次任务都检查 Docker Hub，提升性能和稳定性
+        # OOM 优先级：--oom-score-adj=1000 让 Worker 在内存不足时优先被杀
+        # - 范围 -1000 到 1000，值越大越容易被 OOM Killer 选中
+        # - 保护 server/nginx/frontend 等核心服务，确保 Web 界面可用
         cmd = f'''docker run --rm -d --pull=missing {network_arg} \\
+            --oom-score-adj=1000 \\
             {' '.join(env_vars)} \\
             {' '.join(volumes)} \\
             {self.docker_image} \\

@@ -24,18 +24,6 @@ SUBDOMAIN_DISCOVERY_COMMANDS = {
         }
     },
     
-    'amass_passive': {
-        # 先执行被动枚举，将结果写入 amass 内部数据库，然后从数据库中导出纯域名（names）到 output_file
-        # -silent 禁用进度条和其他输出
-        'base': "amass enum -passive -silent -d {domain} && amass subs -names -d {domain} > '{output_file}'"
-    },
-    
-    'amass_active': {
-        # 先执行主动枚举 + 爆破，将结果写入 amass 内部数据库，然后从数据库中导出纯域名（names）到 output_file
-        # -silent 禁用进度条和其他输出
-        'base': "amass enum -active -silent -d {domain} -brute && amass subs -names -d {domain} > '{output_file}'"
-    },
-    
     'sublist3r': {
         'base': "python3 '/usr/local/share/Sublist3r/sublist3r.py' -d {domain} -o '{output_file}'",
         'optional': {

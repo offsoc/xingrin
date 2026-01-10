@@ -17,14 +17,6 @@ subdomain_discovery:
       timeout: 3600      # 1小时
       # threads: 10      # 并发 goroutine 数
       
-    amass_passive:
-      enabled: true
-      timeout: 3600
-      
-    amass_active:
-      enabled: true      # 主动枚举 + 爆破
-      timeout: 3600
-      
     sublist3r:
       enabled: true
       timeout: 3600
@@ -62,7 +54,7 @@ port_scan:
       threads: 200       # 并发连接数（默认 5）
       # ports: 1-65535   # 扫描端口范围（默认 1-65535）
       top-ports: 100     # 扫描 nmap top 100 端口
-      rate: 10           # 扫描速率（默认 10）
+      rate: 50           # 扫描速率
       
     naabu_passive:
       enabled: true

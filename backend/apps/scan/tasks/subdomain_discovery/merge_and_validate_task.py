@@ -20,63 +20,40 @@ Note:
 """
 
 import logging
-import uuid
 import subprocess
-from pathlib import Path
+import uuid
 from datetime import datetime
-from prefect import task
+from pathlib import Path
 from typing import List
+
+from prefect import task
 
 logger = logging.getLogger(__name__)
 
-# 注：使用纯系统命令实现，无需 Python 缓冲区配置
-# 工具（amass/subfinder）输出已是小写且标准化
 
-@task(
-    name='merge_and_deduplicate',
-    retries=1,
-    log_prints=True
-)
-def merge_and_validate_task(
-    result_files: List[str],
-    result_dir: str
-) -> str:
-    """
-    合并扫描结果并去重（高性能流式处理）
-    
-    流程：
-    1. 使用 LC_ALL=C sort -u 直接处理多文件
-    2. 排序去重一步完成
-    3. 返回去重后的文件路径
-    
-    命令:LC_ALL=C sort -u file1 file2 file3 -o output
-    注:工具输出已标准化(小写,无空行),无需额外处理
-    
-    Args:
-        result_files: 结果文件路径列表
-        result_dir: 结果目录
-    
-    Returns:
-        str: 去重后的域名文件路径
-    
-    Raises:
-        RuntimeError: 处理失败
-    
-    Performance:
-        - 纯系统命令(C语言实现),单进程极简
-        - LC_ALL=C: 字节序比较
-        - sort -u: 直接处理多文件(无管道开销)
-    
-    Design:
-        - 极简单命令,无冗余处理
-        - 单进程直接执行(无管道/重定向开销)
-        - 内存占用仅在 sort 阶段（外部排序，不会 OOM）
-    """
-    logger.info("开始合并并去重 %d 个结果文件（系统命令优化）", len(result_files))
-    
-    result_path = Path(result_dir)
-    
-    # 验证文件存在性
+def _count_file_lines(file_path: str) -> int:
+    """使用 wc -l 统计文件行数，失败时返回 0"""
+    try:
+        result = subprocess.run(
+            ["wc", "-l", file_path],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return int(result.stdout.strip().split()[0])
+    except (subprocess.CalledProcessError, ValueError, IndexError):
+        return 0
+
+
+def _calculate_timeout(total_lines: int) -> int:
+    """根据总行数计算超时时间（每行约 0.1 秒，最少 600 秒）"""
+    if total_lines <= 0:
+        return 3600
+    return max(600, int(total_lines * 0.1))
+
+
+def _validate_input_files(result_files: List[str]) -> List[str]:
+    """验证输入文件存在性，返回有效文件列表"""
     valid_files = []
     for file_path_str in result_files:
         file_path = Path(file_path_str)
@@ -84,112 +61,67 @@ def merge_and_validate_task(
             valid_files.append(str(file_path))
         else:
             logger.warning("结果文件不存在: %s", file_path)
-    
+    return valid_files
+
+
+@task(name='merge_and_deduplicate', retries=1, log_prints=True)
+def merge_and_validate_task(result_files: List[str], result_dir: str) -> str:
+    """
+    合并扫描结果并去重（高性能流式处理）
+
+    使用 LC_ALL=C sort -u 直接处理多文件，排序去重一步完成。
+
+    Args:
+        result_files: 结果文件路径列表
+        result_dir: 结果目录
+
+    Returns:
+        去重后的域名文件路径
+
+    Raises:
+        RuntimeError: 处理失败
+    """
+    logger.info("开始合并并去重 %d 个结果文件", len(result_files))
+
+    valid_files = _validate_input_files(result_files)
     if not valid_files:
         raise RuntimeError("所有结果文件都不存在")
-    
+
     # 生成输出文件路径
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     short_uuid = uuid.uuid4().hex[:4]
-    merged_file = result_path / f"merged_{timestamp}_{short_uuid}.txt"
-    
+    merged_file = Path(result_dir) / f"merged_{timestamp}_{short_uuid}.txt"
+
+    # 计算超时时间
+    total_lines = sum(_count_file_lines(f) for f in valid_files)
+    timeout = _calculate_timeout(total_lines)
+    logger.info("合并去重: 输入总行数=%d, timeout=%d秒", total_lines, timeout)
+
+    # 执行合并去重命令
+    cmd = f"LC_ALL=C sort -u {' '.join(valid_files)} -o {merged_file}"
+    logger.debug("执行命令: %s", cmd)
+
     try:
-        # ==================== 使用系统命令一步完成:排序去重 ====================
-        # LC_ALL=C: 使用字节序比较(比locale快20-30%)
-        # sort -u: 直接处理多文件,排序去重
-        # -o: 安全输出(比重定向更可靠)
-        cmd = f"LC_ALL=C sort -u {' '.join(valid_files)} -o {merged_file}"
-        
-        logger.debug("执行命令: %s", cmd)
+        subprocess.run(cmd, shell=True, check=True, timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError("合并去重超时，请检查数据量或系统资源") from exc
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError(f"系统命令执行失败: {exc.stderr or exc}") from exc
 
-        # 按输入文件总行数动态计算超时时间
-        total_lines = 0
-        for file_path in valid_files:
-            try:
-                line_count_proc = subprocess.run(
-                    ["wc", "-l", file_path],
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-                total_lines += int(line_count_proc.stdout.strip().split()[0])
-            except (subprocess.CalledProcessError, ValueError, IndexError):
-                continue
+    # 验证输出文件
+    if not merged_file.exists():
+        raise RuntimeError("合并文件未被创建")
 
-        timeout = 3600
-        if total_lines > 0:
-            # 按行数线性计算：每行约 0.1 秒
-            base_per_line = 0.1
-            est = int(total_lines * base_per_line)
-            timeout = max(600, est)
+    unique_count = _count_file_lines(str(merged_file))
+    if unique_count == 0:
+        # 降级为 Python 统计
+        with open(merged_file, 'r', encoding='utf-8') as f:
+            unique_count = sum(1 for _ in f)
 
-        logger.info(
-            "Subdomain 合并去重 timeout 自动计算: 输入总行数=%d, timeout=%d秒",
-            total_lines,
-            timeout,
-        )
+    if unique_count == 0:
+        raise RuntimeError("未找到任何有效域名")
 
-        result = subprocess.run(
-            cmd,
-            shell=True,
-            check=True,
-            timeout=timeout
-        )
-        
-        logger.debug("✓ 合并去重完成")
-        
-        # ==================== 统计结果 ====================
-        if not merged_file.exists():
-            raise RuntimeError("合并文件未被创建")
-        
-        # 统计行数（使用系统命令提升大文件性能）
-        try:
-            line_count_proc = subprocess.run(
-                ["wc", "-l", str(merged_file)],
-                check=True,
-                capture_output=True,
-                text=True
-            )
-            unique_count = int(line_count_proc.stdout.strip().split()[0])
-        except (subprocess.CalledProcessError, ValueError, IndexError) as e:
-            logger.warning(
-                "wc -l 统计失败（文件: %s），降级为 Python 逐行统计 - 错误: %s",
-                merged_file, e
-            )
-            unique_count = 0
-            with open(merged_file, 'r', encoding='utf-8') as file_obj:
-                for _ in file_obj:
-                    unique_count += 1
-        
-        if unique_count == 0:
-            raise RuntimeError("未找到任何有效域名")
-        
-        file_size = merged_file.stat().st_size
-        
-        logger.info(
-            "✓ 合并去重完成 - 去重后: %d 个域名, 文件大小: %.2f KB",
-            unique_count,
-            file_size / 1024
-        )
-        
-        return str(merged_file)
-        
-    except subprocess.TimeoutExpired:
-        error_msg = "合并去重超时（>60分钟），请检查数据量或系统资源"
-        logger.warning(error_msg)  # 超时是可预期的
-        raise RuntimeError(error_msg)
-    
-    except subprocess.CalledProcessError as e:
-        error_msg = f"系统命令执行失败: {e.stderr if e.stderr else str(e)}"
-        logger.warning(error_msg)  # 超时是可预期的
-        raise RuntimeError(error_msg) from e
-    
-    except IOError as e:
-        error_msg = f"文件读写失败: {e}"
-        logger.warning(error_msg)  # 超时是可预期的
-        raise RuntimeError(error_msg) from e
-    
-    except Exception as e:
-        error_msg = f"合并去重失败: {e}"
-        logger.error(error_msg, exc_info=True)
-        raise
+    file_size_kb = merged_file.stat().st_size / 1024
+    logger.info("✓ 合并去重完成 - 去重后: %d 个域名, 文件大小: %.2f KB", unique_count, file_size_kb)
+
+    return str(merged_file)

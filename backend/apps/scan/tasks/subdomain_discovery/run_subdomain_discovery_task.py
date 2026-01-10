@@ -1,7 +1,7 @@
 """
 运行扫描工具任务
 
-负责运行单个子域名扫描工具（amass、subfinder 等）
+负责运行单个子域名扫描工具（subfinder、sublist3r 等）
 """
 
 import logging
@@ -58,7 +58,7 @@ def run_subdomain_discovery_task(
             timeout=timeout,
             log_file=log_file  # 明确指定日志文件路径
         )
-        
+
         # 验证输出文件是否生成
         if not output_file_path.exists():
             logger.warning(
